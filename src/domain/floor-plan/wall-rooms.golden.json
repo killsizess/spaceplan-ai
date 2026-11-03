@@ -1,0 +1,397 @@
+{
+  "rectangle": [
+    {
+      "id": "wall-room:54504e6d9ff54631",
+      "area": 18.24,
+      "perimeter": 17.2,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        0.1,
+        0.1,
+        4.9,
+        3.9
+      ],
+      "boundaryWallIds": [
+        "r1",
+        "r2",
+        "r3",
+        "r4"
+      ]
+    }
+  ],
+  "l-shape": [
+    {
+      "id": "wall-room:df3ba552c345404a",
+      "area": 24.65,
+      "perimeter": 23.2,
+      "vertices": 8,
+      "holes": [],
+      "bounds": [
+        0.1,
+        0.1,
+        5.9,
+        5.9
+      ],
+      "boundaryWallIds": [
+        "l1",
+        "l2",
+        "l3",
+        "l4",
+        "l5",
+        "l6"
+      ]
+    }
+  ],
+  "partitioned-apartment": [
+    {
+      "id": "wall-room:aca2ca4a3bff9078",
+      "area": 33.36,
+      "perimeter": 26,
+      "vertices": 8,
+      "holes": [],
+      "bounds": [
+        0.1,
+        0.1,
+        5.9,
+        5.9
+      ],
+      "boundaryWallIds": [
+        "a1",
+        "a3",
+        "a4",
+        "partition",
+        "stub"
+      ]
+    },
+    {
+      "id": "wall-room:48243af4de64eef0",
+      "area": 10.64,
+      "perimeter": 13.2,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        6.1,
+        0.1,
+        9.9,
+        2.9
+      ],
+      "boundaryWallIds": [
+        "a1",
+        "a2",
+        "branch",
+        "partition"
+      ]
+    },
+    {
+      "id": "wall-room:10d646f460875016",
+      "area": 10.64,
+      "perimeter": 13.2,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        6.1,
+        3.1,
+        9.9,
+        5.9
+      ],
+      "boundaryWallIds": [
+        "a2",
+        "a3",
+        "branch",
+        "partition"
+      ]
+    }
+  ],
+  "mixed-thickness": [
+    {
+      "id": "wall-room:446b29fe6b44a3a4",
+      "area": 8.51,
+      "perimeter": 12,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        0.15,
+        0.15,
+        2.45,
+        3.85
+      ],
+      "boundaryWallIds": [
+        "inner",
+        "m1",
+        "m3",
+        "m4"
+      ]
+    },
+    {
+      "id": "wall-room:fb766bee0618727e",
+      "area": 12.21,
+      "perimeter": 14,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        2.55,
+        0.15,
+        5.85,
+        3.85
+      ],
+      "boundaryWallIds": [
+        "inner",
+        "m1",
+        "m2",
+        "m3"
+      ]
+    }
+  ],
+  "diagonal-corner": [
+    {
+      "id": "wall-room:5b2c7ba68a4e7148",
+      "area": 29.31402,
+      "perimeter": 21.476955,
+      "vertices": 5,
+      "holes": [],
+      "bounds": [
+        0.1,
+        0.1,
+        5.9,
+        5.9
+      ],
+      "boundaryWallIds": [
+        "d1",
+        "d2",
+        "d3",
+        "d4",
+        "d5"
+      ]
+    }
+  ],
+  "off-grid-skewed": [
+    {
+      "id": "wall-room:8d427329fdc6d5b9",
+      "area": 18.897636,
+      "perimeter": 17.434004,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        0.386386,
+        0.196598,
+        5.113401,
+        4.369364
+      ],
+      "boundaryWallIds": [
+        "o1",
+        "o2",
+        "o3",
+        "o4"
+      ]
+    }
+  ],
+  "free-standing-screen": [
+    {
+      "id": "wall-room:fc66d88989042559",
+      "area": 44.64,
+      "perimeter": 33.6,
+      "vertices": 4,
+      "holes": [
+        4
+      ],
+      "bounds": [
+        0.1,
+        0.1,
+        7.9,
+        5.9
+      ],
+      "boundaryWallIds": [
+        "s1",
+        "s2",
+        "s3",
+        "s4",
+        "screen"
+      ]
+    }
+  ],
+  "nested-box": [
+    {
+      "id": "wall-room:321107f9f69b8af5",
+      "area": 43.84,
+      "perimeter": 32,
+      "vertices": 4,
+      "holes": [
+        12
+      ],
+      "bounds": [
+        0.1,
+        0.1,
+        7.9,
+        5.9
+      ],
+      "boundaryWallIds": [
+        "box1",
+        "box2",
+        "box3",
+        "box4",
+        "n1",
+        "n2",
+        "n3",
+        "n4"
+      ]
+    },
+    {
+      "id": "wall-room:4550c9694b6940f9",
+      "area": 0.64,
+      "perimeter": 3.2,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        3.1,
+        2.1,
+        3.9,
+        2.9
+      ],
+      "boundaryWallIds": [
+        "box1",
+        "box2",
+        "box3",
+        "box4"
+      ]
+    }
+  ],
+  "open-gap": [],
+  "hairline-gap": [
+    {
+      "id": "wall-room:ab83bbd991dd2531",
+      "area": 18.24,
+      "perimeter": 17.2,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        0.1,
+        0.1,
+        4.9,
+        3.9
+      ],
+      "boundaryWallIds": [
+        "h1",
+        "h2",
+        "h3",
+        "h4"
+      ]
+    }
+  ],
+  "spatial-example": [
+    {
+      "id": "wall-room:be6990f0543c4076",
+      "area": 18.5856,
+      "perimeter": 17.36,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        0.1,
+        0.1,
+        4.94,
+        3.94
+      ],
+      "boundaryWallIds": [
+        "outer-left",
+        "outer-top",
+        "partition-h4",
+        "partition-v5"
+      ]
+    },
+    {
+      "id": "wall-room:a3bd7694fb4d7d94",
+      "area": 11.0592,
+      "perimeter": 13.44,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        5.06,
+        0.1,
+        7.94,
+        3.94
+      ],
+      "boundaryWallIds": [
+        "outer-top",
+        "partition-h4",
+        "partition-v5",
+        "partition-v8"
+      ]
+    },
+    {
+      "id": "wall-room:be8a68e51684cb15",
+      "area": 8.9056,
+      "perimeter": 13.36,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        8.06,
+        0.1,
+        9.9,
+        4.94
+      ],
+      "boundaryWallIds": [
+        "outer-right",
+        "outer-top",
+        "partition-h5",
+        "partition-v8"
+      ]
+    },
+    {
+      "id": "wall-room:58488ab9154926d3",
+      "area": 14.7456,
+      "perimeter": 15.36,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        0.1,
+        4.06,
+        3.94,
+        7.9
+      ],
+      "boundaryWallIds": [
+        "outer-bottom",
+        "outer-left",
+        "partition-h4",
+        "partition-v4"
+      ]
+    },
+    {
+      "id": "wall-room:44f2511d5be41091",
+      "area": 14.8992,
+      "perimeter": 15.44,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        4.06,
+        4.06,
+        7.94,
+        7.9
+      ],
+      "boundaryWallIds": [
+        "outer-bottom",
+        "partition-h4",
+        "partition-v4",
+        "partition-v8"
+      ]
+    },
+    {
+      "id": "wall-room:bf78aca949189091",
+      "area": 5.2256,
+      "perimeter": 9.36,
+      "vertices": 4,
+      "holes": [],
+      "bounds": [
+        8.06,
+        5.06,
+        9.9,
+        7.9
+      ],
+      "boundaryWallIds": [
+        "outer-bottom",
+        "outer-right",
+        "partition-h5",
+        "partition-v8"
+      ]
+    }
+  ]
+}

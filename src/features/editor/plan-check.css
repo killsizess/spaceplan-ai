@@ -1,0 +1,89 @@
+.project-dialog.plan-check-dialog {
+  width: 780px;
+  max-width: calc(100vw - 28px);
+  max-height: calc(100dvh - 28px);
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+}
+.plan-check-dialog[open] { display: flex; flex-direction: column; }
+.plan-check-dialog .modal-close { top: 14px; right: 14px; width: 38px; height: 38px; }
+.plan-check-header { display: flex; align-items: center; gap: 14px; padding: 25px 60px 20px 26px; flex-shrink: 0; }
+.plan-check-header > div { min-width: 0; }
+.plan-check-symbol { display: grid; place-items: center; width: 46px; height: 50px; color: #607957; background: #edf3e8; border-radius: 9px; flex-shrink: 0; }
+.plan-check-header .eyebrow { color: #8a967e; font-size: 9px; letter-spacing: 1.6px; }
+.plan-check-dialog h2 { margin: 5px 0; color: #28352a; font-size: 24px; line-height: 1.25; }
+.plan-check-dialog .plan-check-header p { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #76816e; font-size: 12px; }
+.plan-check-summary { display: flex; align-items: center; gap: 24px; padding: 17px 26px; background: #f5f7f1; border-block: 1px solid #e4e9de; flex-shrink: 0; }
+.plan-check-summary > div { display: flex; align-items: baseline; gap: 12px; flex-shrink: 0; }
+.plan-check-summary > div > span { max-width: 108px; color: #6a7860; font-size: 11px; line-height: 1.5; }
+.plan-check-summary strong { color: #41563b; font-size: 29px; line-height: 1.1; font-weight: 500; font-variant-numeric: tabular-nums; }
+.plan-check-dialog .plan-check-summary p { margin: 0; max-width: 390px; color: #7c8773; font-size: 11px; line-height: 1.7; }
+.plan-check-filters { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; padding: 17px 26px; flex-shrink: 0; }
+.plan-check-filters button { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; min-height: 47px; padding: 8px 9px; border: 1px solid #e1e7da; border-radius: 6px; color: #78856d; background: #fff; text-align: left; font-size: 10px; line-height: 1.45; }
+.plan-check-filters button > span { min-width: 0; }
+.plan-check-filters button b { font-size: 11px; font-weight: 500; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.plan-check-filters button:hover { background: #f5f8f1; }
+.plan-check-filters button[aria-pressed="true"] { background: #eaf1e3; border-color: #bccdaf; color: #4b6740; }
+.plan-check-body { min-height: 140px; padding: 0 26px 18px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.plan-check-list { list-style: none; padding: 0; margin: 0; }
+.plan-check-list > li + li { border-top: 1px solid #e6eadf; }
+.plan-check-row { display: flex; align-items: flex-start; gap: 13px; width: 100%; min-height: 90px; padding: 15px 9px; border-radius: 6px; text-align: left; }
+.plan-check-row:hover:not(:disabled) { background: #f8f9f4; }
+.plan-check-row:disabled { opacity: .55; cursor: wait; }
+.plan-check-kind-icon { display: grid; place-items: center; flex-shrink: 0; width: 33px; height: 35px; margin-top: 2px; border: 1px solid #ebddc4; border-radius: 7px; color: #ad7a44; background: #fcf7ec; }
+.is-door-pair .plan-check-kind-icon { border-color: #ded5ec; color: #8467ac; background: #f3eff9; }
+.plan-check-row-content { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.plan-check-kind-label { margin-bottom: 5px; color: #a48a62; font-size: 8px; text-transform: uppercase; letter-spacing: .9px; line-height: 1.4; }
+.is-door-pair .plan-check-kind-label { color: #8e77ad; }
+.plan-check-row-content > strong { color: #3d4c35; font-size: 12px; font-weight: 500; line-height: 1.5; }
+.plan-check-reason { margin-top: 4px; color: #7b8572; font-size: 10px; line-height: 1.7; }
+.plan-check-coordinate { margin-top: 6px; color: #9b9f8c; font-size: 9px; font-variant-numeric: tabular-nums; }
+.plan-check-row-arrow { margin-top: 19px; flex-shrink: 0; color: #95a185; }
+.plan-check-dialog .plan-check-cap { margin: 0 0 12px; padding: 11px 13px; border: 1px solid #ead9bf; border-radius: 6px; color: #947043; background: #fff9ed; font-size: 10px; line-height: 1.75; }
+.plan-check-more { display: block; width: 100%; min-height: 44px; margin-top: 8px; padding: 10px; color: #617954; font-size: 11px; border: 1px dashed #cfdbc3; border-radius: 6px; }
+.plan-check-more:hover { background: #f0f5e9; }
+.plan-check-more > span { margin-left: 5px; color: #8b9a7c; }
+.plan-check-empty { display: flex; flex-direction: column; align-items: center; gap: 13px; padding: 31px 20px 40px; color: #849776; text-align: center; }
+.plan-check-empty h3 { margin: 0; color: #637558; font-size: 15px; font-weight: 500; line-height: 1.6; }
+.plan-check-dialog .plan-check-empty p { max-width: 440px; margin: 0; color: #8d9780; font-size: 11px; line-height: 1.8; }
+.plan-check-footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 14px 26px 18px; border-top: 1px solid #e5eadf; background: #fff; flex-shrink: 0; }
+.plan-check-dialog .plan-check-footer p { max-width: 440px; margin: 0; color: #919985; font-size: 9px; line-height: 1.8; }
+.plan-check-return { min-height: 42px; padding: 9px 14px; flex-shrink: 0; border: 1px solid #d8e1cf; border-radius: 6px; color: #617954; font-size: 11px; }
+.plan-check-return:hover { background: #f0f5e9; }
+.plan-check-dialog button:focus-visible { outline: 2px solid #718d61; outline-offset: 2px; }
+.plan-check-trigger { position: relative; min-width: 32px; }
+.plan-check-trigger-badge { position: absolute; top: -3px; right: -5px; display: grid; place-items: center; min-width: 15px; height: 15px; padding: 0 3px; border: 1px solid #fff; border-radius: 8px; background: #f6e7ce; color: #94683d; font-size: 8px; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; pointer-events: none; }
+.plan-check-trigger-badge.is-clear { color: #6c805e; background: #edf3e6; }
+@media (max-width: 620px) {
+  .project-dialog.plan-check-dialog { max-width: calc(100vw - 18px); max-height: calc(100dvh - 20px); }
+  .plan-check-dialog .modal-close { width: 40px; height: 40px; top: 9px; right: 8px; }
+  .plan-check-header { gap: 10px; padding: 19px 51px 16px 15px; }
+  .plan-check-symbol { width: 35px; height: 43px; }
+  .plan-check-header .eyebrow { font-size: 7px; letter-spacing: 1.1px; }
+  .plan-check-dialog h2 { font-size: 21px; }
+  .plan-check-dialog .plan-check-header p { font-size: 10px; }
+  .plan-check-summary { gap: 16px; padding: 13px 15px; }
+  .plan-check-summary > div { gap: 9px; }
+  .plan-check-summary > div > span { max-width: 75px; font-size: 10px; }
+  .plan-check-summary strong { font-size: 25px; }
+  .plan-check-dialog .plan-check-summary p { font-size: 9px; line-height: 1.7; }
+  .plan-check-filters { grid-template-columns: 1fr 1fr; gap: 6px; padding: 12px 15px; }
+  .plan-check-filters button { min-height: 44px; font-size: 10px; padding: 8px 10px; }
+  .plan-check-filters button:first-child { grid-column: 1 / -1; }
+  .plan-check-body { min-height: 100px; padding: 0 15px 13px; }
+  .plan-check-row { gap: 9px; padding: 14px 3px; }
+  .plan-check-kind-icon { width: 27px; height: 31px; }
+  .plan-check-row-content > strong { font-size: 11px; }
+  .plan-check-reason { font-size: 10px; }
+  .plan-check-coordinate { font-size: 9px; }
+  .plan-check-footer { gap: 9px; padding: 12px 15px 14px; align-items: stretch; flex-direction: column; }
+  .plan-check-dialog .plan-check-footer p { font-size: 8px; line-height: 1.7; }
+  .plan-check-return { min-height: 44px; width: 100%; }
+}
+@media (max-height: 620px) and (min-width: 621px) {
+  .plan-check-header { padding-top: 15px; padding-bottom: 12px; }
+  .plan-check-summary { padding-block: 10px; }
+  .plan-check-filters { padding-block: 10px; }
+  .plan-check-footer { padding-block: 10px; }
+}
