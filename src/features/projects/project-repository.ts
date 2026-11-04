@@ -13,8 +13,11 @@ export const PROJECT_PREFIX = "spaceplan-ai:project:";
 export const ACTIVE_PROJECT_KEY = "spaceplan-ai:active-project:v1";
 export const MAX_PLAN_FILE_BYTES = 4 * 1024 * 1024;
 
-/** Migration is in memory only; a normal successful save upgrades the record. */
-const persistedPlanSchema = z.preprocess((value) => {
+/**
+ * Migration is in memory only; a normal successful save upgrades the record.
+ * Formats 1–5 are brought to 6 here, then 6 to the current version by `toCurrentVersion`.
+ */
+function toVersionSix(value: unknown): unknown {
   if (
     typeof value === "object" && value !== null &&
     "schemaVersion" in value &&
@@ -58,7 +61,32 @@ const persistedPlanSchema = z.preprocess((value) => {
     return { ...value, schemaVersion: 6, requirements: [] };
   }
   return value;
-}, floorPlanSchema);
+}
+
+/**
+ * 6 → 7 only adds optional things: a wall type (absent means unknown), the
+ * "bearing walls kept" requirement and the origin of a variant. Nothing is rewritten.
+ * A version-6 file that already carries one of them is not migrated, so its injected
+ * field fails validation instead of being blessed.
+ */
+function toCurrentVersion(value: unknown): unknown {
+  if (
+    typeof value !== "object" || value === null ||
+    !("schemaVersion" in value) || value.schemaVersion !== 6 ||
+    "origin" in value
+  ) return value;
+  const { walls, requirements } = value as { walls?: unknown; requirements?: unknown };
+  const has = (items: unknown, test: (item: object) => boolean) =>
+    Array.isArray(items) && items.some((item) => typeof item === "object" && item !== null && test(item));
+  if (has(walls, (wall) => "kind" in wall)) return value;
+  if (has(requirements, (item) => "type" in item && item.type === "bearing-walls-kept")) return value;
+  return { ...value, schemaVersion: 7 };
+}
+
+const persistedPlanSchema = z.preprocess(
+  (value) => toCurrentVersion(toVersionSix(value)),
+  floorPlanSchema,
+);
 
 const recordFields = {
   revision: z.string().min(1).max(100),
@@ -130,10 +158,11 @@ function validatePlan(value: unknown): FloorPlan {
     value.schemaVersion !== 3 &&
     value.schemaVersion !== 4 &&
     value.schemaVersion !== 5 &&
-    value.schemaVersion !== 6
+    value.schemaVersion !== 6 &&
+    value.schemaVersion !== 7
   ) {
     throw new Error(
-      "Версия формата не поддерживается. Нужен план SpacePlan версии от 1 до 6.",
+      "Версия формата не поддерживается. Нужен план SpacePlan версии от 1 до 7.",
     );
   }
   const result = persistedPlanSchema.safeParse(value);

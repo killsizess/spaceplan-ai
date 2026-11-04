@@ -4,10 +4,12 @@ import { ListChecks, Plus, Trash2, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import type { PlanRequirement, RoomKind, Wall } from "@/domain/floor-plan/types";
 import {
+  bearingWallsRequirement,
   fixedWallRequirement,
   type RequirementConflict,
   type RequirementResult,
   type RequirementStatus,
+  type WallChange,
 } from "@/domain/floor-plan/plan-requirements";
 import { formatArea } from "@/lib/format";
 import { ROOM_KINDS } from "../room-kinds";
@@ -51,6 +53,8 @@ export function describeRequirement(
       return `${kindLabel(requirement.kind)} рядом с «${kindLabel(requirement.otherKind)}»${requirement.byDoor ? ", с дверью" : ""}`;
     case "wall-fixed":
       return `${wallName(requirement.wallId)} не меняется`;
+    case "bearing-walls-kept":
+      return `Несущие стены не меняются (${requirement.walls.length})`;
   }
 }
 
@@ -60,16 +64,24 @@ function missingRooms(requirement: PlanRequirement): string {
       ? `Нужно хотя бы два помещения «${kindLabel(requirement.kind)}».`
       : `Нет помещений «${kindLabel(requirement.kind)}» или «${kindLabel(requirement.otherKind)}». Назначение задаётся в параметрах помещения.`;
   }
-  if (requirement.type === "wall-fixed") return "";
+  if (requirement.type === "wall-fixed" || requirement.type === "bearing-walls-kept") return "";
   return requirement.labelId
     ? "Помещение с этими параметрами сейчас не найдено: после перепланировки привяжите параметры заново или удалите требование."
     : `Нет помещений с назначением «${kindLabel(requirement.kind)}». Назначение задаётся в параметрах помещения.`;
 }
 
+const WALL_CHANGE_TEXT: Record<WallChange, string> = {
+  deleted: "удалена",
+  moved: "перенесена или изменена её длина",
+  thickness: "изменена толщина",
+  unmarked: "больше не отмечена как несущая",
+};
+
 function detail(
   requirement: PlanRequirement,
   result: RequirementResult | undefined,
   nameOf: (id: string) => string,
+  wallName: (id: string) => string,
 ): string {
   if (requirement.type === "wall-fixed") {
     const change = result?.findings[0]?.change;
@@ -77,6 +89,12 @@ function detail(
       : change === "moved" ? "Стена перенесена или изменена её длина."
         : change === "thickness" ? "Изменена толщина стены."
           : "Ось и толщина стены совпадают с сохранёнными.";
+  }
+  if (requirement.type === "bearing-walls-kept") {
+    const changed = (result?.findings ?? []).filter((finding) => finding.change);
+    return changed.length
+      ? changed.map((finding) => `${wallName(finding.wallId ?? "")}: ${WALL_CHANGE_TEXT[finding.change!]}`).join("; ")
+      : "Ось, толщина и отметка всех несущих стен совпадают с сохранёнными.";
   }
   if (!result || result.status === "inactive") return "Требования к помещениям проверяются в режиме «По стенам».";
   if (result.status === "no-rooms") return missingRooms(requirement);
@@ -172,7 +190,7 @@ export function RequirementsPanel({
                 <div>
                   <strong>{description}</strong>
                   <span className="requirement-status">{STATUS_TEXT[status]}</span>
-                  <small>{detail(requirement, result, roomName)}</small>
+                  <small>{detail(requirement, result, roomName, wallName)}</small>
                 </div>
                 <button
                   type="button"
@@ -206,6 +224,13 @@ export function RequirementsPanel({
             onAdd(targetRoom ? { id, type, kind: targetRoom.kind, labelId: targetRoom.labelId } : { id, type, kind });
           } else if (type === "rooms-connected") {
             onAdd({ id, type, kind, otherKind, byDoor });
+          } else if (type === "bearing-walls-kept") {
+            try {
+              onAdd(bearingWallsRequirement(walls, id));
+            } catch (error) {
+              setLocalError(error instanceof Error ? error.message : "Не удалось добавить требование.");
+              return;
+            }
           } else {
             if (!chosenWall) {
               setLocalError("В плане нет стен.");
@@ -223,14 +248,17 @@ export function RequirementsPanel({
           <option value="room-not-walkthrough">Непроходное помещение</option>
           <option value="rooms-connected">Помещения рядом</option>
           <option value="wall-fixed">Стена не меняется</option>
+          <option value="bearing-walls-kept">Несущие стены не меняются</option>
         </select>
         {type === "wall-fixed" ? (
           <>
             <label htmlFor="requirement-wall">Стена</label>
             <select id="requirement-wall" value={chosenWall?.id ?? ""} onChange={(event) => setWallId(event.target.value)}>
-              {walls.map((wall, index) => <option key={wall.id} value={wall.id}>Стена {index + 1}</option>)}
+              {walls.map((wall, index) => <option key={wall.id} value={wall.id}>Стена {index + 1}{wall.kind === "bearing" ? " · несущая" : ""}</option>)}
             </select>
           </>
+        ) : type === "bearing-walls-kept" ? (
+          <p className="requirements-note">Запоминает ось, толщину и отметку всех стен, которые сейчас отмечены как несущие ({walls.filter((wall) => wall.kind === "bearing").length}).</p>
         ) : (
           <>
             {roomScoped && namedRooms.length > 0 && (

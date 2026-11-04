@@ -9,7 +9,7 @@ import type { FloorPlan, Room } from "./types";
 
 export function createEmptyPlan(id: string): FloorPlan {
   return {
-    schemaVersion: 6,
+    schemaVersion: 7,
     unit: "m",
     id,
     name: "Новый проект",

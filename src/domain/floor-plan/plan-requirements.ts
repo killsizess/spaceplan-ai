@@ -7,6 +7,9 @@ const AREA_TOLERANCE = 1e-9;
 /** Same tolerance as shared wall nodes. */
 const WALL_TOLERANCE = 1e-9;
 
+/** How a wall that a requirement keeps was changed. `unmarked`: it is no longer bearing. */
+export type WallChange = "deleted" | "moved" | "thickness" | "unmarked";
+
 export type RequirementStatus = "met" | "violated" | "no-rooms" | "inactive";
 
 export interface RequirementRoom {
@@ -26,7 +29,9 @@ export interface RequirementFinding {
   /** Matching neighbour (connection requirements). */
   readonly otherRoomId?: string;
   /** What happened to a fixed wall; absent when it is unchanged. */
-  readonly change?: "deleted" | "moved" | "thickness";
+  readonly change?: WallChange;
+  /** The wall a finding is about (wall requirements). */
+  readonly wallId?: string;
   /** True when this room breaks the requirement. */
   readonly violates: boolean;
 }
@@ -72,9 +77,26 @@ export function evaluateRequirements(
   const roomsActive = plan.roomMode === "walls" && adjacency !== null;
   return plan.requirements.map((requirement): RequirementResult => {
     if (requirement.type === "wall-fixed") return fixedWall(plan, requirement);
+    if (requirement.type === "bearing-walls-kept") return bearingWalls(plan, requirement);
     if (!roomsActive) return { id: requirement.id, status: "inactive", findings: [] };
     return roomRequirement(requirement, rooms, adjacency);
   });
+}
+
+const samePoint = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+  Math.hypot(a.x - b.x, a.y - b.y) <= WALL_TOLERANCE;
+
+/** Same axis (either direction) and thickness as stored; otherwise what changed. */
+function wallChange(
+  wall: Wall | undefined,
+  stored: { start: { x: number; y: number }; end: { x: number; y: number }; thickness: number },
+): WallChange | undefined {
+  if (!wall) return "deleted";
+  const sameAxis = (samePoint(wall.start, stored.start) && samePoint(wall.end, stored.end)) ||
+    (samePoint(wall.start, stored.end) && samePoint(wall.end, stored.start));
+  if (!sameAxis) return "moved";
+  if (Math.abs(wall.thickness - stored.thickness) > WALL_TOLERANCE) return "thickness";
+  return undefined;
 }
 
 /** A wall the user pinned: same axis (either direction) and thickness as stored. */
@@ -82,19 +104,25 @@ function fixedWall(
   plan: FloorPlan,
   requirement: Extract<PlanRequirement, { type: "wall-fixed" }>,
 ): RequirementResult {
-  const wall = plan.walls.find((item) => item.id === requirement.wallId);
-  const same = (a: { x: number; y: number }, b: { x: number; y: number }) =>
-    Math.hypot(a.x - b.x, a.y - b.y) <= WALL_TOLERANCE;
-  let change: RequirementFinding["change"];
-  if (!wall) change = "deleted";
-  else if (!((same(wall.start, requirement.start) && same(wall.end, requirement.end)) ||
-    (same(wall.start, requirement.end) && same(wall.end, requirement.start)))) change = "moved";
-  else if (Math.abs(wall.thickness - requirement.thickness) > WALL_TOLERANCE) change = "thickness";
+  const change = wallChange(plan.walls.find((item) => item.id === requirement.wallId), requirement);
   return {
     id: requirement.id,
     status: change ? "violated" : "met",
     findings: [{ roomId: "", violates: Boolean(change), ...(change ? { change } : {}) }],
   };
+}
+
+/** Every wall that was bearing when the requirement was added keeps its axis, thickness and mark. */
+function bearingWalls(
+  plan: FloorPlan,
+  requirement: Extract<PlanRequirement, { type: "bearing-walls-kept" }>,
+): RequirementResult {
+  const findings = requirement.walls.map((stored): RequirementFinding => {
+    const wall = plan.walls.find((item) => item.id === stored.wallId);
+    const change = wallChange(wall, stored) ?? (wall && wall.kind !== "bearing" ? "unmarked" : undefined);
+    return { roomId: "", wallId: stored.wallId, violates: Boolean(change), ...(change ? { change } : {}) };
+  });
+  return { id: requirement.id, status: findings.some((finding) => finding.violates) ? "violated" : "met", findings };
 }
 
 /** Captures a wall's current axis and thickness as a "do not change" requirement. */
@@ -109,8 +137,30 @@ export function fixedWallRequirement(wall: Wall, id: string): Extract<PlanRequir
   };
 }
 
+/**
+ * "Bearing walls kept": a snapshot of the walls marked bearing now. Throws when there are
+ * none, so the requirement is never silently empty.
+ */
+export function bearingWallsRequirement(
+  walls: readonly Wall[],
+  id: string,
+): Extract<PlanRequirement, { type: "bearing-walls-kept" }> {
+  const bearing = walls.filter((wall) => wall.kind === "bearing");
+  if (!bearing.length) throw new Error("Нет несущих стен: отметьте их в свойствах стены.");
+  return {
+    id,
+    type: "bearing-walls-kept",
+    walls: bearing.map((wall) => ({
+      wallId: wall.id,
+      start: { x: wall.start.x, y: wall.start.y },
+      end: { x: wall.end.x, y: wall.end.y },
+      thickness: wall.thickness,
+    })),
+  };
+}
+
 function roomRequirement(
-  requirement: Exclude<PlanRequirement, { type: "wall-fixed" }>,
+  requirement: Exclude<PlanRequirement, { type: "wall-fixed" | "bearing-walls-kept" }>,
   rooms: readonly RequirementRoom[],
   adjacency: RoomAdjacencyResult,
 ): RequirementResult {

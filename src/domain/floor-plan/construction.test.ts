@@ -58,7 +58,7 @@ describe("wall and opening geometry", () => {
     const plan = addOpening(addWall(createEmptyPlan("plan"), wall), door);
     const before = JSON.stringify(plan);
     const updated = updateOpening(plan, { ...door, door: orientation });
-    expect(updated.schemaVersion).toBe(6);
+    expect(updated.schemaVersion).toBe(7);
     expect(updated.openings).toEqual([{ ...door, door: orientation }]);
     expect(updated.walls).toEqual(plan.walls);
     expect(updated.rooms).toEqual(plan.rooms);

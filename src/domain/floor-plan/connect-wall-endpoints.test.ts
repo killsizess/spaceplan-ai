@@ -36,7 +36,7 @@ describe("explicit endpoint connection", () => {
     expect(result).not.toBe(plan);
     expect(result.walls[0]).toEqual({ ...plan.walls[0], end: { x: 2.1, y: 0 } });
     expect(result.walls[1]).toEqual(plan.walls[1]);
-    expect(result.schemaVersion).toBe(6);
+    expect(result.schemaVersion).toBe(7);
     expect(result.rooms).toEqual(plan.rooms);
     expect(result.openings).toEqual(plan.openings);
     expect(plan).toEqual(before);

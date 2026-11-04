@@ -95,6 +95,7 @@ export const wallSchema = z
     end: pointSchema,
     thickness: positive,
     height: positive,
+    kind: z.enum(["bearing", "partition", "unknown"]).optional(),
   })
   .strict()
   .superRefine((wall, ctx) => {
@@ -172,11 +173,36 @@ export const planRequirementSchema = z.discriminatedUnion("type", [
   }).strict(),
   z.object({ id, type: z.literal("room-not-walkthrough"), kind: roomKind, labelId: id.optional() }).strict(),
   z.object({ id, type: z.literal("rooms-connected"), kind: roomKind, otherKind: roomKind, byDoor: z.boolean() }).strict(),
+  z.object({
+    id,
+    type: z.literal("bearing-walls-kept"),
+    walls: z.array(z.object({ wallId: id, start: pointSchema, end: pointSchema, thickness: positive }).strict())
+      .min(1, "Отметьте хотя бы одну несущую стену.")
+      .max(1000)
+      .refine((walls) => new Set(walls.map((wall) => wall.wallId)).size === walls.length, "Стены в требовании не должны повторяться."),
+  }).strict(),
 ]);
+
+/** Geometry kept with a variant; field rules only, relations belong to the plan itself. */
+export const planSnapshotSchema = z.object({
+  roomMode: z.enum(["manual", "walls"]),
+  rooms: z.array(roomSchema).max(100),
+  walls: z.array(wallSchema).max(1000),
+  openings: z.array(openingSchema).max(1000),
+  wallRoomLabels: z.array(wallRoomLabelSchema).max(100),
+  requirements: z.array(planRequirementSchema).max(50),
+}).strict();
+
+export const planOriginSchema = z.object({
+  planId: id,
+  planName: z.string().trim().min(1).max(100),
+  createdAt: z.string().datetime(),
+  snapshot: planSnapshotSchema,
+}).strict();
 
 export const floorPlanSchema = z
   .object({
-    schemaVersion: z.literal(6),
+    schemaVersion: z.literal(7),
     unit: z.literal("m"),
     id,
     name: z.string().trim().min(1).max(100),
@@ -187,6 +213,7 @@ export const floorPlanSchema = z
     wallRoomLabels: z.array(wallRoomLabelSchema).max(100, "В одном плане может быть не больше 100 подписей помещений."),
     requirements: z.array(planRequirementSchema).max(50, "В одном плане может быть не больше 50 требований."),
     underlay: underlaySchema.optional(),
+    origin: planOriginSchema.optional(),
   })
   .strict()
   .superRefine((plan, ctx) => {

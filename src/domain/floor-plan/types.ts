@@ -13,12 +13,20 @@ export interface Room {
   width: number;
   height: number;
 }
+/**
+ * Structural role of a wall, set by the user and never inferred from geometry or
+ * from a drawing. An absent value means "unknown": walls of older projects and walls
+ * suggested from a PDF keep no guessed role.
+ */
+export type WallKind = "bearing" | "partition" | "unknown";
 export interface Wall {
   id: string;
   start: Point;
   end: Point;
   thickness: number;
   height: number;
+  /** v7. */
+  kind?: WallKind;
 }
 export interface DoorSwing {
   hinge: "start" | "end";
@@ -68,10 +76,45 @@ export type PlanRequirement =
   /** The wall must keep the axis and thickness it had when the requirement was added. */
   | { id: string; type: "wall-fixed"; wallId: string; start: Point; end: Point; thickness: number }
   | { id: string; type: "room-not-walkthrough"; kind: RoomKind; labelId?: string }
-  | { id: string; type: "rooms-connected"; kind: RoomKind; otherKind: RoomKind; byDoor: boolean };
+  | { id: string; type: "rooms-connected"; kind: RoomKind; otherKind: RoomKind; byDoor: boolean }
+  /**
+   * v7. The walls that were marked bearing when the requirement was added keep their axis,
+   * thickness and bearing mark. Walls marked bearing later are not part of it.
+   */
+  | { id: string; type: "bearing-walls-kept"; walls: FixedWallGeometry[] };
+
+export interface FixedWallGeometry {
+  wallId: string;
+  start: Point;
+  end: Point;
+  thickness: number;
+}
+
+/** Geometry of a plan at one moment; enough to compare plans, without the underlay image. */
+export interface PlanSnapshot {
+  roomMode: RoomMode;
+  rooms: Room[];
+  walls: Wall[];
+  openings: Opening[];
+  wallRoomLabels: WallRoomLabel[];
+  requirements: PlanRequirement[];
+}
+
+/**
+ * v7. Where a variant came from: the source project's ID and name and a snapshot of its
+ * geometry taken when the variant was made, so a comparison still works after the source
+ * was changed or deleted.
+ */
+export interface PlanOrigin {
+  planId: string;
+  planName: string;
+  /** ISO date and time the variant was created. */
+  createdAt: string;
+  snapshot: PlanSnapshot;
+}
 
 export interface FloorPlan {
-  schemaVersion: 6;
+  schemaVersion: 7;
   unit: "m";
   id: string;
   name: string;
@@ -83,4 +126,6 @@ export interface FloorPlan {
   /** User requirements for the layout (v6). */
   requirements: PlanRequirement[];
   underlay?: Underlay;
+  /** v7. Present on variants created from another project. */
+  origin?: PlanOrigin;
 }
