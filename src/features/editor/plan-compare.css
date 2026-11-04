@@ -40,3 +40,15 @@
   .plan-compare-body { padding: 0 16px 18px; }
   .plan-compare-empty { margin: 0 16px 18px; }
 }
+
+.plan-compare-origin {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--accent, #3b7a57);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.plan-compare-origin[data-origin-status="missing"],
+.plan-compare-origin[data-origin-status="changed"] {
+  border-left-color: #b54708;
+}

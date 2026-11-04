@@ -3,6 +3,7 @@ import {
   createExamplePlan,
 } from "@/domain/floor-plan/operations";
 import type { FloorPlan } from "@/domain/floor-plan/types";
+import { createPlanOrigin } from "@/domain/floor-plan/plan-origin";
 import {
   editorReducer,
   initialEditorState,
@@ -466,11 +467,16 @@ export class ProjectWorkspace {
    * current project is saved first and stays unchanged in the library; the
    * variant opens with a new ID and starts its own history.
    */
-  createVariant = () =>
-    this.createFrom({
-      ...this.snapshot.editor.plan,
-      name: `${this.snapshot.editor.plan.name.slice(0, 88)} · вариант`,
+  createVariant = () => {
+    const plan = this.snapshot.editor.plan;
+    return this.createFrom({
+      ...plan,
+      name: `${plan.name.slice(0, 88)} · вариант`,
+      // The variant remembers its source and a snapshot of it, so a comparison still works
+      // after the source is edited or deleted.
+      ...(this.services ? { origin: createPlanOrigin(plan, this.services.now()) } : {}),
     });
+  };
   saveCopy = () =>
     this.createFrom(
       {

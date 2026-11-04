@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GitCompare, X } from "lucide-react";
 import { diffPlans, type CollectionDiff, type PlanMetrics } from "@/domain/floor-plan/plan-diff";
+import { originNote, originStatus, planFromOrigin } from "@/domain/floor-plan/plan-origin";
 import type { FloorPlan, RoomKind } from "@/domain/floor-plan/types";
 import { formatLength } from "@/lib/format";
 import { ROOM_KINDS } from "../room-kinds";
@@ -44,6 +45,9 @@ export interface CompareCandidate {
   plan: FloorPlan;
 }
 
+/** Choice value for the source of a variant; project IDs never look like this. */
+const ORIGIN_VALUE = "origin:snapshot";
+
 export default function PlanCompareDialog({
   current,
   candidates,
@@ -55,8 +59,18 @@ export default function PlanCompareDialog({
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [selectedId, setSelectedId] = useState(candidates[0]?.plan.id ?? "");
-  const selected = candidates.find((candidate) => candidate.plan.id === selectedId)?.plan ?? candidates[0]?.plan;
+  const { origin } = current;
+  // The source as it was when the variant was made: available even if the project is gone.
+  const originPlan = useMemo(() => (origin ? planFromOrigin(origin) : null), [origin]);
+  const status = useMemo(
+    () => (origin ? originStatus(origin, candidates.map((candidate) => candidate.plan)) : null),
+    [origin, candidates],
+  );
+  const [selectedId, setSelectedId] = useState(originPlan ? ORIGIN_VALUE : candidates[0]?.plan.id ?? "");
+  const useOrigin = Boolean(originPlan) && (selectedId === ORIGIN_VALUE || !candidates.some((candidate) => candidate.plan.id === selectedId));
+  const selected = useOrigin
+    ? originPlan!
+    : (candidates.find((candidate) => candidate.plan.id === selectedId)?.plan ?? candidates[0]?.plan);
   const diff = useMemo(() => (selected ? diffPlans(selected, current) : null), [selected, current]);
 
   useEffect(() => {
@@ -94,11 +108,19 @@ export default function PlanCompareDialog({
       ) : (
         <div className="plan-compare-body">
           <label htmlFor="plan-compare-target">Сравнить с проектом</label>
-          <select id="plan-compare-target" value={selected.id} onChange={(event) => setSelectedId(event.target.value)}>
+          <select id="plan-compare-target" value={useOrigin ? ORIGIN_VALUE : selected.id} onChange={(event) => setSelectedId(event.target.value)}>
+            {originPlan && origin && (
+              <option value={ORIGIN_VALUE}>Исходный план «{origin.planName}» на момент создания варианта</option>
+            )}
             {candidates.map((candidate) => (
               <option key={candidate.plan.id} value={candidate.plan.id}>{candidate.plan.name}</option>
             ))}
           </select>
+          {origin && status && (
+            <p className="plan-compare-origin" data-testid="plan-compare-origin-note" data-origin-status={status}>
+              {originNote(origin, status)}
+            </p>
+          )}
           {diff.identical && <p className="plan-compare-same" data-testid="plan-compare-identical">Планы совпадают по стенам, проёмам, помещениям и требованиям.</p>}
           <div className="plan-compare-table-wrap">
             <table className="plan-compare-table">
