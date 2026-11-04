@@ -8,50 +8,50 @@
 .plan-export-dialog[open] { display: flex; flex-direction: column; gap: 20px; }
 .plan-export-header { display: flex; align-items: center; gap: 14px; padding-right: 22px; }
 .plan-export-header > div { min-width: 0; }
-.plan-export-symbol { display: grid; place-items: center; width: 48px; height: 52px; background: #eef3e8; color: #66805b; border-radius: 9px; flex-shrink: 0; }
+.plan-export-symbol { display: grid; place-items: center; width: 48px; height: 52px; background: var(--accent-100); color: var(--accent-700); border-radius: 9px; flex-shrink: 0; }
 .plan-export-dialog h2 { margin: 5px 0; font-size: 24px; }
-.plan-export-dialog .plan-export-header p { margin: 0; color: #6c7b62; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plan-export-dialog .plan-export-header p { margin: 0; color: var(--text-2); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .plan-export-body { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 22px; }
 .plan-export-settings { display: flex; flex-direction: column; min-width: 0; }
-.plan-export-settings > label { margin: 0 0 7px; font-size: 11px; color: #52634d; }
-.plan-export-settings > select { background: #fafcf8; border: 1px solid #dce4d6; border-radius: 6px; min-height: 38px; width: 100%; padding: 8px 10px; margin-bottom: 17px; font: inherit; font-size: 12px; color: #354a34; }
+.plan-export-settings > label { margin: 0 0 7px; font-size: 12.5px; color: var(--text-2); }
+.plan-export-settings > select { background: var(--surface-1); border: 1px solid var(--line-2); border-radius: 6px; min-height: 38px; width: 100%; padding: 8px 10px; margin-bottom: 17px; font: inherit; font-size: 13px; color: var(--accent-800); }
 .plan-export-settings > .plan-export-checkbox { display: flex; align-items: center; gap: 8px; margin: 0 0 20px; cursor: pointer; }
-.plan-export-checkbox input { width: 15px; height: 15px; accent-color: #56734c; }
-.plan-export-specs { display: grid; gap: 9px; border-top: 1px solid #e3e8df; padding: 15px 0; font-size: 11px; color: #798670; }
+.plan-export-checkbox input { width: 15px; height: 15px; accent-color: var(--accent-700); }
+.plan-export-specs { display: grid; gap: 9px; border-top: 1px solid var(--line-1); padding: 15px 0; font-size: 12.5px; color: var(--text-3); }
 .plan-export-specs > span { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.plan-export-specs b { font-weight: 500; color: #3b5137; }
-.plan-export-dialog #plan-export-description { margin: 0; font-size: 10px; line-height: 1.8; color: #7c8973; }
-.plan-export-preview { min-height: 340px; min-width: 0; display: flex; align-items: center; justify-content: center; padding: 25px; background: #eff2eb; border: 1px solid #e0e6d9; border-radius: 8px; }
+.plan-export-specs b { font-weight: 500; color: var(--accent-800); }
+.plan-export-dialog #plan-export-description { margin: 0; font-size: 11.5px; line-height: 1.8; color: var(--text-3); }
+.plan-export-preview { min-height: 340px; min-width: 0; display: flex; align-items: center; justify-content: center; padding: 25px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 8px; }
 .plan-export-sheet { width: 100%; max-width: 660px; display: flex; justify-content: center; }
-.plan-export-sheet > svg { display: block; width: 100%; height: auto; max-height: 510px; background: white; box-shadow: 0 4px 18px #3b4a3226; }
-.plan-export-empty { display: flex; flex-direction: column; align-items: center; gap: 15px; color: #829277; font-size: 12px; }
-.plan-export-footer { border-top: 1px solid #e3e8df; padding-top: 16px; }
+.plan-export-sheet > svg { display: block; width: 100%; height: auto; max-height: 510px; background: white; box-shadow: 0 4px 18px #0b2e2226; }
+.plan-export-empty { display: flex; flex-direction: column; align-items: center; gap: 15px; color: var(--text-3); font-size: 13px; }
+.plan-export-footer { border-top: 1px solid var(--line-1); padding-top: 16px; }
 .plan-export-footer-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
-.plan-export-footer-row [role="status"] { font-size: 10px; line-height: 1.7; color: #7c8973; }
+.plan-export-footer-row [role="status"] { font-size: 11.5px; line-height: 1.7; color: var(--text-3); }
 .plan-export-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .plan-export-dialog .plan-export-actions .primary-button { width: auto; margin: 0; min-width: 145px; }
-.plan-export-close { border: 1px solid #dce4d6; border-radius: 6px; font-size: 11px; padding: 10px 15px; min-height: 42px; }
-.plan-export-close:hover { background: #f1f5ed; }
-.plan-export-dialog .plan-export-error { margin: 0 0 14px; padding: 10px 13px; color: #955f3d; background: #fff4e9; border-radius: 6px; font-size: 12px; }
-.plan-export-warnings { padding-left: 16px; font-size: 10px; line-height: 1.8; color: #8c754d; margin: 0 0 12px; }
+.plan-export-close { border: 1px solid var(--line-2); border-radius: 6px; font-size: 12.5px; padding: 10px 15px; min-height: 42px; }
+.plan-export-close:hover { background: var(--surface-2); }
+.plan-export-dialog .plan-export-error { margin: 0 0 14px; padding: 10px 13px; color: var(--danger-700); background: var(--warn-100); border-radius: 6px; font-size: 13px; }
+.plan-export-warnings { padding-left: 16px; font-size: 11.5px; line-height: 1.8; color: var(--warn-700); margin: 0 0 12px; }
 .plan-export-spinner { animation: plan-export-spin 1s linear infinite; }
 @keyframes plan-export-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .plan-export-spinner { animation: none; } }
-.plan-export-trigger { gap: 7px; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; padding: 8px 11px; min-height: 36px; font-size: 11px; color: #4d6743; background: #f2f6ed; border: 1px solid #d8e3cf; border-radius: 6px; }
-.plan-export-trigger:hover:not(:disabled) { background: #e8f0e1; }
+.plan-export-trigger { gap: 7px; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; padding: 8px 11px; min-height: 36px; font-size: 12.5px; color: var(--accent-700); background: var(--accent-100); border: 1px solid var(--line-2); border-radius: 6px; }
+.plan-export-trigger:hover:not(:disabled) { background: var(--accent-100); }
 @media (max-width: 1100px) { .plan-export-trigger { width: 34px; padding: 6px; } .plan-export-trigger > span { display: none; } }
 @media (max-width: 620px) {
   .plan-export-dialog { max-width: calc(100vw - 20px); max-height: calc(100dvh - 20px); padding: 20px 14px 14px; }
   .plan-export-dialog[open] { gap: 15px; }
   .plan-export-header { gap: 10px; }
-  .plan-export-header .eyebrow { font-size: 8px; }
+  .plan-export-header .eyebrow { font-size: 10.5px; }
   .plan-export-symbol { width: 35px; height: 42px; }
   .plan-export-dialog h2 { font-size: 21px; }
   .plan-export-body { display: flex; flex-direction: column; gap: 14px; }
   .plan-export-settings { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 9px 12px; }
   .plan-export-settings > label, .plan-export-settings > select { margin: 0; }
   .plan-export-settings > .plan-export-checkbox { grid-column: 1 / -1; margin: 3px 0; }
-  .plan-export-specs { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; padding: 10px 0 0; gap: 8px 16px; font-size: 10px; }
+  .plan-export-specs { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; padding: 10px 0 0; gap: 8px 16px; font-size: 11.5px; }
   .plan-export-dialog #plan-export-description { grid-column: 1 / -1; }
   .plan-export-preview { padding: 13px; min-height: 180px; }
   .plan-export-sheet > svg { max-height: 370px; }

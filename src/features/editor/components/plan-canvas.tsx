@@ -829,7 +829,7 @@ export default function PlanCanvas({
                       {...point}
                       radius={5 / scale}
                       fill="#fff"
-                      stroke="#426b50"
+                      stroke="#1a7353"
                       strokeWidth={1.5 / scale}
                       hitStrokeWidth={16 / scale}
                       draggable
@@ -860,7 +860,7 @@ export default function PlanCanvas({
                   <Circle
                     radius={9 / scale}
                     fill="#fff"
-                    stroke="#426b50"
+                    stroke="#1a7353"
                     strokeWidth={1.5 / scale}
                     hitStrokeWidth={18 / scale}
                   />
@@ -874,8 +874,8 @@ export default function PlanCanvas({
                     pointerAtBeginning
                     pointerLength={3 / scale}
                     pointerWidth={4.5 / scale}
-                    stroke="#426b50"
-                    fill="#426b50"
+                    stroke="#1a7353"
+                    fill="#1a7353"
                     strokeWidth={1.4 / scale}
                     listening={false}
                   />

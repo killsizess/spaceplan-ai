@@ -92,7 +92,7 @@ export function createThreeScene(
   host.appendChild(canvas);
 
   const scene = new Scene();
-  scene.background = new Color("#e9ece7");
+  scene.background = new Color("#f1efe7");
   const camera = new PerspectiveCamera(42, 1, 0.01, 1000);
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = false;
@@ -479,13 +479,13 @@ export function createThreeScene(
     const gridSize = divisions * gridStep;
     const ground = new Mesh(
       new PlaneGeometry(gridSize * 3, gridSize * 3),
-      new MeshStandardMaterial({ color: "#e9ece7", roughness: 1 }),
+      new MeshStandardMaterial({ color: "#f1efe7", roughness: 1 }),
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.set(centerX, -FLOOR_THICKNESS - 0.012, centerZ);
     ground.receiveShadow = true;
     surroundings.add(ground);
-    const grid = new GridHelper(gridSize, divisions, "#bdc8bb", "#d0d7cc");
+    const grid = new GridHelper(gridSize, divisions, "#cfcbbc", "#e0ddd0");
     grid.position.set(
       Math.round(centerX / gridStep) * gridStep,
       -FLOOR_THICKNESS - 0.01,

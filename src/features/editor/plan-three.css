@@ -3,8 +3,8 @@
   inset: 0;
   min-width: 0;
   overflow: hidden;
-  color: #354b3e;
-  background: #e9ece7;
+  color: var(--accent-800);
+  background: var(--surface-3);
 }
 
 .plan-three-host {
@@ -14,7 +14,7 @@
 }
 
 .plan-three-host:focus-visible {
-  box-shadow: inset 0 0 0 2px #478265;
+  box-shadow: inset 0 0 0 2px var(--accent-700);
 }
 
 .plan-three-host canvas {
@@ -29,9 +29,9 @@
 .plan-three-summary {
   position: absolute;
   z-index: 1;
-  border: 1px solid #d7dfd5;
+  border: 1px solid var(--line-2);
   background: #fffffff0;
-  box-shadow: 0 3px 12px #273d2b09;
+  box-shadow: 0 3px 12px #0b2e2209;
 }
 
 .plan-three-badge {
@@ -42,7 +42,7 @@
   gap: 8px;
   border-radius: 8px;
   padding: 9px 12px;
-  font-size: 11px;
+  font-size: 12.5px;
   pointer-events: none;
 }
 
@@ -50,7 +50,7 @@
   height: 3px;
   width: 3px;
   border-radius: 50%;
-  background: #92a08c;
+  background: var(--text-3);
 }
 
 .plan-three-controls {
@@ -70,20 +70,20 @@
   place-items: center;
   border: 0;
   border-radius: 5px;
-  color: #445f4e;
+  color: var(--accent-700);
   background: transparent;
   cursor: pointer;
 }
 
 .plan-three-controls button:hover {
-  background: #e9f1e8;
+  background: var(--surface-3);
 }
 
 .plan-three-controls > span {
   height: 18px;
   width: 1px;
   margin: 0 3px;
-  background: #dde4db;
+  background: var(--surface-3);
 }
 
 .plan-three-summary {
@@ -98,13 +98,13 @@
 }
 
 .plan-three-summary strong {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 600;
 }
 
 .plan-three-summary span {
-  color: #71806e;
-  font-size: 10px;
+  color: var(--text-3);
+  font-size: 11.5px;
   line-height: 1.55;
 }
 
@@ -117,11 +117,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  border-top: 1px solid #d9e1d5;
+  border-top: 1px solid var(--line-2);
   padding: 10px 18px;
-  background: #f5f7f2ed;
-  color: #697a67;
-  font-size: 10px;
+  background: #ffffffed;
+  color: var(--text-2);
+  font-size: 11.5px;
   line-height: 1.45;
   pointer-events: none;
 }
@@ -146,17 +146,17 @@
 .plan-three-empty,
 .plan-three-fallback {
   gap: 12px;
-  border: 1px solid #d7e0d3;
+  border: 1px solid var(--line-2);
   border-radius: 14px;
   padding: 24px;
-  background: #fbfcf8f2;
-  box-shadow: 0 8px 32px #334a3210;
+  background: #fffffff2;
+  box-shadow: 0 8px 32px #0b2e2210;
 }
 
 .plan-three-empty h3,
 .plan-three-fallback h3 {
   margin: 0;
-  color: #344b3c;
+  color: var(--accent-800);
   font-size: 16px;
   font-weight: 600;
 }
@@ -164,8 +164,8 @@
 .plan-three-empty p,
 .plan-three-fallback p {
   margin: 0;
-  color: #6d7d69;
-  font-size: 12px;
+  color: var(--text-3);
+  font-size: 13px;
   line-height: 1.7;
 }
 
@@ -175,9 +175,9 @@
   border: 0;
   border-radius: 7px;
   padding: 9px 14px;
-  background: #345b42;
+  background: var(--accent-700);
   color: white;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   pointer-events: auto;
@@ -196,7 +196,7 @@
   border-radius: 8px;
   padding: 14px;
   background: #ffffffee;
-  font-size: 12px;
+  font-size: 13px;
   pointer-events: none;
 }
 
@@ -206,7 +206,7 @@
     left: 12px;
     padding: 9px;
     gap: 6px;
-    font-size: 10px;
+    font-size: 11.5px;
   }
 
   .plan-three-controls {

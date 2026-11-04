@@ -2,18 +2,18 @@
   display: grid;
   gap: 10px;
   padding: 0 28px 24px;
-  font-size: 12px;
+  font-size: 13px;
 }
-.plan-compare-body > label { font-size: 11px; color: #8e9a81; }
-.plan-compare-body > select { width: 100%; max-width: 420px; background: #fff; }
-.plan-compare-body h3 { margin: 10px 0 0; font-size: 13px; font-weight: 600; }
+.plan-compare-body > label { font-size: 12.5px; color: var(--text-3); }
+.plan-compare-body > select { width: 100%; max-width: 420px; background: var(--surface-0); }
+.plan-compare-body h3 { margin: 10px 0 0; font-size: 14px; font-weight: 600; }
 .plan-compare-empty,
 .plan-compare-same {
   margin: 0 28px 24px;
   padding: 12px 14px;
   border-radius: 8px;
-  background: #f1f5eb;
-  color: #536d42;
+  background: var(--accent-100);
+  color: var(--accent-700);
   line-height: 1.6;
 }
 .plan-compare-body .plan-compare-same { margin: 0; }
@@ -26,16 +26,16 @@
 .plan-compare-table th,
 .plan-compare-table td {
   padding: 7px 10px;
-  border-bottom: 1px solid #edf0e8;
+  border-bottom: 1px solid var(--line-1);
   text-align: right;
   white-space: nowrap;
 }
 .plan-compare-table th:first-child { text-align: left; font-weight: 500; }
-.plan-compare-table thead th { font-size: 10px; font-weight: 500; color: #8e9a81; letter-spacing: 0.4px; }
-.plan-compare-table td[data-sign="1"] { color: #3f6b41; }
-.plan-compare-table td[data-sign="-1"] { color: #9c4a33; }
+.plan-compare-table thead th { font-size: 11.5px; font-weight: 500; color: var(--text-3); letter-spacing: 0.4px; }
+.plan-compare-table td[data-sign="1"] { color: var(--accent-700); }
+.plan-compare-table td[data-sign="-1"] { color: var(--danger-700); }
 .plan-compare-changes { margin: 0; padding-left: 18px; display: grid; gap: 4px; line-height: 1.6; }
-.plan-compare-note { margin: 4px 0 0; font-size: 10px; line-height: 1.7; color: #8a918b; }
+.plan-compare-note { margin: 4px 0 0; font-size: 11.5px; line-height: 1.7; color: var(--text-3); }
 @media (max-width: 640px) {
   .plan-compare-body { padding: 0 16px 18px; }
   .plan-compare-empty { margin: 0 16px 18px; }
@@ -44,11 +44,11 @@
 .plan-compare-origin {
   margin: 8px 0;
   padding: 8px 10px;
-  border-left: 3px solid var(--accent, #3b7a57);
-  font-size: 12.5px;
+  border-left: 3px solid var(--accent, var(--accent-700));
+  font-size: 13px;
   line-height: 1.45;
 }
 .plan-compare-origin[data-origin-status="missing"],
 .plan-compare-origin[data-origin-status="changed"] {
-  border-left-color: #b54708;
+  border-left-color: var(--danger-700);
 }

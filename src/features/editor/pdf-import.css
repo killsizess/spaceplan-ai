@@ -31,8 +31,8 @@
   width: 45px;
   height: 48px;
   flex: 0 0 auto;
-  color: #6c855f;
-  background: #eef3e8;
+  color: var(--accent-700);
+  background: var(--accent-100);
   border-radius: 9px;
 }
 
@@ -46,8 +46,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   margin: 0;
-  font-size: 11px;
-  color: #819075;
+  font-size: 12.5px;
+  color: var(--text-3);
 }
 
 .pdf-import-controls {
@@ -57,8 +57,8 @@
   gap: 10px;
   flex-wrap: wrap;
   padding: 12px;
-  background: #f7f9f4;
-  border: 1px solid #e5eadf;
+  background: var(--surface-2);
+  border: 1px solid var(--line-1);
   border-radius: 8px;
 }
 
@@ -74,17 +74,17 @@
   justify-content: center;
   gap: 7px;
   min-height: 36px;
-  border: 1px solid #dbe3d4;
+  border: 1px solid var(--line-2);
   border-radius: 6px;
   padding: 7px 11px;
-  background: #fff;
-  font-size: 11px;
-  color: #58704c;
+  background: var(--surface-0);
+  font-size: 12.5px;
+  color: var(--accent-700);
 }
 
 .pdf-control-button:hover:not(:disabled),
 .pdf-cancel-button:hover {
-  background: #edf3e7;
+  background: var(--accent-100);
 }
 
 .pdf-page-arrow {
@@ -94,7 +94,7 @@
 
 .pdf-page-label {
   margin: 0 0 0 3px;
-  font-size: 11px;
+  font-size: 12.5px;
 }
 
 .pdf-import-dialog .pdf-page-input {
@@ -102,24 +102,24 @@
   height: 36px;
   padding: 0 5px;
   text-align: center;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .pdf-page-total {
-  font-size: 11px;
+  font-size: 12.5px;
   white-space: nowrap;
-  color: #818f77;
+  color: var(--text-3);
 }
 
 .pdf-rotate-button > span {
   min-width: 26px;
-  color: #929f87;
+  color: var(--text-3);
 }
 
 .pdf-page-error {
   flex: 1 0 100%;
-  color: #a16a44;
-  font-size: 11px;
+  color: var(--danger-700);
+  font-size: 12.5px;
 }
 
 .pdf-preview {
@@ -130,10 +130,10 @@
   justify-content: center;
   overflow: hidden;
   padding: 15px;
-  border: 1px solid #e4e8df;
+  border: 1px solid var(--line-1);
   border-radius: 8px;
-  background-color: #f1f3ed;
-  background-image: radial-gradient(#dce2d5 0.7px, transparent 0.7px);
+  background-color: var(--surface-2);
+  background-image: radial-gradient(var(--surface-3) 0.7px, transparent 0.7px);
   background-size: 14px 14px;
 }
 
@@ -154,8 +154,8 @@
   width: auto;
   height: auto;
   object-fit: contain;
-  box-shadow: 0 3px 15px #3d4b3721;
-  background: #fff;
+  box-shadow: 0 3px 15px #0b2e2221;
+  background: var(--surface-0);
 }
 
 .pdf-preview-message {
@@ -166,13 +166,13 @@
   max-width: 410px;
   padding: 18px 9px;
   text-align: center;
-  color: #79906d;
+  color: var(--accent-700);
 }
 
 .pdf-import-dialog .pdf-preview-message p {
   margin: 0;
-  color: #667a5d;
-  font-size: 12px;
+  color: var(--accent-700);
+  font-size: 13px;
   overflow-wrap: anywhere;
 }
 
@@ -182,15 +182,15 @@
 
 .pdf-import-dialog .pdf-import-footer > p {
   margin: 0 0 14px;
-  font-size: 11px;
+  font-size: 12.5px;
   line-height: 1.7;
-  color: #819075;
+  color: var(--text-3);
 }
 
 .pdf-import-dialog .pdf-import-footer > .pdf-apply-error {
-  color: #9c6747;
+  color: var(--danger-700);
   padding: 9px 11px;
-  background: #fff5ec;
+  background: var(--warn-100);
   border-radius: 6px;
 }
 
@@ -203,9 +203,9 @@
 .pdf-cancel-button {
   min-height: 42px;
   padding: 10px 19px;
-  border: 1px solid #dfe5d8;
+  border: 1px solid var(--line-2);
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .pdf-import-dialog .pdf-import-actions > .primary-button {
@@ -255,7 +255,7 @@
   }
 
   .pdf-import-header .eyebrow {
-    font-size: 8px;
+    font-size: 10.5px;
   }
 
   .pdf-import-controls {
@@ -282,11 +282,11 @@
   .pdf-import-dialog .pdf-import-actions > .primary-button {
     flex: 1;
     padding: 10px;
-    font-size: 11px;
+    font-size: 12.5px;
   }
 
   .pdf-cancel-button {
     padding: 10px 15px;
-    font-size: 11px;
+    font-size: 12.5px;
   }
 }

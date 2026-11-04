@@ -3,12 +3,13 @@
 import { Group, Line, Text } from "react-konva";
 import type { DimensionLabel, RoomDimensionLayout } from "../room-dimensions";
 import { readableRoomInk } from "@/lib/color-contrast";
+import { CANVAS_FONT } from "../canvas-geometry";
 
 function Label({ label, color, outline }: { label: DimensionLabel; color: string; outline: boolean }) {
   return (
     <Text
       {...label}
-      fontFamily="Arial"
+      fontFamily={CANVAS_FONT}
       align="center"
       verticalAlign="middle"
       wrap="none"

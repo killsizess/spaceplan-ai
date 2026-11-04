@@ -14,7 +14,7 @@
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  background: #fff;
+  background: var(--surface-0);
 }
 .dxf-import-side {
   display: flex;
@@ -31,11 +31,11 @@
   align-items: center;
   gap: 6px;
   margin-top: 6px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 .dxf-import-note {
-  font-size: 11.5px;
+  font-size: 12.5px;
   line-height: 1.45;
   color: var(--muted);
 }
@@ -49,24 +49,22 @@
 .dxf-import-size small {
   display: block;
   margin-top: 2px;
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 400;
   color: var(--muted);
 }
 .dxf-import-warning {
   padding: 6px 8px;
   border-radius: 6px;
-  background: #fbe9c8;
-  color: #6b4700;
-  font-size: 11.5px;
+  background: var(--warn-200);
+  color: var(--warn-700);
+  font-size: 12.5px;
   line-height: 1.4;
 }
 .dxf-layer-list {
   margin: 0;
   padding: 0;
   list-style: none;
-  overflow: auto;
-  max-height: 240px;
 }
 .dxf-layer-list label {
   display: grid;
@@ -74,7 +72,7 @@
   gap: 8px;
   align-items: center;
   padding: 4px 2px;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
 }
 .dxf-layer-list input {
@@ -89,10 +87,16 @@
 }
 .dxf-layer-list small {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12.5px;
 }
 @media (max-width: 720px) {
   .dxf-import-body {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+.dxf-import-dialog[open] {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.dxf-import-side p {
+  margin: 0;
 }

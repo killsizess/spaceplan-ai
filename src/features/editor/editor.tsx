@@ -8,8 +8,6 @@ import {
   ArrowUpRight,
   ClipboardCheck,
   FileCheck2,
-  ChevronDown,
-  ChevronRight,
   CircleHelp,
   Focus,
   Grid2X2,
@@ -55,7 +53,7 @@ import {
 } from "@/features/projects/project-repository";
 import { RoomProperties } from "./components/room-properties";
 import { WallRoomProperties } from "./components/wall-room-properties";
-import { WallKindSummary, WallList } from "./components/wall-list";
+import { WallKindLegend, WallKindSummary, WallList } from "./components/wall-list";
 import { PlanSummary, RoomList } from "./components/room-list";
 import { CanvasBottom, DrawingTools, ViewMenu, type ViewLayers } from "./components/canvas-controls";
 import { CanvasEmpty, HelpCard, NothingSelected, ToolInstruction, workspaceHint } from "./components/editor-hints";
@@ -71,6 +69,8 @@ import { UnderlayPanel } from "./components/underlay-panel";
 import { PdfWallSuggestions } from "./components/pdf-wall-suggestions";
 import { APP_VERSION } from "@/lib/app-version";
 import { bearingChangeMessage } from "./bearing-guard";
+import { ScenarioRail } from "./components/scenario-rail";
+import { scenarioSteps, type ScenarioStepId } from "./scenario-steps";
 import { UnresolvedRoomsNotice } from "./components/unresolved-rooms-notice";
 import type { EditorAction } from "./editor-state";
 import { findWallCandidates, type WallCandidate } from "@/domain/floor-plan/wall-candidates";
@@ -413,6 +413,29 @@ export default function Editor() {
   const totalArea = wallMode
     ? wallRooms.reduce((sum, room) => sum + room.area, 0)
     : getTotalArea(state.plan);
+  // A wall end resting on another wall is joined, not a finding worth moving the list for.
+  const planProblems = planDiagnostics.items.filter(
+    (item) => !(item.kind === "connections" && item.diagnostic.kind === "junction"),
+  ).length;
+  const scenario = useMemo(
+    () => scenarioSteps({
+      plan: state.plan,
+      freeEnds: connectionDiagnostics.filter((item) => item.kind !== "junction").length,
+      violatedRequirements: requirementResults.filter((result) => result.status === "violated").length,
+      variants: snapshot.projects.filter((project) => project.plan.origin?.planId === state.plan.id).length,
+    }),
+    [state.plan, connectionDiagnostics, requirementResults, snapshot.projects],
+  );
+  const openScenarioStep = (id: ScenarioStepId) => {
+    if (id === "drawing") setSidebar("source");
+    else if (id === "walls" || id === "kinds") setSidebar("structure");
+    else if (id === "requirements") {
+      setSidebar("rooms");
+      // After the tab is shown: the panel lives further down the list.
+      requestAnimationFrame(() => document.querySelector(".requirements-panel")?.scrollIntoView({ block: "start" }));
+    } else if (id === "variants") setCompareOpen(true);
+    else setReportOpen(true);
+  };
   const changeRoomMode = (mode: "manual" | "walls") => {
     dispatch({ type: "roomMode:set", mode });
     setTool("select");
@@ -687,9 +710,9 @@ export default function Editor() {
           </span>
         </Link>
         <span className="header-divider" />
-        <div className="header-context">
-          Рабочее пространство <ChevronRight size={13} />{" "}
-          <span>Редактор плана</span>
+        <div className="project-title">
+          <h1 title={state.plan.name}>{state.plan.name}</h1>
+          {state.plan.origin && <span className="project-tag">Вариант</span>}
         </div>
         <div className="header-actions">
           <span
@@ -756,18 +779,7 @@ export default function Editor() {
         </div>
       </header>
       <section className="project-header">
-        <div>
-          <div className="project-eyebrow">
-            <span>МОИ ПРОЕКТЫ</span>
-            <ChevronRight size={11} />
-            <span>ЛОКАЛЬНЫЙ ПРОЕКТ</span>
-          </div>
-          <div className="project-title">
-            <h1>{state.plan.name}</h1>
-            <span className="project-tag">Планировка</span>
-          </div>
-          <p>Хорошее пространство начинается с точного плана.</p>
-        </div>
+        <ScenarioRail steps={scenario} onOpen={openScenarioStep} />
         <div className="project-header-right">
           <div className="project-variant-actions">
             <button
@@ -790,7 +802,7 @@ export default function Editor() {
               <GitCompare size={15} /> Сравнить
             </button>
             <button
-              className="secondary-button"
+              className="primary-button"
               disabled={!snapshot.ready}
               title="Что можно сказать о плане, насколько это надёжно и где нужен специалист"
               onClick={() => setReportOpen(true)}
@@ -798,19 +810,13 @@ export default function Editor() {
               <FileCheck2 size={15} /> Отчёт
             </button>
           </div>
-          <div className="stage-indicator">
-            <span className="stage-number">14</span>
-            <span>
-              Проверка плана<span>Все замечания в одном месте</span>
-            </span>
-          </div>
           <button
             className={`icon-button help-button ${helpOpen ? "active" : ""}`}
             aria-label="Справка по редактору"
             aria-expanded={helpOpen}
             onClick={() => setHelpOpen(!helpOpen)}
           >
-            <CircleHelp size={19} />
+            <CircleHelp size={18} />
           </button>
         </div>
       </section>
@@ -858,15 +864,6 @@ export default function Editor() {
             <span>
               <Layers2 size={16} /> Структура плана
             </span>
-          </div>
-          <div className="floor-label">
-            <span className="floor-icon">
-              <Layers2 size={15} />
-            </span>
-            <span>
-              Первый этаж <small>Основной план</small>
-            </span>
-            <ChevronDown size={14} />
           </div>
           <div
             className="structure-tabs"
@@ -980,7 +977,7 @@ export default function Editor() {
           )}
           {sidebar === "structure" && (
             <div
-              className="sidebar-content construction-list"
+              className={`sidebar-content construction-list${planProblems > 0 ? " has-diagnostics" : ""}`}
               role="tabpanel"
               id="structure-tab-panel"
               aria-labelledby="structure-tab"
@@ -1058,19 +1055,21 @@ export default function Editor() {
                   busy={snapshot.busy || !snapshot.ready}
                 />
               )}
-              <WallKindSummary
-                walls={state.plan.walls}
-                selectedId={state.selectedId}
-                onSelect={selectFromList}
-              />
-              <WallList
-                walls={state.plan.walls}
-                openings={state.plan.openings}
-                selectedId={state.selectedId}
-                busy={!snapshot.ready || snapshot.busy}
-                onSelect={selectFromList}
-                onSetKind={(wallId, kind) => dispatch({ type: "wall:set-kind", wallId, kind })}
-              />
+              <div className="wall-listing">
+                <WallKindSummary
+                  walls={state.plan.walls}
+                  selectedId={state.selectedId}
+                  onSelect={selectFromList}
+                />
+                <WallList
+                  walls={state.plan.walls}
+                  openings={state.plan.openings}
+                  selectedId={state.selectedId}
+                  busy={!snapshot.ready || snapshot.busy}
+                  onSelect={selectFromList}
+                  onSetKind={(wallId, kind) => dispatch({ type: "wall:set-kind", wallId, kind })}
+                />
+              </div>
               <p className="structure-empty">
                 Включите «По стенам» во вкладке «Комнаты»: замкнутые стены
                 определят внутренние контуры и площадь помещений.
@@ -1202,9 +1201,7 @@ export default function Editor() {
         </aside>
         <section className="workspace" aria-label="Рабочая область редактора">
           <div className="workspace-toolbar">
-            <div className="view-label">
-              <span className="active-dot" /> Этаж 01
-            </div>
+            <WallKindLegend walls={state.plan.walls} />
             <div
               className="view-mode-switch"
               role="group"
@@ -1402,9 +1399,6 @@ export default function Editor() {
                     setTool("room");
                   }}
                 />
-                <div className="canvas-caption">
-                  <span className="caption-line" /> ЭТАЖ 01
-                </div>
                 {!displayedRooms.length &&
                   !state.plan.walls.length &&
                   !state.plan.underlay &&
@@ -1514,10 +1508,7 @@ export default function Editor() {
         </aside>
       </div>
       <footer className="app-footer">
-        <span>
-          <span className="footer-logo">S</span> SPACEPLAN AI{" "}
-          <span className="footer-dot">·</span> РЕДАКТОР ПРОСТРАНСТВА
-        </span>
+        <span>Решения о конструктиве принимает специалист</span>
         <span>
           Локально в браузере · Резервная копия — JSON{" "}
           <span className="footer-dot">·</span>{" "}

@@ -1,42 +1,42 @@
 .wall-connections-panel {
   margin: 0 0 18px;
   padding: 12px;
-  border: 1px solid #e7dfcd;
+  border: 1px solid var(--warn-200);
   border-radius: 7px;
-  background: #fcfaf4;
+  background: var(--warn-100);
 }
 .wall-connections-panel.all-connected {
-  background: #f4f7ef;
-  border-color: #dfe7d7;
+  background: var(--accent-100);
+  border-color: var(--line-2);
 }
 .wall-connections-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  color: #8e7046;
+  color: var(--warn-700);
 }
 .wall-connections-heading h3 {
   display: flex;
   gap: 6px;
   align-items: center;
   margin: 0;
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 500;
 }
-.all-connected .wall-connections-heading { color: #6a805c; }
+.all-connected .wall-connections-heading { color: var(--accent-700); }
 .wall-connections-heading > strong {
-  font-size: 11px;
+  font-size: 12.5px;
   font-variant-numeric: tabular-nums;
 }
 .wall-connections-panel p {
   margin: 9px 0 0;
-  color: #8e8a79;
-  font-size: 9px;
+  color: var(--warn-700);
+  font-size: 11px;
   line-height: 1.65;
 }
 .connection-diagnostic-list { margin-top: 9px; }
-.connection-diagnostic-item { border-top: 1px solid #ece5d7; }
+.connection-diagnostic-item { border-top: 1px solid var(--warn-200); }
 .connection-diagnostic-list button {
   display: flex;
   align-items: flex-start;
@@ -45,59 +45,59 @@
   padding: 9px 0;
   text-align: left;
 }
-.connection-diagnostic-list button:hover { background: #f5f0e6; }
+.connection-diagnostic-list button:hover { background: var(--warn-100); }
 .connection-diagnostic-list button > span:nth-child(2) { flex: 1; min-width: 0; }
 .connection-diagnostic-list strong {
   display: block;
-  font-size: 10px;
-  color: #876b45;
+  font-size: 11.5px;
+  color: var(--warn-700);
   font-weight: 500;
 }
 .connection-diagnostic-list small {
   display: block;
   margin-top: 4px;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.5;
-  color: #9c8e76;
+  color: var(--warn-700);
 }
-.connection-diagnostic-list svg { flex-shrink: 0; margin-top: 2px; color: #ad966f; }
+.connection-diagnostic-list svg { flex-shrink: 0; margin-top: 2px; color: var(--warn-700); }
 .connection-dot {
   display: block;
   width: 7px;
   height: 7px;
   flex-shrink: 0;
   margin-top: 3px;
-  border: 1.5px solid #bc8a47;
+  border: 1.5px solid var(--warn-500);
   border-radius: 50%;
 }
 .connection-dot.is-junction { border-radius: 1px; transform: rotate(45deg); }
-.connection-dot.is-intersection { border-radius: 1px; background: #e7d4b8; }
-.connection-show-more { font-size: 9px; margin-top: 5px; }
+.connection-dot.is-intersection { border-radius: 1px; background: var(--warn-200); }
+.connection-show-more { font-size: 11px; margin-top: 5px; }
 .connection-diagnostic-list .connection-join {
   align-items: center;
   justify-content: center;
   gap: 5px;
   padding: 7px;
   margin: 0 0 9px;
-  border: 1px solid #d8dfcb;
+  border: 1px solid var(--line-2);
   border-radius: 4px;
-  background: #f1f5e8;
-  color: #597247;
-  font-size: 9px;
+  background: var(--accent-100);
+  color: var(--accent-700);
+  font-size: 11px;
 }
-.connection-diagnostic-list .connection-join:hover { background: #e8efdb; }
+.connection-diagnostic-list .connection-join:hover { background: var(--accent-200); }
 .connection-diagnostic-list .connection-join svg { margin: 0; color: inherit; }
 .wall-connections-panel .connection-action-error {
   padding: 9px;
-  border: 1px solid #e9cfc0;
+  border: 1px solid var(--danger-200);
   border-radius: 4px;
-  background: #fff1e9;
-  color: #98674d;
-  font-size: 10px;
+  background: var(--danger-100);
+  color: var(--danger-700);
+  font-size: 11.5px;
 }
-.wall-connections-panel .connection-distance-note { font-size: 8px; }
+.wall-connections-panel .connection-distance-note { font-size: 10.5px; }
 @media (max-width: 520px) {
   .connection-diagnostic-list button { min-height: 44px; }
   .wall-connections-panel p,
-  .connection-diagnostic-list small { font-size: 10px; }
+  .connection-diagnostic-list small { font-size: 11.5px; }
 }

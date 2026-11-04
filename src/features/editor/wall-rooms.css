@@ -4,20 +4,20 @@
   gap: 3px;
   margin: 1px 13px 12px;
   padding: 3px;
-  border: 1px solid #e1e7da;
+  border: 1px solid var(--line-2);
   border-radius: 6px;
-  background: #f7f9f3;
+  background: var(--accent-100);
 }
 .room-source-switch button {
   flex: 1;
   padding: 7px 4px;
-  font-size: 10px;
-  color: #849077;
+  font-size: 11.5px;
+  color: var(--text-3);
   border-radius: 4px;
 }
 .room-source-switch button[aria-pressed="true"] {
-  background: #e5eddd;
-  color: #3b6146;
+  background: var(--accent-200);
+  color: var(--accent-700);
   font-weight: 600;
 }
 .room-source-switch button:disabled {
@@ -25,17 +25,17 @@
 }
 .wall-rooms-explanation {
   padding: 14px 12px;
-  font-size: 10px;
+  font-size: 11.5px;
   line-height: 1.8;
-  color: #7b8e70;
+  color: var(--text-3);
 }
 .wall-rooms-explanation p {
   margin: 9px 0 0;
-  color: #9a7850;
+  color: var(--warn-700);
 }
 .wall-room-measurements {
   margin: 22px 0;
-  font-size: 11px;
+  font-size: 12.5px;
 }
 .wall-room-measurements > div {
   display: flex;
@@ -43,21 +43,21 @@
   justify-content: space-between;
   gap: 10px;
   padding: 11px 0;
-  border-bottom: 1px solid #edf0e8;
+  border-bottom: 1px solid var(--line-1);
 }
 .wall-room-measurements dt {
-  color: #8b9980;
+  color: var(--text-3);
 }
 .wall-room-measurements dd {
   margin: 0;
-  color: #48613d;
+  color: var(--accent-700);
   font-weight: 600;
 }
 .wall-room-notice {
   display: flex;
   gap: 8px;
-  color: #7a8b6f;
-  font-size: 11px;
+  color: var(--text-3);
+  font-size: 12.5px;
   line-height: 1.8;
 }
 .wall-room-notice svg {
@@ -65,29 +65,29 @@
   margin-top: 3px;
 }
 .wall-room-limit {
-  color: #95a18b;
-  font-size: 10px;
+  color: var(--text-4);
+  font-size: 11.5px;
   line-height: 1.8;
 }
 .wall-room-properties .room-area-card {
   display: grid;
   gap: 8px;
   padding: 18px;
-  background: #f0f4e9;
+  background: var(--accent-100);
   border-radius: 6px;
-  color: #7f916d;
-  font-size: 11px;
+  color: var(--accent-700);
+  font-size: 12.5px;
 }
 .wall-room-properties .room-area-card strong {
-  color: #3d643d;
+  color: var(--accent-700);
   font-size: 25px;
   font-weight: 400;
 }
 .rectangle-form label,
 .rectangle-resize-form label {
   display: block;
-  font-size: 10px;
-  color: #7f8c73;
+  font-size: 11.5px;
+  color: var(--text-3);
   margin: 0 0 8px;
 }
 .rectangular-room-dialog {
@@ -103,9 +103,9 @@
   margin: 0;
   padding: 4px 7px;
   border-radius: 4px;
-  background: #f8faf4e6;
-  color: #7c8e72;
-  font-size: 9px;
+  background: #ffffffe6;
+  color: var(--text-3);
+  font-size: 11px;
   line-height: 1.5;
   pointer-events: none;
 }
@@ -127,42 +127,42 @@
 .rectangle-resize-form {
   margin-top: 20px;
 }
-.wall-room-kind { display: block; margin-top: 5px; font-size: 10px; color: #7a8b6f; }
+.wall-room-kind { display: block; margin-top: 5px; font-size: 11.5px; color: var(--text-3); }
 .wall-room-selected-preview > div:last-child { min-width: 0; }
 .wall-room-selected-preview h2 { overflow-wrap: anywhere; }
 .wall-room-label-form { margin-top: 20px; }
 .wall-room-label-form fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
-.wall-room-label-form legend { margin-bottom: 15px; font-size: 9px; letter-spacing: 0.08em; color: #7a8b6f; }
-.wall-room-label-form label { display: block; margin: 14px 0 8px; font-size: 10px; color: #7f8c73; }
+.wall-room-label-form legend { margin-bottom: 15px; font-size: 11px; letter-spacing: 0.08em; color: var(--text-3); }
+.wall-room-label-form label { display: block; margin: 14px 0 8px; font-size: 11.5px; color: var(--text-3); }
 .wall-room-label-form input:not([type="color"]),
 .wall-room-label-form select { width: 100%; }
 .wall-room-color-field { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .wall-room-color-field input { width: 56px; height: 36px; padding: 3px; cursor: pointer; }
-.wall-room-color-field span { color: #7a8b6f; font-size: 10px; }
-.wall-room-label-form .primary-button { width: 100%; font-size: 10px; }
-.wall-room-label-reset { margin-top: 12px; font-size: 10px; }
-.unassigned-room-labels { margin: 12px; padding: 12px; border: 1px solid #e7dfcd; border-radius: 7px; background: #fcfaf4; }
-.unassigned-room-labels h3 { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; color: #8e7046; font-size: 11px; font-weight: 500; }
-.unassigned-room-labels p { color: #8e8a79; font-size: 10px; line-height: 1.7; }
-.unassigned-room-label { padding: 12px 0; border-top: 1px solid #ece5d7; }
+.wall-room-color-field span { color: var(--text-3); font-size: 11.5px; }
+.wall-room-label-form .primary-button { width: 100%; font-size: 11.5px; }
+.wall-room-label-reset { margin-top: 12px; font-size: 11.5px; }
+.unassigned-room-labels { margin: 12px; padding: 12px; border: 1px solid var(--warn-200); border-radius: 7px; background: var(--warn-100); }
+.unassigned-room-labels h3 { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; color: var(--warn-700); font-size: 12.5px; font-weight: 500; }
+.unassigned-room-labels p { color: var(--warn-700); font-size: 11.5px; line-height: 1.7; }
+.unassigned-room-label { padding: 12px 0; border-top: 1px solid var(--warn-200); }
 .unassigned-room-label-title { display: flex; align-items: center; gap: 7px; }
-.unassigned-room-label-title > span { width: 12px; height: 12px; flex-shrink: 0; border: 1px solid #d0d7c8; border-radius: 3px; }
-.unassigned-room-label strong { overflow-wrap: anywhere; color: #786b50; font-size: 11px; font-weight: 500; }
-.unassigned-room-label small { display: block; margin: 7px 0 10px; color: #8e8a79; font-size: 10px; }
-.unassigned-room-label .primary-button { width: 100%; font-size: 9px; }
-.unassigned-room-label .text-button { margin-top: 10px; font-size: 10px; }
+.unassigned-room-label-title > span { width: 12px; height: 12px; flex-shrink: 0; border: 1px solid var(--line-3); border-radius: 3px; }
+.unassigned-room-label strong { overflow-wrap: anywhere; color: var(--warn-700); font-size: 12.5px; font-weight: 500; }
+.unassigned-room-label small { display: block; margin: 7px 0 10px; color: var(--warn-700); font-size: 11.5px; }
+.unassigned-room-label .primary-button { width: 100%; font-size: 11px; }
+.unassigned-room-label .text-button { margin-top: 10px; font-size: 11.5px; }
 @media (max-width: 520px) {
   .unassigned-room-labels button, .wall-room-label-reset { min-height: 44px; }
 }
 .rectangle-form-note {
-  font-size: 10px;
+  font-size: 11.5px;
   line-height: 1.7;
-  color: #8b967f;
+  color: var(--text-3);
   margin: 12px 0;
 }
 .rectangle-area-preview {
-  font-size: 12px;
-  color: #6b7e5b;
+  font-size: 13px;
+  color: var(--accent-700);
 }
 .rectangular-room-dialog form .primary-button {
   width: 100%;
@@ -172,16 +172,16 @@
 .wall-room-neighbours {
   margin: 4px 0 22px;
   padding-top: 16px;
-  border-top: 1px solid #eff2e9;
-  font-size: 11px;
+  border-top: 1px solid var(--line-1);
+  font-size: 12.5px;
 }
 .wall-room-neighbours h3 {
   margin: 0 0 10px;
-  font-size: 8px;
+  font-size: 10.5px;
   font-weight: 500;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: #94a186;
+  color: var(--text-3);
 }
 .wall-room-neighbours ul {
   display: grid;
@@ -196,28 +196,28 @@
   gap: 2px;
   padding: 8px 10px;
   text-align: left;
-  border: 1px solid #e3e9dc;
+  border: 1px solid var(--line-1);
   border-radius: 6px;
-  background: #fafbf7;
+  background: var(--surface-1);
   color: var(--ink);
 }
 .wall-room-neighbours button:hover {
-  background: #f0f5e9;
+  background: var(--accent-100);
 }
 .wall-room-neighbours button:focus-visible {
   outline: 2px solid var(--green);
   outline-offset: 2px;
 }
 .wall-room-neighbours button span {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
 }
 .wall-room-neighbours small {
-  font-size: 10px;
-  color: #7b8572;
+  font-size: 11.5px;
+  color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
 .wall-room-neighbours p {
   margin: 8px 0 0;
-  color: #7b8572;
+  color: var(--text-3);
 }

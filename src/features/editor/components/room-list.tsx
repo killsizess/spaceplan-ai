@@ -2,7 +2,7 @@ import { Check, ChevronRight } from "lucide-react";
 import type { Room } from "@/domain/floor-plan/types";
 import type { WallRoom } from "@/domain/floor-plan/wall-rooms";
 import { rectangleArea } from "@/domain/geometry";
-import { formatArea } from "@/lib/format";
+import { formatArea, pluralRu } from "@/lib/format";
 import { readableRoomInk } from "@/lib/color-contrast";
 
 export type ListedRoom = Room | WallRoom;
@@ -76,7 +76,7 @@ export function PlanSummary({
       <span className="eyebrow">ОБЩАЯ ПЛОЩАДЬ</span>
       <strong data-testid="total-area">{formatArea(totalArea)}</strong>
       <div>
-        <span>{rooms.length} помещений</span>
+        <span>{pluralRu(rooms.length, "помещение", "помещения", "помещений")}</span>
         <span className="verified-mark">
           <Check size={12} /> По геометрии
         </span>
@@ -92,11 +92,7 @@ export function PlanSummary({
           />
         ))}
       </div>
-      <p>
-        {wallMode ? "По внутренним контурам." : "Сумма площадей комнат."}
-        <br />
-        {wallMode ? "Толщина стен вычтена." : "Без вычета толщины стен."}
-      </p>
+      <p>{wallMode ? "По внутренним контурам, толщина стен вычтена." : "Сумма комнат, без вычета толщины стен."}</p>
     </div>
   );
 }

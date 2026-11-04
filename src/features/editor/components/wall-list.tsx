@@ -52,6 +52,18 @@ export function WallKindSummary({
   );
 }
 
+/** What the wall colours on the plan mean; shown once a plan has walls. */
+export function WallKindLegend({ walls }: { walls: readonly Wall[] }) {
+  if (!walls.length) return <div className="wall-kind-legend" />;
+  return (
+    <div className="wall-kind-legend" data-testid="wall-kind-legend" aria-label="Цвета стен на плане">
+      <span><i className="kind-bearing" /> Несущая</span>
+      <span><i className="kind-partition" /> Перегородка</span>
+      <span><i className="kind-unknown" /> Не указано</span>
+    </div>
+  );
+}
+
 /** Walls of the plan with their openings, in plan order. */
 export function WallList({
   walls,

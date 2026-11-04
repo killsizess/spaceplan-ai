@@ -198,3 +198,20 @@ li[data-state="ok"] > .plan-report-mark {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.plan-report-dialog .plan-report-verdict p {
+  color: var(--text-1);
+  margin: 0;
+}
+.plan-report-footer > .primary-button {
+  flex: none;
+  width: auto;
+  padding: 9px 18px;
+}
+.plan-report-dialog .plan-report-level li p,
+.plan-report-dialog .plan-report-limits p {
+  margin: 2px 0 0;
+}
+.plan-report-level li {
+  padding: 4px 12px;
+}

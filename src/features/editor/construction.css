@@ -1,9 +1,9 @@
 .underlay-panel {
   margin: 12px 16px 16px;
   padding: 14px;
-  border: 1px solid #e2e8dd;
+  border: 1px solid var(--line-1);
   border-radius: 9px;
-  background: #fafbf7;
+  background: var(--surface-1);
   min-width: 0;
 }
 .underlay-heading {
@@ -11,10 +11,10 @@
   align-items: center;
   gap: 7px;
   margin-bottom: 12px;
-  color: #53694b;
+  color: var(--accent-700);
 }
 .underlay-heading h2 {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 .underlay-upload {
@@ -25,19 +25,19 @@
   gap: 7px;
   min-height: 38px;
   padding: 7px;
-  border: 1px dashed #bacbb2;
+  border: 1px dashed var(--line-3);
   border-radius: 5px;
-  font-size: 10px;
-  background: #f0f5e9;
-  color: #466138;
+  font-size: 11.5px;
+  background: var(--accent-100);
+  color: var(--accent-700);
 }
 .underlay-upload:hover {
-  background: #e6efde;
+  background: var(--accent-100);
 }
 .underlay-filename {
   margin-top: 10px;
-  font-size: 10px;
-  color: #6f7e64;
+  font-size: 11.5px;
+  color: var(--text-2);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -49,36 +49,36 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 .underlay-checkbox input {
   width: 14px;
   height: 14px;
   padding: 0;
-  accent-color: #47684e;
+  accent-color: var(--accent-700);
 }
 .underlay-opacity-label {
   display: flex;
   justify-content: space-between;
   margin-top: 14px;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 .underlay-opacity {
   padding: 0;
   height: 18px;
   border: 0;
   box-shadow: none;
-  accent-color: #65815b;
+  accent-color: var(--accent-600);
   background: transparent;
 }
 .underlay-scale-status {
   display: block;
   margin: 10px 0;
-  font-size: 10px;
-  color: #97733f;
+  font-size: 11.5px;
+  color: var(--warn-700);
 }
 .underlay-scale-status.calibrated {
-  color: #527345;
+  color: var(--accent-700);
 }
 .underlay-action-pair {
   display: flex;
@@ -92,13 +92,13 @@
   justify-content: center;
   gap: 5px;
   padding: 9px 4px;
-  border: 1px solid #dbe4d2;
+  border: 1px solid var(--line-2);
   border-radius: 5px;
   background: white;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 .underlay-action-pair button:hover {
-  background: #f0f5e9;
+  background: var(--accent-100);
 }
 .underlay-remove {
   display: flex;
@@ -108,31 +108,31 @@
   width: 100%;
   margin-top: 10px;
   padding: 5px;
-  font-size: 10px;
-  color: #976a5c;
+  font-size: 11.5px;
+  color: var(--danger-700);
 }
 .pdf-wall-suggestions {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #e2e8dd;
+  border-top: 1px solid var(--line-1);
 }
 .pdf-wall-suggestions h3 {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-bottom: 6px;
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: #53694b;
+  color: var(--accent-700);
 }
 .pdf-wall-suggestions p {
   margin-bottom: 8px;
-  font-size: 10px;
+  font-size: 11.5px;
   line-height: 1.55;
-  color: #66705f;
+  color: var(--text-2);
 }
 .pdf-wall-suggestions .pdf-wall-suggestions-hint {
-  color: #97733f;
+  color: var(--warn-700);
 }
 .pdf-wall-suggestions-bulk {
   display: flex;
@@ -143,13 +143,13 @@
   padding: 0;
   border: 0;
   background: none;
-  font-size: 10px;
-  color: #47684e;
+  font-size: 11.5px;
+  color: var(--accent-700);
   text-decoration: underline;
   cursor: pointer;
 }
 .pdf-wall-suggestions-bulk button:disabled {
-  color: #a5ad9d;
+  color: var(--text-4);
   text-decoration: none;
   cursor: default;
 }
@@ -159,36 +159,36 @@
   padding: 0;
   overflow-y: auto;
   list-style: none;
-  border: 1px solid #e2e8dd;
+  border: 1px solid var(--line-1);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface-0);
 }
 .pdf-wall-suggestions-list li + li {
-  border-top: 1px solid #eef1ea;
+  border-top: 1px solid var(--line-1);
 }
 .pdf-wall-suggestions-list label {
   display: flex;
   align-items: center;
   gap: 7px;
   padding: 5px 8px;
-  font-size: 10px;
+  font-size: 11.5px;
   cursor: pointer;
 }
 .pdf-wall-suggestions-list input {
   width: 14px;
   height: 14px;
   padding: 0;
-  accent-color: #c9694b;
+  accent-color: var(--danger-500);
 }
 .pdf-wall-suggestions-list small {
   margin-left: auto;
-  color: #87917d;
+  color: var(--text-3);
 }
 .underlay-help {
   margin-top: 12px;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.65;
-  color: #87917d;
+  color: var(--text-3);
 }
 .construction-selected {
   display: flex;
@@ -201,9 +201,9 @@
   height: 47px;
   display: grid;
   place-items: center;
-  background: #edf2e7;
-  border: 1px solid #dbe5d2;
-  color: #678058;
+  background: var(--surface-3);
+  border: 1px solid var(--line-2);
+  color: var(--accent-700);
   border-radius: 7px;
   flex-shrink: 0;
 }
@@ -219,11 +219,11 @@
 }
 .construction-error {
   padding: 10px 12px;
-  background: #fff3e9;
-  color: #986749;
-  border: 1px solid #f1deca;
+  background: var(--warn-100);
+  color: var(--danger-700);
+  border: 1px solid var(--warn-200);
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 12.5px;
   line-height: 1.6;
   margin: 14px 0;
 }
@@ -237,24 +237,24 @@
 .construction-form .wall-connections-toggle input {
   width: 16px;
   height: 16px;
-  accent-color: #65815b;
+  accent-color: var(--accent-600);
 }
 .wall-connections-note {
-  font-size: 10px;
+  font-size: 11.5px;
   line-height: 1.6;
-  color: #7b8572;
+  color: var(--text-3);
   margin-bottom: 12px;
 }
 .calibration-dialog .calibration-source {
-  font-size: 11px;
-  color: #6e7e61;
+  font-size: 12.5px;
+  color: var(--accent-700);
   margin-top: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .calibration-dialog .construction-error {
-  color: #986749;
+  color: var(--danger-700);
 }
 @media (max-width: 640px) {
   .underlay-panel {
@@ -263,33 +263,33 @@
   .underlay-upload,
   .underlay-action-pair button {
     min-height: 40px;
-    font-size: 11px;
+    font-size: 12.5px;
   }
   .underlay-help {
-    font-size: 10px;
+    font-size: 11.5px;
   }
 }
 .door-swing-controls {
   min-width: 0;
   margin: 19px 0 0;
   padding: 14px 12px 9px;
-  background: #f7faf3;
-  border: 1px solid #e0e8d8;
+  background: var(--surface-1);
+  border: 1px solid var(--line-2);
   border-radius: 7px;
 }
-.door-swing-controls legend { padding: 0 5px; font-size: 8px; letter-spacing: .7px; color: #7d9271; }
-.door-swing-controls > select { width: 100%; min-width: 0; background: #fff; }
-.door-swing-controls > .field-note { margin: 12px 0 0; font-size: 10px; }
-.door-swing-preview { margin: 5px 0 0; padding: 0 6px 9px; border: 1px solid #e4eadc; border-radius: 5px; background: #fff; }
+.door-swing-controls legend { padding: 0 5px; font-size: 10.5px; letter-spacing: .7px; color: var(--accent-700); }
+.door-swing-controls > select { width: 100%; min-width: 0; background: var(--surface-0); }
+.door-swing-controls > .field-note { margin: 12px 0 0; font-size: 11.5px; }
+.door-swing-preview { margin: 5px 0 0; padding: 0 6px 9px; border: 1px solid var(--line-1); border-radius: 5px; background: var(--surface-0); }
 .door-swing-preview > svg { display: block; width: 100%; max-height: 122px; }
-.door-swing-preview > span { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 9px; color: #8b9a80; }
-.door-swing-preview b { font-size: 15px; font-weight: 400; color: #738e66; }
+.door-swing-preview > span { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 11px; color: var(--text-3); }
+.door-swing-preview b { font-size: 15px; font-weight: 400; color: var(--accent-700); }
 
 .wall-kind-note {
   margin: 4px 0 10px;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.4;
-  color: var(--muted, #667085);
+  color: var(--muted, var(--info-700));
 }
 
 .pdf-opening-suggestions-list li {
@@ -300,8 +300,8 @@
 }
 .pdf-opening-suggestions-list li > details {
   grid-column: 1 / -1;
-  font-size: 10px;
-  color: #66705f;
+  font-size: 11.5px;
+  color: var(--text-2);
 }
 .pdf-opening-suggestions-list li > details ul {
   margin: 2px 0 4px 14px;
@@ -309,14 +309,96 @@
   list-style: disc;
 }
 .pdf-opening-suggestions-list select {
-  font-size: 10px;
+  font-size: 11.5px;
 }
 .opening-doubt {
   margin-left: 6px;
   padding: 0 5px;
   border-radius: 8px;
-  background: #fbe9c8;
-  color: #8a5a00;
-  font-size: 9px;
+  background: var(--warn-200);
+  color: var(--warn-700);
+  font-size: 11px;
   font-weight: 600;
+}
+
+.wall-kind-summary {
+  margin: 0 0 10px;
+  padding: 10px 11px;
+  border: 1px solid var(--line-1);
+  border-radius: 10px;
+  background: var(--surface-1);
+}
+.wall-kind-summary p {
+  margin-top: 7px;
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+.wall-kind-summary strong {
+  color: var(--text-1);
+  font-weight: 650;
+}
+.wall-kind-summary .text-button {
+  margin-top: 6px;
+  padding: 0;
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--accent-700);
+  text-decoration: underline;
+}
+.wall-kind-summary-done {
+  color: var(--accent-700) !important;
+  font-weight: 550;
+}
+.wall-kind-summary-bar {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+}
+.wall-kind-summary-bar i {
+  min-width: 0;
+  flex-basis: 0;
+  border-radius: 3px;
+}
+.wall-kind-summary-bar .kind-bearing { background: var(--text-1); }
+.wall-kind-summary-bar .kind-partition { background: #7d8c83; }
+.wall-kind-summary-bar .kind-unknown { background: var(--warn-500); }
+.wall-list-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.wall-list-row > .construction-item {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.wall-kind-quick {
+  display: flex;
+  flex: none;
+  padding: 2px;
+  border-radius: 7px;
+  background: var(--surface-2);
+}
+.wall-kind-quick button {
+  width: 23px;
+  height: 23px;
+  border-radius: 5px;
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--text-4);
+}
+.wall-kind-quick button:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--text-1);
+}
+.wall-kind-quick button[aria-pressed="true"].kind-bearing {
+  background: var(--text-1);
+  color: #fff;
+}
+.wall-kind-quick button[aria-pressed="true"].kind-partition {
+  background: #7d8c83;
+  color: #fff;
+}
+.wall-kind-quick button[aria-pressed="true"].kind-unknown {
+  background: var(--warn-100);
+  color: var(--warn-700);
 }

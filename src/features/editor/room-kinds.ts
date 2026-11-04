@@ -1,19 +1,19 @@
 import type { RoomKind } from "@/domain/floor-plan/types";
 
 export const ROOM_KINDS: Record<RoomKind, { label: string; color: string }> = {
-  living: { label: "Гостиная", color: "#e8e5dd" },
-  bedroom: { label: "Спальня", color: "#dfe8df" },
-  kitchen: { label: "Кухня", color: "#ede3d4" },
-  bathroom: { label: "Ванная", color: "#dce8ed" },
-  hall: { label: "Прихожая", color: "#eeeae3" },
-  other: { label: "Комната", color: "#e5e1ec" },
+  living: { label: "Гостиная", color: "#f1e3c6" },
+  bedroom: { label: "Спальня", color: "#d3ebd8" },
+  kitchen: { label: "Кухня", color: "#f8dcc6" },
+  bathroom: { label: "Ванная", color: "#cfe7f3" },
+  hall: { label: "Прихожая", color: "#ece7da" },
+  other: { label: "Комната", color: "#e0d9f2" },
 };
 
 export const ROOM_COLORS = [
-  "#e8e5dd",
-  "#dfe8df",
-  "#ede3d4",
-  "#dce8ed",
-  "#e5e1ec",
-  "#eeded5",
+  "#f1e3c6",
+  "#d3ebd8",
+  "#f8dcc6",
+  "#cfe7f3",
+  "#e0d9f2",
+  "#f6d6d0",
 ];

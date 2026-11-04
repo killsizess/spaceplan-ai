@@ -9,6 +9,7 @@ import { doorSwingLocal } from "@/domain/floor-plan/door-swing";
 import { wallKindOf } from "@/domain/floor-plan/wall-kind";
 import { formatArea, formatLength } from "@/lib/format";
 import { gridLines, snapToGrid as snap, wallSolidSegments } from "../canvas-geometry";
+import { CANVAS_FONT } from "../canvas-geometry";
 
 /** Background grid in screen pixels; a fragment, so it adds no Konva node of its own. */
 export function PlanGrid({
@@ -27,7 +28,7 @@ export function PlanGrid({
         <Line
           key={`x${position}`}
           points={[position, 0, position, size.height]}
-          stroke={major ? "#e2e5df" : "#eceee9"}
+          stroke={major ? "#e3e0d4" : "#efede5"}
           strokeWidth={1}
           listening={false}
         />
@@ -36,7 +37,7 @@ export function PlanGrid({
         <Line
           key={`y${position}`}
           points={[0, position, size.width, position]}
-          stroke={major ? "#e2e5df" : "#eceee9"}
+          stroke={major ? "#e3e0d4" : "#efede5"}
           strokeWidth={1}
           listening={false}
         />
@@ -107,7 +108,7 @@ export function ManualRoomShape({
         width={room.width}
         height={room.height}
         fill={translucent ? `${room.color}75` : room.color}
-        stroke={selected ? "#426b50" : "#525b52"}
+        stroke={selected ? "#1a7353" : "#3a4a42"}
         strokeWidth={selected ? 0.085 : 0.065}
       />
       {selected && (
@@ -116,7 +117,7 @@ export function ManualRoomShape({
           y={0.1}
           width={Math.max(0, room.width - 0.2)}
           height={Math.max(0, room.height - 0.2)}
-          stroke="#7c9b7f"
+          stroke="#1a7353"
           strokeWidth={1 / scale}
           dash={[4 / scale, 4 / scale]}
           listening={false}
@@ -129,9 +130,9 @@ export function ManualRoomShape({
             y={room.height / 2 - 18 / scale}
             width={room.width - 0.24}
             text={room.name}
-            fontFamily="Arial"
+            fontFamily={CANVAS_FONT}
             fontSize={Math.min(13, (room.width * scale) / 8) / scale}
-            fill="#354239"
+            fill="#10231c"
             align="center"
             ellipsis
             wrap="none"
@@ -141,9 +142,9 @@ export function ManualRoomShape({
             y={room.height / 2 + 4 / scale}
             width={room.width}
             text={formatArea(rectangleArea(room.width, room.height))}
-            fontFamily="Arial"
+            fontFamily={CANVAS_FONT}
             fontSize={12 / scale}
-            fill="#788078"
+            fill="#4f5e56"
             align="center"
           />
         </Group>
@@ -158,8 +159,8 @@ export function ManualRoomShape({
               width={room.width}
               text={`${formatLength(room.width)} м`}
               fontSize={10 / scale}
-              fontFamily="Arial"
-              fill="#838a81"
+              fontFamily={CANVAS_FONT}
+              fill="#5f6c65"
               align="center"
             />
             <Text
@@ -167,8 +168,8 @@ export function ManualRoomShape({
               y={room.height / 2 + 20 / scale}
               text={`${formatLength(room.height)} м`}
               fontSize={10 / scale}
-              fontFamily="Arial"
-              fill="#838a81"
+              fontFamily={CANVAS_FONT}
+              fill="#5f6c65"
               rotation={-90}
             />
           </Group>
@@ -186,7 +187,7 @@ export function ManualRoomShape({
             y={y}
             radius={3.5 / scale}
             fill="#fff"
-            stroke="#426b50"
+            stroke="#1a7353"
             strokeWidth={1.5 / scale}
             listening={false}
           />
@@ -257,7 +258,7 @@ export function WallShape({
           text={`${formatLength(length)} м`}
           align="center"
           fontSize={11 / scale}
-          fontFamily="Arial"
+          fontFamily={CANVAS_FONT}
           fill={color}
           listening={false}
         />
@@ -467,7 +468,7 @@ export function WallDraftOverlay({ draft, scale }: { draft: Segment; scale: numb
     <Group listening={false}>
       <Line
         points={[draft.start.x, draft.start.y, draft.end.x, draft.end.y]}
-        stroke="#426b50"
+        stroke="#1a7353"
         strokeWidth={Math.max(0.15, 2 / scale)}
         opacity={0.6}
       />
@@ -477,7 +478,7 @@ export function WallDraftOverlay({ draft, scale }: { draft: Segment; scale: numb
           {...point}
           radius={4 / scale}
           fill="#fff"
-          stroke="#426b50"
+          stroke="#1a7353"
           strokeWidth={1.5 / scale}
         />
       ))}
@@ -486,8 +487,8 @@ export function WallDraftOverlay({ draft, scale }: { draft: Segment; scale: numb
         y={(draft.start.y + draft.end.y) / 2 - 24 / scale}
         text={`${formatLength(Math.hypot(draft.end.x - draft.start.x, draft.end.y - draft.start.y))} м`}
         fontSize={12 / scale}
-        fontFamily="Arial"
-        fill="#426b50"
+        fontFamily={CANVAS_FONT}
+        fill="#1a7353"
       />
     </Group>
   );
@@ -518,7 +519,7 @@ export function CalibrationOverlay({ segment, scale }: { segment: Segment; scale
         y={segment.end.y - 20 / scale}
         text="Укажите вторую точку"
         fontSize={12 / scale}
-        fontFamily="Arial"
+        fontFamily={CANVAS_FONT}
         fill="#9c4c1f"
       />
     </Group>
@@ -539,7 +540,7 @@ export function RoomDraftOverlay({
         {...draft}
         fill="#dfe8df"
         opacity={0.65}
-        stroke="#426b50"
+        stroke="#1a7353"
         strokeWidth={2 / scale}
         dash={[6 / scale, 4 / scale]}
       />
@@ -548,8 +549,8 @@ export function RoomDraftOverlay({
         y={draft.y - 24 / scale}
         text={`${formatLength(draft.width)} × ${formatLength(draft.height)} м`}
         fontSize={12 / scale}
-        fontFamily="Arial"
-        fill="#426b50"
+        fontFamily={CANVAS_FONT}
+        fill="#1a7353"
       />
     </Group>
   );

@@ -1,37 +1,37 @@
 .requirements-panel {
   margin: 14px 0 6px;
   padding: 14px 12px;
-  border: 1px solid #e2e8dd;
+  border: 1px solid var(--line-1);
   border-radius: 8px;
-  background: #fafbf7;
-  font-size: 11px;
+  background: var(--surface-1);
+  font-size: 12.5px;
 }
 .requirements-heading {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #53694b;
+  color: var(--accent-700);
 }
 .requirements-heading h3 {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 .requirements-count {
   margin-left: auto;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 11.5px;
 }
-.requirements-count.good { background: #e3efe0; color: #3f6b41; }
-.requirements-count.bad { background: #fbe9e3; color: #9c4a33; }
+.requirements-count.good { background: var(--accent-100); color: var(--accent-700); }
+.requirements-count.bad { background: var(--danger-100); color: var(--danger-700); }
 .requirements-empty,
 .requirements-note {
   margin: 10px 0 0;
   line-height: 1.6;
-  color: #7b8572;
+  color: var(--text-3);
 }
-.requirements-note { font-size: 9px; }
+.requirements-note { font-size: 11px; }
 .requirements-list {
   display: grid;
   gap: 6px;
@@ -44,36 +44,36 @@
   align-items: flex-start;
   gap: 6px;
   padding: 8px 8px 8px 10px;
-  border: 1px solid #e3e9dc;
+  border: 1px solid var(--line-1);
   border-left-width: 3px;
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface-0);
 }
 .requirement > div { display: grid; gap: 3px; min-width: 0; flex: 1; }
-.requirement strong { font-size: 11px; font-weight: 500; color: var(--ink); }
-.requirement small { font-size: 10px; color: #7b8572; overflow-wrap: anywhere; }
-.requirement-status { font-size: 10px; font-weight: 500; }
-.requirement.status-met { border-left-color: #6e9b6a; }
-.requirement.status-met .requirement-status { color: #3f6b41; }
-.requirement.status-violated { border-left-color: #c9694b; }
-.requirement.status-violated .requirement-status { color: #9c4a33; }
+.requirement strong { font-size: 12.5px; font-weight: 500; color: var(--ink); }
+.requirement small { font-size: 11.5px; color: var(--text-3); overflow-wrap: anywhere; }
+.requirement-status { font-size: 11.5px; font-weight: 500; }
+.requirement.status-met { border-left-color: var(--accent-600); }
+.requirement.status-met .requirement-status { color: var(--accent-700); }
+.requirement.status-violated { border-left-color: var(--danger-500); }
+.requirement.status-violated .requirement-status { color: var(--danger-700); }
 .requirement.status-no-rooms,
-.requirement.status-inactive { border-left-color: #c9c3a8; }
+.requirement.status-inactive { border-left-color: var(--warn-200); }
 .requirement.status-no-rooms .requirement-status,
-.requirement.status-inactive .requirement-status { color: #8a7f55; }
+.requirement.status-inactive .requirement-status { color: var(--warn-700); }
 .requirements-form {
   display: grid;
   gap: 6px;
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid #e8ede2;
+  border-top: 1px solid var(--line-1);
 }
-.requirements-form label { font-size: 10px; color: #8e9a81; }
+.requirements-form label { font-size: 11.5px; color: var(--text-3); }
 .requirements-form select,
-.requirements-form input:not([type="checkbox"]) { width: 100%; min-width: 0; background: #fff; }
+.requirements-form input:not([type="checkbox"]) { width: 100%; min-width: 0; background: var(--surface-0); }
 .requirements-checkbox { display: flex; align-items: center; gap: 7px; }
-.requirements-checkbox input { width: 14px; height: 14px; accent-color: #65815b; }
-.requirements-form .secondary-button { margin-top: 4px; width: 100%; font-size: 10px; }
+.requirements-checkbox input { width: 14px; height: 14px; accent-color: var(--accent-600); }
+.requirements-form .secondary-button { margin-top: 4px; width: 100%; font-size: 11.5px; }
 
 .requirements-conflicts {
   display: grid;
@@ -87,10 +87,10 @@
   gap: 7px;
   align-items: flex-start;
   padding: 8px 10px;
-  border: 1px solid #f1d6c8;
+  border: 1px solid var(--danger-200);
   border-radius: 6px;
-  background: #fff5ef;
-  color: #8f4a31;
+  background: var(--danger-100);
+  color: var(--danger-700);
   line-height: 1.5;
 }
 .requirements-conflicts svg { flex-shrink: 0; margin-top: 2px; }

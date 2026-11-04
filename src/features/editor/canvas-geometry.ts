@@ -184,3 +184,6 @@ export function planBounds(
   }
   return rectangles;
 }
+
+/** The interface font on the plan too; the rest of the stack applies until it has loaded. */
+export const CANVAS_FONT = '"Onest Variable", "Segoe UI", "Helvetica Neue", Arial, sans-serif';

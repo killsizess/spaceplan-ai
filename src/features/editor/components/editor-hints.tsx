@@ -69,7 +69,7 @@ export function CanvasEmpty({
         <Plus size={16} /> Добавить первую комнату
       </button>
       <button className="text-button" onClick={onUpload}>
-        <ImageUp size={14} /> Загрузить JPG / PNG / PDF
+        <ImageUp size={14} /> Загрузить чертёж: DXF, PDF, JPG, PNG
       </button>
       <button className="text-button" onClick={onExample}>
         Открыть пример планировки <ArrowUpRight size={13} />

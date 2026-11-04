@@ -4,6 +4,7 @@ import { Group, Shape, Text } from "react-konva";
 import type { WallRoom } from "@/domain/floor-plan/wall-rooms";
 import { formatArea } from "@/lib/format";
 import { readableRoomInk } from "@/lib/color-contrast";
+import { CANVAS_FONT } from "../canvas-geometry";
 
 export function WallRoomShape({
   room,
@@ -57,7 +58,7 @@ export function WallRoomShape({
             y={-17 / scale}
             width={160 / scale}
             text={room.name}
-            fontFamily="Arial"
+            fontFamily={CANVAS_FONT}
             fontSize={12 / scale}
             align="center"
             ellipsis
@@ -72,7 +73,7 @@ export function WallRoomShape({
             y={2 / scale}
             width={160 / scale}
             text={formatArea(room.area)}
-            fontFamily="Arial"
+            fontFamily={CANVAS_FONT}
             fontSize={11 / scale}
             align="center"
             fill={translucent ? "#41513e" : readableRoomInk(room.color, "#788078")}

@@ -1,72 +1,72 @@
 .door-collisions-panel {
   margin: 0 0 18px;
   padding: 12px;
-  border: 1px solid #ead8c0;
+  border: 1px solid var(--warn-200);
   border-radius: 7px;
-  background: #fff9ef;
+  background: var(--warn-100);
 }
 .door-collisions-panel.is-clear {
-  border-color: #dfe7d7;
-  background: #f4f7ef;
+  border-color: var(--line-2);
+  background: var(--accent-100);
 }
 .door-collisions-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  color: #9b663c;
+  color: var(--warn-700);
 }
-.is-clear .door-collisions-heading { color: #6a805c; }
+.is-clear .door-collisions-heading { color: var(--accent-700); }
 .door-collisions-heading h3 {
   display: flex;
   align-items: center;
   gap: 6px;
   margin: 0;
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 500;
 }
 .door-collisions-heading > strong {
-  font-size: 11px;
+  font-size: 12.5px;
   font-variant-numeric: tabular-nums;
 }
 .door-collision-group { margin-top: 11px; }
-.door-collision-group + .door-collision-group { padding-top: 11px; border-top: 1px solid #eadfce; }
+.door-collision-group + .door-collision-group { padding-top: 11px; border-top: 1px solid var(--warn-200); }
 .door-collision-subheading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  color: #935b32;
+  color: var(--warn-700);
 }
 .door-collision-subheading h4 {
   display: flex;
   align-items: center;
   gap: 5px;
   margin: 0;
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 500;
 }
-.door-collision-subheading > strong { font-size: 11px; font-variant-numeric: tabular-nums; }
-.door-pair-collision-group .door-collision-subheading { color: #7660a2; }
+.door-collision-subheading > strong { font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.door-pair-collision-group .door-collision-subheading { color: var(--violet-700); }
 .door-pair-collision-dot {
   display: block;
   flex-shrink: 0;
   width: 8px;
   height: 8px;
   margin-top: 2px;
-  border: 2px double #7660a2;
+  border: 2px double var(--violet-700);
   border-radius: 50%;
-  background: #ede7f7;
+  background: var(--violet-100);
 }
 .door-collision-subheading .door-pair-collision-dot { margin-top: 0; }
-.door-collision-list.door-pair-collision-list strong { color: #70568e; }
-.door-collision-list.door-pair-collision-list button:hover { background: #f0eaf6; }
+.door-collision-list.door-pair-collision-list strong { color: var(--violet-700); }
+.door-collision-list.door-pair-collision-list button:hover { background: var(--violet-100); }
 .door-collision-list.door-pair-collision-list button:focus-visible,
-.door-collision-show-more.door-pair-collision-show-more:focus-visible { outline-color: #7660a2; }
+.door-collision-show-more.door-pair-collision-show-more:focus-visible { outline-color: var(--violet-700); }
 .door-collisions-panel p {
   margin: 9px 0 0;
-  color: #847a68;
-  font-size: 9px;
+  color: var(--warn-700);
+  font-size: 11px;
   line-height: 1.65;
 }
 .door-collision-list { margin-top: 9px; }
@@ -76,43 +76,55 @@
   gap: 7px;
   width: 100%;
   padding: 9px 0;
-  border-top: 1px solid #eddfcc;
+  border-top: 1px solid var(--warn-200);
   text-align: left;
 }
-.door-collision-list button:hover { background: #f8efdf; }
+.door-collision-list button:hover { background: var(--warn-100); }
 .door-collision-list button:focus-visible,
-.door-collision-show-more:focus-visible { outline: 2px solid #b65f2f; outline-offset: 2px; }
+.door-collision-show-more:focus-visible { outline: 2px solid var(--danger-500); outline-offset: 2px; }
 .door-collision-list button > span:nth-child(2) { flex: 1; min-width: 0; }
 .door-collision-list strong {
   display: block;
-  color: #935b32;
-  font-size: 10px;
+  color: var(--warn-700);
+  font-size: 11.5px;
   font-weight: 500;
 }
 .door-collision-list small {
   display: block;
   margin-top: 4px;
-  color: #8e7c61;
-  font-size: 9px;
+  color: var(--warn-700);
+  font-size: 11px;
   line-height: 1.5;
 }
-.door-collision-list svg { flex-shrink: 0; margin-top: 2px; color: #ad8155; }
+.door-collision-list svg { flex-shrink: 0; margin-top: 2px; color: var(--warn-700); }
 .door-collision-dot {
   display: block;
   flex-shrink: 0;
   width: 7px;
   height: 7px;
   margin-top: 3px;
-  border: 1.5px solid #b65f2f;
+  border: 1.5px solid var(--danger-500);
   border-radius: 50%;
-  background: #f4d9b7;
+  background: var(--warn-200);
 }
-.door-collision-show-more { margin-top: 5px; font-size: 9px; }
-.door-collisions-panel .door-collision-cap { color: #955d34; }
-.door-collisions-panel .door-collision-limits { font-size: 8px; }
+.door-collision-show-more { margin-top: 5px; font-size: 11px; }
+.door-collisions-panel .door-collision-cap { color: var(--warn-700); }
+.door-collisions-panel .door-collision-limits { font-size: 10.5px; }
 @media (max-width: 520px) {
   .door-collision-list button { min-height: 44px; }
   .door-collision-show-more { min-height: 44px; }
   .door-collisions-panel p,
-  .door-collision-list small { font-size: 10px; }
+  .door-collision-list small { font-size: 11.5px; }
+}
+
+/* Nothing found is not a warning. */
+.door-collisions-panel.is-clear,
+.door-collisions-panel.is-clear p,
+.door-collisions-panel.is-clear .door-collision-group,
+.door-collisions-panel.is-clear .door-collision-group * {
+  color: var(--text-3);
+}
+.door-collisions-panel.is-clear {
+  background: var(--surface-1);
+  border-color: var(--line-1);
 }
