@@ -95,10 +95,9 @@ class Flow {
   }
 }
 
+/** The moment in the reader's own time zone: a report is read by a person, not a server. */
 function formatDate(iso: string): string {
-  const [date, time] = iso.split("T");
-  const [year, month, day] = date.split("-");
-  return `${day}.${month}.${year}${time ? ` ${time.slice(0, 5)} UTC` : ""}`;
+  return new Intl.DateTimeFormat("ru-RU", { dateStyle: "short", timeStyle: "short" }).format(new Date(iso));
 }
 
 function drawFinding(flow: Flow, finding: ReportFinding) {

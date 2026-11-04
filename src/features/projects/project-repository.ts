@@ -270,6 +270,21 @@ export function listProjects(storage: StorageLike): {
   return { projects, trash, unreadableCount };
 }
 
+/** Records that cannot be read, exactly as stored, so that nothing is lost with them. */
+export function readUnreadableRecords(storage: StorageLike): { key: string; raw: string }[] {
+  const records: { key: string; raw: string }[] = [];
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i);
+    if (!key?.startsWith(PROJECT_PREFIX)) continue;
+    try {
+      readStoredProject(storage, key.slice(PROJECT_PREFIX.length));
+    } catch {
+      records.push({ key, raw: storage.getItem(key) ?? "" });
+    }
+  }
+  return records;
+}
+
 function writeRecord(storage: StorageLike, record: StoredProject): void {
   // One write to the same key preserves both the previous record on failure and
   // the tombstone needed to stop stale tabs from resurrecting a trashed project.

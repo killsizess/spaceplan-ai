@@ -6,6 +6,7 @@ import type { Opening, Room, Wall } from "@/domain/floor-plan/types";
 import type { Point } from "@/domain/geometry";
 import { rectangleArea } from "@/domain/geometry";
 import { doorSwingLocal } from "@/domain/floor-plan/door-swing";
+import { wallKindOf } from "@/domain/floor-plan/wall-kind";
 import { formatArea, formatLength } from "@/lib/format";
 import { gridLines, snapToGrid as snap, wallSolidSegments } from "../canvas-geometry";
 
@@ -215,7 +216,7 @@ export function WallShape({
 }) {
   const length = Math.hypot(wall.end.x - wall.start.x, wall.end.y - wall.start.y);
   const angle = (Math.atan2(wall.end.y - wall.start.y, wall.end.x - wall.start.x) * 180) / Math.PI;
-  const color = selectedId === wall.id ? "#426b50" : "#414c43";
+  const color = selectedId === wall.id ? WALL_SELECTED_COLOR : WALL_KIND_COLORS[wallKindOf(wall)];
   const wallOpenings = [...openings].sort((a, b) => a.offset - b.offset);
   const segments = wallSolidSegments(length, wallOpenings);
   return (
@@ -342,6 +343,10 @@ export function WallShape({
 }
 
 type Segment = { start: Point; end: Point };
+
+/** A wall's type is visible on the plan: bearing heavy and dark, unknown in warning amber. */
+export const WALL_KIND_COLORS = { bearing: "#10231c", partition: "#7d8c83", unknown: "#b9770e" } as const;
+export const WALL_SELECTED_COLOR = "#1a7353";
 
 /**
  * Suggested walls: translucent footprints with a dashed outline. Selected ones are

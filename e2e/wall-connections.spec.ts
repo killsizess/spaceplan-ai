@@ -322,7 +322,7 @@ test("T contacts and nearby wall interiors are identified without splitting wall
       await expect(page.getByTestId("connection-count")).toHaveText("4");
       expect((await saved(page)).walls).toEqual(fixture.walls);
       expect(await saved(page)).toEqual(original);
-      await expect(page.getByTestId("wall-count")).toHaveText("2 стен");
+      await expect(page.getByTestId("wall-count")).toHaveText("2 стены");
       await expect(page.getByRole("button", { name: "Отменить", exact: true }))
         .toBeDisabled();
     });

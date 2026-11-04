@@ -11,6 +11,7 @@ import {
   type EditorState,
 } from "@/features/editor/editor-state";
 import {
+  readUnreadableRecords,
   ACTIVE_PROJECT_KEY,
   listProjects,
   parsePlanFile,
@@ -114,6 +115,10 @@ export class ProjectWorkspace {
         editor: initialEditorState(plan),
         ready: true,
         status: active ? "saved" : "saving",
+        // User data must not go missing without a word.
+        ...(library.unreadableCount > 0
+          ? { notice: `Не удалось прочитать проектов: ${library.unreadableCount}. Записи не тронуты: откройте «Мои проекты», там их можно скачать.` }
+          : {}),
       });
       if (!active) this.scheduleSave();
     } catch (error) {
@@ -185,6 +190,8 @@ export class ProjectWorkspace {
   };
   dismissNotice = () => this.publish({ notice: null });
   reportNotice = (notice: string) => this.publish({ notice });
+  /** Unreadable records as stored; empty when there are none. */
+  unreadableRecords = () => (this.services ? readUnreadableRecords(this.services.storage) : []);
   hasUnsavedChanges = () => this.snapshot.editor.plan !== this.savedPlan;
 
   private async ensureSavedBeforeSwitch() {

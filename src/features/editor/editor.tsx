@@ -44,7 +44,7 @@ import type { WallOverlapDiagnostic } from "@/domain/floor-plan/wall-overlaps";
 import { createSpatialExamplePlan } from "@/domain/floor-plan/examples";
 import { getRectangularRoomWalls, type RectangularWallRoomInput } from "@/domain/floor-plan/rectangular-wall-room";
 import { wallLength, type Point } from "@/domain/geometry";
-import { formatLength } from "@/lib/format";
+import { formatLength, pluralRu } from "@/lib/format";
 import { NewProjectDialog } from "@/features/projects/new-project-dialog";
 import { ProjectsDialog } from "@/features/projects/projects-dialog";
 import { useProjectWorkspace } from "@/features/projects/use-project-workspace";
@@ -55,7 +55,7 @@ import {
 } from "@/features/projects/project-repository";
 import { RoomProperties } from "./components/room-properties";
 import { WallRoomProperties } from "./components/wall-room-properties";
-import { WallList } from "./components/wall-list";
+import { WallKindSummary, WallList } from "./components/wall-list";
 import { PlanSummary, RoomList } from "./components/room-list";
 import { CanvasBottom, DrawingTools, ViewMenu, type ViewLayers } from "./components/canvas-controls";
 import { CanvasEmpty, HelpCard, NothingSelected, ToolInstruction, workspaceHint } from "./components/editor-hints";
@@ -988,7 +988,7 @@ export default function Editor() {
               <div className="construction-list-heading">
                 <span>СТЕНЫ И ПРОЁМЫ</span>
                 <span data-testid="wall-count">
-                  {state.plan.walls.length} стен
+                  {pluralRu(state.plan.walls.length, "стена", "стены", "стен")}
                 </span>
               </div>
               <button
@@ -1058,11 +1058,18 @@ export default function Editor() {
                   busy={snapshot.busy || !snapshot.ready}
                 />
               )}
+              <WallKindSummary
+                walls={state.plan.walls}
+                selectedId={state.selectedId}
+                onSelect={selectFromList}
+              />
               <WallList
                 walls={state.plan.walls}
                 openings={state.plan.openings}
                 selectedId={state.selectedId}
+                busy={!snapshot.ready || snapshot.busy}
                 onSelect={selectFromList}
+                onSetKind={(wallId, kind) => dispatch({ type: "wall:set-kind", wallId, kind })}
               />
               <p className="structure-empty">
                 Включите «По стенам» во вкладке «Комнаты»: замкнутые стены
@@ -1674,6 +1681,14 @@ export default function Editor() {
             workspace.dismissNotice();
           }}
           onImport={() => importRef.current?.click()}
+          onSaveUnreadable={() => {
+            const url = URL.createObjectURL(new Blob([JSON.stringify(workspace.unreadableRecords(), null, 2)], { type: "application/json" }));
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "SpacePlan-нечитаемые-записи.json";
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 30_000);
+          }}
           onRename={workspace.renameProject}
           onRestore={workspace.restoreProject}
           onTrash={async (id, expectedRevision) => {

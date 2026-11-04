@@ -65,7 +65,7 @@ describe("report pages", () => {
     expect(text).toContain("Предположение");
     expect(text).toContain("Границы этого отчёта");
     expect(text).toContain("Строительные нормы");
-    expect(text).toContain("05.11.2026");
+    expect(text).toMatch(/0[456]\.11\.(20)?26/);
   });
 
   it("carries a footer with the page number and the warning on every page", () => {

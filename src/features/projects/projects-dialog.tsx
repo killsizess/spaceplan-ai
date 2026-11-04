@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight, Check, FolderOpen, Pencil, Plus, RotateCcw, Trash2, Upload, X } from "lucide-react";
+import { ArrowUpRight, Check, FolderOpen, GitBranch, Pencil, Plus, RotateCcw, Trash2, TriangleAlert, Upload, X } from "lucide-react";
 import { getTotalArea } from "@/domain/floor-plan/operations";
 import type { FloorPlan } from "@/domain/floor-plan/types";
 import type { WallRoom } from "@/domain/floor-plan/wall-rooms";
 import { resolveWallRoomLabels } from "@/domain/floor-plan/wall-room-labels";
-import { formatArea } from "@/lib/format";
+import { wallKindOf } from "@/domain/floor-plan/wall-kind";
+import { formatArea, pluralRu } from "@/lib/format";
 import type { SavedProject, TrashedProject } from "./project-repository";
 import "./projects-dialog.css";
 
@@ -131,6 +132,8 @@ interface Props {
   onRename: (id: string, name: string, expectedRevision: string) => Promise<boolean>;
   onTrash: (id: string, expectedRevision: string) => Promise<boolean>;
   onRestore: (id: string, expectedRevision: string) => Promise<boolean>;
+  /** Saves records that could not be read as they are, so they can be repaired. */
+  onSaveUnreadable?: () => void;
 }
 
 function planPreview(plan: FloorPlan) {
@@ -139,7 +142,7 @@ function planPreview(plan: FloorPlan) {
       wallRooms: [] as readonly WallRoom[],
       area: getTotalArea(plan),
       count: plan.rooms.length,
-      error: false,
+      problem: null as string | null,
     };
   }
   try {
@@ -148,27 +151,43 @@ function planPreview(plan: FloorPlan) {
       wallRooms: rooms,
       area: rooms.reduce((sum, room) => sum + room.area, 0),
       count: rooms.length,
-      error: false,
+      problem: null as string | null,
     };
-  } catch {
+  } catch (cause) {
     return {
       wallRooms: [] as readonly WallRoom[],
       area: 0,
       count: 0,
-      error: true,
+      problem: cause instanceof Error ? cause.message : "Не удалось определить помещения.",
     };
   }
 }
 function ProjectPreview({ saved }: { saved: SavedProject | TrashedProject }) {
   const preview = useMemo(() => planPreview(saved.plan), [saved.plan]);
+  const unknownWalls = saved.plan.walls.filter((wall) => wallKindOf(wall) === "unknown").length;
   const deleted = saved.storageVersion === 2;
   const date = deleted ? saved.trashedAt : saved.updatedAt;
   return <>
     <PlanThumbnail plan={saved.plan} wallRooms={preview.wallRooms} />
     <div className="saved-project-details">
       <h3 title={saved.plan.name}>{saved.plan.name}</h3>
-      <p>{preview.count} помещений <span>·</span> {formatArea(preview.area)}</p>
-      {preview.error && <p>Требуется проверка геометрии стен</p>}
+      {preview.problem ? (
+        <p className="saved-project-warning" data-testid="project-warning" title={preview.problem}>
+          <TriangleAlert size={12} aria-hidden="true" /> Помещения не определены: {preview.problem}
+        </p>
+      ) : (
+        <p>{pluralRu(preview.count, "помещение", "помещения", "помещений")} <span>·</span> {formatArea(preview.area)}</p>
+      )}
+      {saved.plan.origin && (
+        <p className="saved-project-origin" data-testid="project-origin">
+          <GitBranch size={12} aria-hidden="true" /> Вариант плана «{saved.plan.origin.planName}»
+        </p>
+      )}
+      {unknownWalls > 0 && (
+        <p className="saved-project-note" data-testid="project-unknown-walls">
+          Без типа: {pluralRu(unknownWalls, "стена", "стены", "стен")} из {saved.plan.walls.length}
+        </p>
+      )}
       <time dateTime={date}>
         {deleted ? "Удалён " : "Изменён "}
         {new Intl.DateTimeFormat("ru-RU", {
@@ -195,6 +214,7 @@ export function ProjectsDialog({
   onRename,
   onTrash,
   onRestore,
+  onSaveUnreadable,
 }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const [view, setView] = useState<"projects" | "trash">("projects");
@@ -276,7 +296,12 @@ export function ProjectsDialog({
       {unreadableCount > 0 && (
         <div className="projects-warning" role="status">
           Не удалось прочитать записей: {unreadableCount}. Они оставлены в
-          хранилище без изменений.
+          хранилище без изменений.{" "}
+          {onSaveUnreadable && (
+            <button type="button" className="text-button" onClick={onSaveUnreadable}>
+              Скачать эти записи
+            </button>
+          )}
         </div>
       )}
       {view === "trash" && <p className="library-trash-description">Здесь хранятся удалённые проекты. Восстановление вернёт план в библиотеку вместе с комнатами, стенами и подложкой.</p>}

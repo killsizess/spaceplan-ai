@@ -10,7 +10,7 @@ import { analyzeWallConnections } from "@/domain/floor-plan/wall-diagnostics";
 import { analyzeWallIntersections } from "@/domain/floor-plan/wall-intersections";
 import { bearingWallChanges, wallKindOf, type BearingChange } from "@/domain/floor-plan/wall-kind";
 import { analyzeWallOverlaps } from "@/domain/floor-plan/wall-overlaps";
-import { formatArea } from "@/lib/format";
+import { formatArea, pluralRu } from "@/lib/format";
 import { conflictText, describeRequirement, requirementDetail } from "../editor/requirement-text";
 import { ROOM_KINDS } from "../editor/room-kinds";
 import { detectViewRooms } from "../editor/view-rooms";
@@ -97,12 +97,6 @@ const sameGeometry = (a: Wall, b: Wall) =>
   a.start.x === b.start.x && a.start.y === b.start.y && a.end.x === b.end.x && a.end.y === b.end.y &&
   a.thickness === b.thickness && a.height === b.height;
 
-function plural(count: number, one: string, few: string, many: string): string {
-  const tens = count % 100, units = count % 10;
-  const word = tens >= 11 && tens <= 14 ? many : units === 1 ? one : units >= 2 && units <= 4 ? few : many;
-  return `${count} ${word}`;
-}
-
 /** What differs from the plan this variant was made from, by what the user marked. */
 function changeFindings(plan: FloorPlan, findings: ReportFinding[]): PlanReport["origin"] {
   if (!plan.origin) return null;
@@ -110,7 +104,6 @@ function changeFindings(plan: FloorPlan, findings: ReportFinding[]): PlanReport[
   const diff = diffPlans(source, plan);
   const before = new Map(source.walls.map((wall) => [wall.id, wall]));
   const after = new Map(plan.walls.map((wall) => [wall.id, wall]));
-  const numberOf = (id: string) => plan.walls.findIndex((wall) => wall.id === id) + 1;
 
   for (const change of bearingWallChanges(source, plan)) {
     findings.push({
@@ -227,7 +220,7 @@ export function buildPlanReport(plan: FloorPlan, meta: { generatedAt: string; ap
     findings.push({
       level: "verified",
       state: "ok",
-      title: `Площадь посчитана по стенам: ${plural(rooms.length, "помещение", "помещения", "помещений")}, ${formatArea(area ?? 0)}`,
+      title: `Площадь посчитана по стенам: ${pluralRu(rooms.length, "помещение", "помещения", "помещений")}, ${formatArea(area ?? 0)}`,
       detail: "Внутри стен, с учётом их толщины.",
     });
     for (const warning of detection.warnings) findings.push({ level: "assumption", state: "note", title: warning });
