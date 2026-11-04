@@ -7,6 +7,7 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   ClipboardCheck,
+  FileCheck2,
   ChevronDown,
   ChevronRight,
   CircleHelp,
@@ -68,6 +69,7 @@ import { UnassignedRoomLabels } from "./components/unassigned-room-labels";
 import { RectangularRoomDialog } from "./components/rectangular-room-dialog";
 import { UnderlayPanel } from "./components/underlay-panel";
 import { PdfWallSuggestions } from "./components/pdf-wall-suggestions";
+import { APP_VERSION } from "@/lib/app-version";
 import { bearingChangeMessage } from "./bearing-guard";
 import { UnresolvedRoomsNotice } from "./components/unresolved-rooms-notice";
 import type { EditorAction } from "./editor-state";
@@ -115,6 +117,9 @@ const PlanCheckDialog = dynamic(() => import("./components/plan-check-dialog"), 
 const PlanCompareDialog = dynamic(() => import("./components/plan-compare-dialog"), {
   ssr: false,
 });
+const PlanReportDialog = dynamic(() => import("../report/plan-report-dialog"), {
+  ssr: false,
+});
 
 export default function Editor() {
   const { workspace, snapshot } = useProjectWorkspace();
@@ -131,6 +136,7 @@ export default function Editor() {
   const planCheckButtonRef = useRef<HTMLButtonElement>(null);
   const [planCheckOpen, setPlanCheckOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [importBusy, setImportBusy] = useState(false);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
   const [exportPlan, setExportPlan] = useState<FloorPlan | null>(null);
@@ -782,6 +788,14 @@ export default function Editor() {
               onClick={() => setCompareOpen(true)}
             >
               <GitCompare size={15} /> Сравнить
+            </button>
+            <button
+              className="secondary-button"
+              disabled={!snapshot.ready}
+              title="Что можно сказать о плане, насколько это надёжно и где нужен специалист"
+              onClick={() => setReportOpen(true)}
+            >
+              <FileCheck2 size={15} /> Отчёт
             </button>
           </div>
           <div className="stage-indicator">
@@ -1501,10 +1515,17 @@ export default function Editor() {
           Локально в браузере · Резервная копия — JSON{" "}
           <span className="footer-dot">·</span>{" "}
           <span className="footer-version">
-            MVP 0.26.1 <ArrowDownRight size={11} />
+            Версия {APP_VERSION} <ArrowDownRight size={11} />
           </span>
         </span>
       </footer>
+      {reportOpen && (
+        <PlanReportDialog
+          plan={state.plan}
+          appVersion={APP_VERSION}
+          onClose={() => setReportOpen(false)}
+        />
+      )}
       {compareOpen && (
         <PlanCompareDialog
           current={state.plan}

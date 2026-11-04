@@ -92,43 +92,43 @@ function pdfNumber(value: number): string {
 }
 
 /**
- * A single-page PDF 1.4 containing the rendered plan at its physical A4 size.
- * Text is part of the image, so Cyrillic uses the browser's local fonts.
+ * A PDF 1.4 whose pages are rendered images at their physical A4 size. Text is part of
+ * the image, so Cyrillic uses the browser's fonts and needs no embedded font.
  */
-export function createRasterPdf({
-  jpeg,
-  widthPixels,
-  heightPixels,
-  widthMm,
-  heightMm,
-}: RasterPdfInput): Uint8Array<ArrayBuffer> {
-  assertA4Page(widthMm, heightMm);
-  assertRasterSize(widthPixels, heightPixels);
-  assertJpeg(jpeg, widthPixels, heightPixels);
-  const widthPoints = pdfNumber((widthMm * 72) / 25.4);
-  const heightPoints = pdfNumber((heightMm * 72) / 25.4);
-  const content = encoder.encode(
-    `q\n${widthPoints} 0 0 ${heightPoints} 0 0 cm\n/Im0 Do\nQ\n`,
-  );
+export function createRasterPdfDocument(pages: readonly RasterPdfInput[]): Uint8Array<ArrayBuffer> {
+  if (!pages.length) throw new Error("В документе нет страниц.");
   const objects: Uint8Array[] = [
     encoder.encode("<< /Type /Catalog /Pages 2 0 R >>"),
-    encoder.encode("<< /Type /Pages /Kids [3 0 R] /Count 1 >>"),
-    encoder.encode(
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${widthPoints} ${heightPoints}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`,
-    ),
-    concatenate([
-      encoder.encode(
-        `<< /Type /XObject /Subtype /Image /Width ${widthPixels} /Height ${heightPixels} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`,
-      ),
-      jpeg,
-      encoder.encode("\nendstream"),
-    ]),
-    concatenate([
-      encoder.encode(`<< /Length ${content.length} >>\nstream\n`),
-      content,
-      encoder.encode("endstream"),
-    ]),
+    encoder.encode(`<< /Type /Pages /Kids [${pages.map((_, index) => `${3 + index * 3} 0 R`).join(" ")}] /Count ${pages.length} >>`),
   ];
+  pages.forEach(({ jpeg, widthPixels, heightPixels, widthMm, heightMm }, index) => {
+    assertA4Page(widthMm, heightMm);
+    assertRasterSize(widthPixels, heightPixels);
+    assertJpeg(jpeg, widthPixels, heightPixels);
+    const widthPoints = pdfNumber((widthMm * 72) / 25.4);
+    const heightPoints = pdfNumber((heightMm * 72) / 25.4);
+    const content = encoder.encode(
+      `q\n${widthPoints} 0 0 ${heightPoints} 0 0 cm\n/Im0 Do\nQ\n`,
+    );
+    const first = 3 + index * 3;
+    objects.push(
+      encoder.encode(
+        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${widthPoints} ${heightPoints}] /Resources << /XObject << /Im0 ${first + 1} 0 R >> >> /Contents ${first + 2} 0 R >>`,
+      ),
+      concatenate([
+        encoder.encode(
+          `<< /Type /XObject /Subtype /Image /Width ${widthPixels} /Height ${heightPixels} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`,
+        ),
+        jpeg,
+        encoder.encode("\nendstream"),
+      ]),
+      concatenate([
+        encoder.encode(`<< /Length ${content.length} >>\nstream\n`),
+        content,
+        encoder.encode("endstream"),
+      ]),
+    );
+  });
   const parts = [
     encoder.encode("%PDF-1.4\n"),
     new Uint8Array([0x25, 0xe2, 0xe3, 0xcf, 0xd3, 0x0a]),
@@ -152,4 +152,9 @@ export function createRasterPdf({
   ].join("");
   parts.push(encoder.encode(crossReference));
   return concatenate(parts);
+}
+
+/** A single-page PDF containing the rendered plan at its physical A4 size. */
+export function createRasterPdf(input: RasterPdfInput): Uint8Array<ArrayBuffer> {
+  return createRasterPdfDocument([input]);
 }

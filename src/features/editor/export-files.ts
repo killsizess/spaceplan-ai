@@ -14,7 +14,7 @@ function checkAbort(signal: AbortSignal): void {
   if (signal.aborted) throw abortError();
 }
 
-function releaseCanvas(canvas: HTMLCanvasElement): void {
+export function releaseCanvas(canvas: HTMLCanvasElement): void {
   canvas.width = 0;
   canvas.height = 0;
 }
@@ -89,7 +89,7 @@ export async function rasterizePlanExport(
   }
 }
 
-function canvasBlob(canvas: HTMLCanvasElement, mime: string, signal: AbortSignal): Promise<Blob> {
+export function canvasBlob(canvas: HTMLCanvasElement, mime: string, signal: AbortSignal): Promise<Blob> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) {
       reject(abortError());
@@ -124,7 +124,7 @@ function canvasBlob(canvas: HTMLCanvasElement, mime: string, signal: AbortSignal
   });
 }
 
-function blobBytes(blob: Blob, signal: AbortSignal): Promise<Uint8Array<ArrayBuffer>> {
+export function blobBytes(blob: Blob, signal: AbortSignal): Promise<Uint8Array<ArrayBuffer>> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) {
       reject(abortError());
