@@ -215,6 +215,40 @@ function joinEnds(candidates: Placed[]): Placed[] {
   return moved;
 }
 
+/** Thickest gap that drawing glazing in a wall may span (the widest opening looked for). */
+const MAX_GLAZING_SPAN = 3.2;
+/** A glazing pair must be at least this much thinner than the walls it sits between. */
+const GLAZING_THINNER = 0.04;
+/** Wall faces stop at the jambs; glazing starts and ends within this of them. */
+const JAMB_REACH = 0.05;
+
+/**
+ * Two or three thin lines drawn across a window opening pair up like a wall. A pair
+ * that fills the gap between two thicker walls on the same axis is glazing, not a wall,
+ * and is not offered. (A real thin partition between two thick walls on one axis and
+ * under 3.2 m long would be taken for glazing too; it can still be drawn by hand.)
+ */
+function dropGlazing(placed: Placed[]): Placed[] {
+  const span = (item: Placed) => {
+    const a = along(item.angle, item.start), b = along(item.angle, item.end);
+    return { from: Math.min(a, b), to: Math.max(a, b) };
+  };
+  const spans = new Map(placed.map((item) => [item, span(item)]));
+  return placed.filter((item) => {
+    const mine = spans.get(item)!;
+    if (mine.to - mine.from > MAX_GLAZING_SPAN) return true;
+    const thicker = placed.filter((other) =>
+      other !== item &&
+      other.thickness >= item.thickness + GLAZING_THINNER &&
+      angleGap(other.angle, item.angle) <= PAIR_ANGLE_TOLERANCE &&
+      // The glazing lies within the body of the wall it interrupts.
+      Math.abs(other.offset - item.offset) <= other.thickness / 2);
+    const before = thicker.some((other) => Math.abs(spans.get(other)!.to - mine.from) <= JAMB_REACH);
+    const after = thicker.some((other) => Math.abs(spans.get(other)!.from - mine.to) <= JAMB_REACH);
+    return !(before && after);
+  });
+}
+
 function coversExisting(candidate: Placed, walls: readonly Wall[]): boolean {
   const length = Math.hypot(candidate.end.x - candidate.start.x, candidate.end.y - candidate.start.y);
   return walls.some((wall) => {
@@ -291,7 +325,7 @@ export function findWallCandidates(
     }
   }
 
-  const joined = joinEnds(placed).filter((candidate) => !coversExisting(candidate, existing));
+  const joined = joinEnds(dropGlazing(placed)).filter((candidate) => !coversExisting(candidate, existing));
   if (joined.length > MAX_WALL_CANDIDATES) truncated = true;
   return {
     candidates: joined.slice(0, MAX_WALL_CANDIDATES).map(({ start, end, thickness }) => ({ start, end, thickness })),

@@ -105,3 +105,33 @@ describe("wall candidates from drawing lines", () => {
     expect(findWallCandidates(many).truncated).toBe(true);
   });
 });
+
+describe("window glazing is not a wall", () => {
+  // A wall on x = 10 (faces 9.9 and 10.1) interrupted over y = 2 … 3.2 by a window.
+  const wallWithWindow = [seg(9.9, 0, 9.9, 2), seg(9.9, 3.2, 9.9, 6), seg(10.1, 0, 10.1, 2), seg(10.1, 3.2, 10.1, 6)];
+  const pieces = (lines: LineSegment[]) =>
+    findWallCandidates(lines).candidates
+      .map((c) => [Math.min(c.start.y, c.end.y), Math.max(c.start.y, c.end.y), c.thickness])
+      .sort((a, b) => a[0] - b[0]);
+
+  it.each([
+    ["two lines", [seg(9.95, 2, 9.95, 3.2), seg(10.05, 2, 10.05, 3.2)]],
+    ["three lines", [seg(9.94, 2, 9.94, 3.2), seg(10, 2, 10, 3.2), seg(10.06, 2, 10.06, 3.2)]],
+    ["one line", [seg(10, 2, 10, 3.2)]],
+  ])("does not offer glazing drawn with %s inside the gap between two thicker walls", (_name, glazing) => {
+    expect(pieces([...wallWithWindow, ...glazing])).toEqual([[0, 2, 0.2], [3.2, 6, 0.2]]);
+  });
+
+  it("still offers a thin wall that is not between thicker walls on its axis", () => {
+    const thin = [seg(9.95, 2, 9.95, 3.2), seg(10.05, 2, 10.05, 3.2)];
+    // Alone, or beside a thick wall on one side only, it is a wall.
+    expect(pieces(thin)).toEqual([[2, 3.2, 0.1]]);
+    expect(pieces([seg(9.9, 0, 9.9, 2), seg(10.1, 0, 10.1, 2), ...thin])).toEqual([[0, 2, 0.2], [2, 3.2, 0.1]]);
+  });
+
+  it("does not take a long thin wall between thick ones for glazing", () => {
+    const wallWithLongGap = [seg(9.9, 0, 9.9, 2), seg(9.9, 7, 9.9, 9), seg(10.1, 0, 10.1, 2), seg(10.1, 7, 10.1, 9)];
+    const thin = [seg(9.95, 2, 9.95, 7), seg(10.05, 2, 10.05, 7)];
+    expect(pieces([...wallWithLongGap, ...thin])).toEqual([[0, 2, 0.2], [2, 7, 0.1], [7, 9, 0.2]]);
+  });
+});

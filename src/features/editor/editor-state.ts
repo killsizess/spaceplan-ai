@@ -2,6 +2,7 @@ import { addRoom, updateRoom } from "@/domain/floor-plan/operations";
 import {
   addWall,
   addWalls,
+  addWallsAndOpenings,
   updateWall,
   addOpening,
   updateOpening,
@@ -60,6 +61,7 @@ export type EditorAction =
   | { type: "wall:add"; wall: Wall }
   /** Accepted suggestions (walls found in a PDF): one undo step. */
   | { type: "wall:add-many"; walls: readonly Wall[] }
+  | { type: "openings:add-many"; walls: readonly Wall[]; openings: readonly Opening[] }
   | { type: "wall:update"; wall: Wall; connectEndpoints?: boolean }
   | { type: "wall:set-kind"; wallId: string; kind: WallKind }
   | { type: "wall:connect-endpoints"; diagnostic: WallConnectionDiagnostic }
@@ -181,6 +183,9 @@ export function editorReducer(
     } else if (action.type === "wall:add-many") {
       plan = addWalls(state.plan, action.walls);
       selectedId = null;
+    } else if (action.type === "openings:add-many") {
+      plan = addWallsAndOpenings(state.plan, action.walls, action.openings);
+      selectedId = null;
     } else if (action.type === "wall:update") {
       plan = updateWall(state.plan, action.wall, action.connectEndpoints);
     } else if (action.type === "wall:set-kind") {
@@ -247,7 +252,7 @@ export function editorReducer(
     }
     if (plan === state.plan) return { ...state, selectedId, error: null };
     // A wall type changes no geometry, so no room can change either.
-    if ((action.type.startsWith("wall:") && action.type !== "wall:set-kind") || action.type === "wall-room:add" || action.type === "wall-room:resize" || action.type === "delete" || action.type === "roomMode:set") {
+    if ((action.type.startsWith("wall:") && action.type !== "wall:set-kind") || action.type === "openings:add-many" || action.type === "wall-room:add" || action.type === "wall-room:resize" || action.type === "delete" || action.type === "roomMode:set") {
       plan = reconcileWallRoomLabels(state.plan, plan);
     }
     return {

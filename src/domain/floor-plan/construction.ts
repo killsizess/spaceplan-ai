@@ -52,6 +52,30 @@ export function addWalls(plan: FloorPlan, walls: readonly Wall[]): FloorPlan {
 }
 
 /**
+ * Adds accepted opening suggestions as one change: all of them or none. Walls are the
+ * short pieces that close a gap between two walls; every opening may sit on an existing
+ * wall or on one of these.
+ */
+export function addWallsAndOpenings(
+  plan: FloorPlan,
+  walls: readonly Wall[],
+  openings: readonly Opening[],
+): FloorPlan {
+  if (!walls.length && !openings.length) return plan;
+  if (plan.walls.length + walls.length > MAX_PLAN_WALLS) {
+    throw new Error(`В плане может быть не больше ${MAX_PLAN_WALLS} стен.`);
+  }
+  const ids = [...walls, ...openings].map((item) => item.id);
+  if (new Set(ids).size !== ids.length) throw new Error("Идентификатор объекта уже существует.");
+  for (const id of ids) assertNewId(plan, id);
+  return validatedPlan({
+    ...plan,
+    walls: [...plan.walls, ...walls],
+    openings: [...plan.openings, ...openings],
+  });
+}
+
+/**
  * Moves shared endpoints together and validates all affected walls/openings
  * atomically. Openings stay anchored to the end of their wall that did not move.
  */

@@ -1,3 +1,4 @@
+import type { Point } from "@/domain/geometry";
 import type { LineSegment } from "@/domain/floor-plan/wall-candidates";
 
 /**
@@ -8,11 +9,25 @@ import type { LineSegment } from "@/domain/floor-plan/wall-candidates";
  */
 export interface PdfLines {
   segments: LineSegment[];
+  /**
+   * Chains of curves (a door swing is drawn as one), each sampled into a polyline in the
+   * same page fractions. Straight segments never appear here.
+   */
+  curves: PdfCurve[];
   /** The page had more segments than the limit; only the first ones are kept. */
   truncated: boolean;
 }
 
+export interface PdfCurve {
+  points: Point[];
+}
+
 export const MAX_PDF_SEGMENTS = 20_000;
+export const MAX_PDF_CURVES = 5_000;
+/** Points taken from each Bézier piece after its start: t = 1/4, 1/2, 3/4, 1. */
+const CURVE_SAMPLES = 4;
+/** A chain shorter than this is a dot or a short fillet, not a swing arc. */
+const MIN_CURVE_POINTS = 5;
 
 /** The pdf.js operator codes this reader needs (values of `pdfjs.OPS`). */
 export interface PdfOps {
@@ -67,25 +82,32 @@ export function readPdfLines(
   height: number,
 ): PdfLines {
   const segments: LineSegment[] = [];
+  const curves: PdfCurve[] = [];
   let truncated = false;
-  if (!isMatrix(viewport) || !(width > 0) || !(height > 0)) return { segments, truncated };
+  if (!isMatrix(viewport) || !(width > 0) || !(height > 0)) return { segments, curves, truncated };
   const painting = new Set([
     ops.stroke, ops.closeStroke, ops.fill, ops.eoFill,
     ops.fillStroke, ops.eoFillStroke, ops.closeFillStroke, ops.closeEOFillStroke,
   ]);
   let ctm: Matrix = IDENTITY;
   const stack: Matrix[] = [];
+  const toPage = (x: number, y: number, matrix: Matrix): Point => ({
+    x: (matrix[0] * x + matrix[2] * y + matrix[4]) / width,
+    y: (matrix[1] * x + matrix[3] * y + matrix[5]) / height,
+  });
+  const pushCurve = (chain: readonly Point[], matrix: Matrix) => {
+    if (chain.length < MIN_CURVE_POINTS) return;
+    if (curves.length >= MAX_PDF_CURVES) return;
+    const points = chain.map((point) => toPage(point.x, point.y, matrix));
+    if (points.every((point) => Number.isFinite(point.x) && Number.isFinite(point.y))) curves.push({ points });
+  };
   const push = (x1: number, y1: number, x2: number, y2: number, matrix: Matrix) => {
     if (x1 === x2 && y1 === y2) return;
     if (segments.length >= MAX_PDF_SEGMENTS) {
       truncated = true;
       return;
     }
-    const map = (x: number, y: number) => ({
-      x: (matrix[0] * x + matrix[2] * y + matrix[4]) / width,
-      y: (matrix[1] * x + matrix[3] * y + matrix[5]) / height,
-    });
-    const start = map(x1, y1), end = map(x2, y2);
+    const start = toPage(x1, y1, matrix), end = toPage(x2, y2, matrix);
     if ([start.x, start.y, end.x, end.y].every(Number.isFinite)) segments.push({ start, end });
   };
 
@@ -109,31 +131,56 @@ export function readPdfLines(
       if (!isNumbers(data)) continue;
       const matrix = multiply(viewport, ctm);
       let x = 0, y = 0, startX = 0, startY = 0;
+      // Consecutive curve pieces form one chain; anything else ends it.
+      let chain: Point[] | null = null;
+      const endChain = () => {
+        if (chain) pushCurve(chain, matrix);
+        chain = null;
+      };
       for (let i = 0; i < data.length;) {
         const op = data[i++];
         if (op === MOVE_TO) {
+          endChain();
           x = startX = data[i++];
           y = startY = data[i++];
         } else if (op === LINE_TO) {
+          endChain();
           const nx = data[i++], ny = data[i++];
           push(x, y, nx, ny, matrix);
           x = nx;
           y = ny;
         } else if (op === CURVE_TO) {
-          i += 4;
-          x = data[i++];
-          y = data[i++];
+          const [c1x, c1y, c2x, c2y, nx, ny] = [data[i], data[i + 1], data[i + 2], data[i + 3], data[i + 4], data[i + 5]];
+          i += 6;
+          chain ??= [{ x, y }];
+          for (let sample = 1; sample <= CURVE_SAMPLES; sample++) {
+            const t = sample / CURVE_SAMPLES, u = 1 - t;
+            chain.push({
+              x: u * u * u * x + 3 * u * u * t * c1x + 3 * u * t * t * c2x + t * t * t * nx,
+              y: u * u * u * y + 3 * u * u * t * c1y + 3 * u * t * t * c2y + t * t * t * ny,
+            });
+          }
+          x = nx;
+          y = ny;
         } else if (op === QUADRATIC_TO) {
-          i += 2;
-          x = data[i++];
-          y = data[i++];
+          const [cx, cy, nx, ny] = [data[i], data[i + 1], data[i + 2], data[i + 3]];
+          i += 4;
+          chain ??= [{ x, y }];
+          for (let sample = 1; sample <= CURVE_SAMPLES; sample++) {
+            const t = sample / CURVE_SAMPLES, u = 1 - t;
+            chain.push({ x: u * u * x + 2 * u * t * cx + t * t * nx, y: u * u * y + 2 * u * t * cy + t * t * ny });
+          }
+          x = nx;
+          y = ny;
         } else if (op === CLOSE_PATH) {
+          endChain();
           push(x, y, startX, startY, matrix);
           x = startX;
           y = startY;
         } else break; // Unknown data: stop reading this path rather than misalign.
       }
+      endChain();
     }
   }
-  return { segments, truncated };
+  return { segments, curves, truncated };
 }

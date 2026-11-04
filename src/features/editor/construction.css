@@ -291,3 +291,32 @@
   line-height: 1.4;
   color: var(--muted, #667085);
 }
+
+.pdf-opening-suggestions-list li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  align-items: center;
+}
+.pdf-opening-suggestions-list li > details {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  color: #66705f;
+}
+.pdf-opening-suggestions-list li > details ul {
+  margin: 2px 0 4px 14px;
+  padding: 0;
+  list-style: disc;
+}
+.pdf-opening-suggestions-list select {
+  font-size: 10px;
+}
+.opening-doubt {
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: #fbe9c8;
+  color: #8a5a00;
+  font-size: 9px;
+  font-weight: 600;
+}

@@ -38,6 +38,7 @@ import {
   PlanGrid,
   RoomDraftOverlay,
   WallCandidateOverlay,
+  OpeningCandidateOverlay,
   WallDraftOverlay,
   WallShape,
 } from "./canvas-shapes";
@@ -103,6 +104,10 @@ interface Props {
   /** Which suggestions will be added; a click on one switches it. */
   wallCandidateSelection?: readonly boolean[];
   onToggleWallCandidate?: (index: number) => void;
+  /** Doors and windows suggested from a PDF, shown until accepted or dismissed. */
+  openingCandidates?: readonly { from: Point; to: Point; thickness: number; kind: "door" | "window"; confident: boolean }[];
+  openingCandidateSelection?: readonly boolean[];
+  onToggleOpeningCandidate?: (index: number) => void;
   walls: Wall[];
   openings: Opening[];
   underlay?: Underlay;
@@ -160,6 +165,9 @@ export default function PlanCanvas({
   wallCandidates = [],
   wallCandidateSelection = [],
   onToggleWallCandidate,
+  openingCandidates = [],
+  openingCandidateSelection = [],
+  onToggleOpeningCandidate,
   walls,
   openings,
   underlay,
@@ -627,6 +635,12 @@ export default function PlanCanvas({
         (candidate.start.x + candidate.end.x) / 2,
         (candidate.start.y + candidate.end.y) / 2,
       ]))}
+      data-opening-candidates={openingCandidates.length}
+      data-opening-candidates-selected={openingCandidates.filter((_, index) => openingCandidateSelection[index] !== false).length}
+      data-opening-candidate-points={JSON.stringify(openingCandidates.map((candidate) => [
+        (candidate.from.x + candidate.to.x) / 2,
+        (candidate.from.y + candidate.to.y) / 2,
+      ]))}
       data-flagged-rooms={JSON.stringify(flaggedRoomIds.filter((id) => wallRooms.some((room) => room.id === id)))}
       data-wall-connections={JSON.stringify(displayedConnections)}
       data-wall-intersections={JSON.stringify(displayedIntersections)}
@@ -763,6 +777,15 @@ export default function PlanCanvas({
                   scale={scale}
                   interactive={tool === "select" && Boolean(onToggleWallCandidate)}
                   onToggle={(index) => onToggleWallCandidate?.(index)}
+                />
+              )}
+              {openingCandidates.length > 0 && (
+                <OpeningCandidateOverlay
+                  candidates={openingCandidates}
+                  selected={openingCandidateSelection}
+                  scale={scale}
+                  interactive={tool === "select" && Boolean(onToggleOpeningCandidate)}
+                  onToggle={(index) => onToggleOpeningCandidate?.(index)}
                 />
               )}
               {internalDimensions.map(({ room, layout }) => (

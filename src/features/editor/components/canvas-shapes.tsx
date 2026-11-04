@@ -393,6 +393,69 @@ export function WallCandidateOverlay({
   );
 }
 
+/**
+ * Suggested doors and windows: a dashed outline over the opening, blue when sure, amber
+ * when «неуверенно», faint when switched off. A click (select tool) switches one on or off.
+ */
+export function OpeningCandidateOverlay({
+  candidates,
+  selected,
+  scale,
+  interactive,
+  onToggle,
+}: {
+  candidates: readonly { from: Point; to: Point; thickness: number; kind: "door" | "window"; confident: boolean }[];
+  selected: readonly boolean[];
+  scale: number;
+  interactive: boolean;
+  onToggle: (index: number) => void;
+}) {
+  return (
+    <Group listening={interactive}>
+      {candidates.map((candidate, index) => {
+        const length = Math.hypot(candidate.to.x - candidate.from.x, candidate.to.y - candidate.from.y);
+        const angle = (Math.atan2(candidate.to.y - candidate.from.y, candidate.to.x - candidate.from.x) * 180) / Math.PI;
+        const on = selected[index] !== false;
+        const color = candidate.confident ? "#2f6fdb" : "#d98a00";
+        const mid = { x: (candidate.from.x + candidate.to.x) / 2, y: (candidate.from.y + candidate.to.y) / 2 };
+        return (
+          <Group key={index}>
+            <Rect
+              x={candidate.from.x}
+              y={candidate.from.y}
+              rotation={angle}
+              offsetY={candidate.thickness / 2 + 0.04}
+              width={length}
+              height={candidate.thickness + 0.08}
+              fill={on ? (candidate.confident ? "rgba(47, 111, 219, 0.25)" : "rgba(217, 138, 0, 0.25)") : "rgba(140, 146, 136, 0.08)"}
+              stroke={on ? color : "#a3aa9c"}
+              strokeWidth={(on ? 1.8 : 1) / scale}
+              dash={[4 / scale, 3 / scale]}
+              hitStrokeWidth={14 / scale}
+              onPointerDown={(event) => {
+                if (event.evt.button !== 0) return;
+                event.cancelBubble = true;
+                onToggle(index);
+              }}
+            />
+            <Text
+              x={mid.x - 12 / scale}
+              y={mid.y - 22 / scale}
+              width={24 / scale}
+              align="center"
+              text={`${candidate.kind === "door" ? "Д" : "О"}${candidate.confident ? "" : "?"}`}
+              fontSize={12 / scale}
+              fontStyle="bold"
+              fill={on ? color : "#a3aa9c"}
+              listening={false}
+            />
+          </Group>
+        );
+      })}
+    </Group>
+  );
+}
+
 /** The wall being drawn, with its length. */
 export function WallDraftOverlay({ draft, scale }: { draft: Segment; scale: number }) {
   return (

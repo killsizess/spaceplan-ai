@@ -190,3 +190,47 @@ export function pdfFixture(encrypted = false): Buffer {
   chunks.push(Buffer.from(xref, "ascii"));
   return Buffer.concat(chunks);
 }
+
+/**
+ * A 10 × 6 m apartment drawn like `wallPlanPdfFixture` (two face lines per 0.2 m wall,
+ * 1 unit = 2 cm, plan metre 0 at `WALL_PLAN_ORIGIN`), with three openings and some noise:
+ *  - a door in the bottom wall, x = 2.0 … 2.9 m: faces interrupted, jambs, a leaf line and a
+ *    quarter-circle swing arc (hinge at x = 2.0, opening into the room);
+ *  - a window in the right wall, y = 2.0 … 3.2 m: faces interrupted, jambs, two glazing lines;
+ *  - a gap in the left wall, y = 4.0 … 4.9 m, with nothing drawn in it (kind unknown);
+ *  - a round table (a curve far from every wall) and a label that must not become anything.
+ * Coordinates below are in metres in PDF space (y grows upwards).
+ */
+export function openingPlanPdfFixture(): Buffer {
+  const u = (metres: number) => WALL_PLAN_ORIGIN + metres * WALL_PLAN_UNITS_PER_METRE;
+  const line = (x1: number, y1: number, x2: number, y2: number) => `${u(x1)} ${u(y1)} m ${u(x2)} ${u(y2)} l S`;
+  const K = 0.5522847498;
+  const arc = (cx: number, cy: number, r: number) =>
+    `${u(cx + r)} ${u(cy)} m ${u(cx + r)} ${u(cy + K * r)} ${u(cx + K * r)} ${u(cy + r)} ${u(cx)} ${u(cy + r)} c S`;
+  const faces: [number, number, number, number][] = [
+    // outer faces
+    [-0.1, -0.1, 2.0, -0.1], [2.9, -0.1, 10.1, -0.1],
+    [10.1, -0.1, 10.1, 2.0], [10.1, 3.2, 10.1, 6.1],
+    [10.1, 6.1, -0.1, 6.1],
+    [-0.1, 6.1, -0.1, 4.9], [-0.1, 4.0, -0.1, -0.1],
+    // inner faces
+    [0.1, 0.1, 2.0, 0.1], [2.9, 0.1, 9.9, 0.1],
+    [9.9, 0.1, 9.9, 2.0], [9.9, 3.2, 9.9, 5.9],
+    [9.9, 5.9, 0.1, 5.9],
+    [0.1, 5.9, 0.1, 4.9], [0.1, 4.0, 0.1, 0.1],
+  ];
+  const content = [
+    "0.2 0.25 0.22 RG 0.4 w",
+    ...faces.map(([x1, y1, x2, y2]) => line(x1, y1, x2, y2)),
+    // door: jambs, leaf from the hinge, swing arc around the hinge
+    line(2.0, -0.1, 2.0, 0.1), line(2.9, -0.1, 2.9, 0.1),
+    line(2.0, 0, 2.0, 0.9), arc(2.0, 0, 0.9),
+    // window: jambs and two glazing lines
+    line(9.9, 2.0, 10.1, 2.0), line(9.9, 3.2, 10.1, 3.2),
+    line(9.95, 2.0, 9.95, 3.2), line(10.05, 2.0, 10.05, 3.2),
+    // a round table and a stool line
+    arc(5, 3, 0.5), line(6, 4, 6.4, 4),
+    "0.2 0.25 0.22 rg BT /F1 12 Tf 100 150 Td (LIVING) Tj ET",
+  ].join("\n");
+  return singlePagePdf(content, 600, 400);
+}

@@ -31,7 +31,7 @@ import {
   createDefaultRoom,
   getTotalArea,
 } from "@/domain/floor-plan/operations";
-import type { FloorPlan, Room, Underlay } from "@/domain/floor-plan/types";
+import type { FloorPlan, Opening, Room, Underlay, Wall } from "@/domain/floor-plan/types";
 import { calibrateUnderlay } from "@/domain/floor-plan/construction";
 import { DEFAULT_DOOR_SWING } from "@/domain/floor-plan/door-swing";
 import type { DoorWallCollision } from "@/domain/floor-plan/door-collisions";
@@ -72,6 +72,8 @@ import { bearingChangeMessage } from "./bearing-guard";
 import { UnresolvedRoomsNotice } from "./components/unresolved-rooms-notice";
 import type { EditorAction } from "./editor-state";
 import { findWallCandidates, type WallCandidate } from "@/domain/floor-plan/wall-candidates";
+import { findOpeningCandidates, openingFromCandidate, type OpeningCandidate } from "@/domain/floor-plan/opening-candidates";
+import { PdfOpeningSuggestions } from "./components/pdf-opening-suggestions";
 import type { PdfLines } from "./pdf-vector-lines";
 import { ConstructionProperties } from "./components/construction-properties";
 import { WallConnectionsPanel } from "./components/wall-connections-panel";
@@ -159,6 +161,22 @@ export default function Editor() {
     truncated: boolean;
   } | null>(null);
   const activeSuggestion = wallSuggestion?.plan === state.plan ? wallSuggestion : null;
+  // Suggested doors and windows likewise belong to the plan they were computed for.
+  const [openingSuggestion, setOpeningSuggestion] = useState<{
+    plan: FloorPlan;
+    candidates: OpeningCandidate[];
+    /** Per candidate: the kind it will be added as (the user may change a doubtful one). */
+    kinds: ("door" | "window")[];
+    /** Per candidate: will it be added. Only the confident ones start selected. */
+    selected: boolean[];
+    truncated: boolean;
+  } | null>(null);
+  const activeOpeningSuggestion = openingSuggestion?.plan === state.plan ? openingSuggestion : null;
+  const toggleOpeningCandidate = useCallback((index: number) => {
+    setOpeningSuggestion((current) => current && index >= 0 && index < current.selected.length
+      ? { ...current, selected: current.selected.map((value, at) => (at === index ? !value : value)) }
+      : current);
+  }, []);
   const toggleCandidate = useCallback((index: number) => {
     setWallSuggestion((current) => current && index >= 0 && index < current.selected.length
       ? { ...current, selected: current.selected.map((value, at) => (at === index ? !value : value)) }
@@ -429,6 +447,42 @@ export default function Editor() {
     const result = findWallCandidates(segments, state.plan.walls);
     setWallSuggestion({ plan: state.plan, ...result, selected: result.candidates.map(() => true) });
     enter2D();
+  };
+  const suggestOpenings = () => {
+    const underlay = state.plan.underlay;
+    if (!underlay || !activePdfLines || !snapshot.ready || snapshot.busy) return;
+    const width = underlay.pixelWidth * underlay.metersPerPixel;
+    const height = underlay.pixelHeight * underlay.metersPerPixel;
+    const toPlan = (point: Point): Point => ({ x: underlay.x + point.x * width, y: underlay.y + point.y * height });
+    const segments = activePdfLines.segments.map((segment) => ({ start: toPlan(segment.start), end: toPlan(segment.end) }));
+    const curves = activePdfLines.curves.map((curve) => ({ points: curve.points.map(toPlan) }));
+    const result = findOpeningCandidates(segments, curves, state.plan.walls, state.plan.openings);
+    setOpeningSuggestion({
+      plan: state.plan,
+      candidates: result.candidates,
+      kinds: result.candidates.map((candidate) => candidate.kind),
+      selected: result.candidates.map((candidate) => candidate.confidence === "high"),
+      truncated: result.truncated,
+    });
+    enter2D();
+  };
+  const acceptOpenings = () => {
+    if (!activeOpeningSuggestion || !snapshot.ready || snapshot.busy) return;
+    const walls: Wall[] = [];
+    const openings: Opening[] = [];
+    activeOpeningSuggestion.candidates.forEach((candidate, index) => {
+      if (!activeOpeningSuggestion.selected[index]) return;
+      let wallId = candidate.wallId;
+      if (candidate.fill) {
+        // A short wall closes the gap between two walls, so rooms stay closed.
+        wallId = crypto.randomUUID();
+        walls.push({ id: wallId, start: candidate.fill.start, end: candidate.fill.end, thickness: candidate.fill.thickness, height: candidate.fill.height });
+      }
+      if (wallId) openings.push(openingFromCandidate(candidate, crypto.randomUUID(), wallId, activeOpeningSuggestion.kinds[index]));
+    });
+    if (!openings.length) return;
+    dispatch({ type: "openings:add-many", walls, openings });
+    if (!workspace.getSnapshot().editor.error) setOpeningSuggestion(null);
   };
   const acceptWalls = () => {
     if (!activeSuggestion || !snapshot.ready || snapshot.busy) return;
@@ -863,6 +917,35 @@ export default function Editor() {
                     onDismiss={() => setWallSuggestion(null)}
                   />
                 )}
+                {activePdfLines && state.plan.underlay && (
+                  <PdfOpeningSuggestions
+                    calibrated={state.plan.underlay.calibrated}
+                    wallCount={state.plan.walls.length}
+                    busy={!snapshot.ready || snapshot.busy}
+                    suggestion={activeOpeningSuggestion ? {
+                      openings: activeOpeningSuggestion.candidates.map((candidate, index) => ({
+                        kind: activeOpeningSuggestion.kinds[index],
+                        confidence: candidate.confidence,
+                        width: candidate.width,
+                        place: candidate.wallId
+                          ? `в стене ${state.plan.walls.findIndex((wall) => wall.id === candidate.wallId) + 1}`
+                          : "между двумя стенами: добавится короткая стена",
+                        reasons: candidate.reasons,
+                        selected: activeOpeningSuggestion.selected[index],
+                      })),
+                      truncated: activeOpeningSuggestion.truncated,
+                    } : null}
+                    onSuggest={suggestOpenings}
+                    onToggle={toggleOpeningCandidate}
+                    onKind={(index, kind) => setOpeningSuggestion((current) => current && {
+                      ...current,
+                      kinds: current.kinds.map((value, at) => (at === index ? kind : value)),
+                    })}
+                    onSelectAll={(value) => setOpeningSuggestion((current) => current && { ...current, selected: current.selected.map(() => value) })}
+                    onAccept={acceptOpenings}
+                    onDismiss={() => setOpeningSuggestion(null)}
+                  />
+                )}
               </UnderlayPanel>
             </div>
           )}
@@ -1184,6 +1267,15 @@ export default function Editor() {
                   rooms={wallMode ? [] : state.plan.rooms}
                   wallRooms={wallRooms}
                   flaggedRoomIds={flaggedRoomIds}
+                  openingCandidates={activeOpeningSuggestion?.candidates.map((candidate, index) => ({
+                    from: candidate.from,
+                    to: candidate.to,
+                    thickness: candidate.thickness,
+                    kind: activeOpeningSuggestion.kinds[index],
+                    confident: candidate.confidence === "high",
+                  }))}
+                  openingCandidateSelection={activeOpeningSuggestion?.selected}
+                  onToggleOpeningCandidate={activeOpeningSuggestion ? toggleOpeningCandidate : undefined}
                   wallCandidates={activeSuggestion?.candidates}
                   wallCandidateSelection={activeSuggestion?.selected}
                   onToggleWallCandidate={activeSuggestion ? toggleCandidate : undefined}
