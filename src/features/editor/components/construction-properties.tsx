@@ -9,7 +9,8 @@ import {
   SlidersHorizontal,
   Trash2,
 } from "lucide-react";
-import type { DoorSwing, Opening, Wall } from "@/domain/floor-plan/types";
+import type { DoorSwing, Opening, Wall, WallKind } from "@/domain/floor-plan/types";
+import { WALL_KINDS, WALL_KIND_LABELS, wallKindOf } from "@/domain/floor-plan/wall-kind";
 import { DEFAULT_DOOR_SWING, doorSwingLocal } from "@/domain/floor-plan/door-swing";
 import { connectedWallIds } from "@/domain/floor-plan/wall-nodes";
 import { wallMoveContext } from "@/domain/floor-plan/move-wall";
@@ -21,6 +22,7 @@ interface ConstructionPropertiesProps {
   opening?: Opening;
   walls: Wall[];
   onUpdateWall: (wall: Wall, connectEndpoints?: boolean) => void;
+  onSetWallKind: (wallId: string, kind: WallKind) => void;
   /** Explicit whole-wall move that carries corners, T-junctions and openings. */
   onMoveWall: (wallId: string, delta: Point) => void;
   /** CAD-style offset along the wall's normal that keeps other walls' directions. */
@@ -242,6 +244,7 @@ function WallProperties({
   wall,
   walls,
   onUpdateWall,
+  onSetWallKind,
   onMoveWall,
   onOffsetWall,
   keepDirections,
@@ -316,6 +319,24 @@ function WallProperties({
           );
         }}
       >
+        <div className="section-label">ТИП СТЕНЫ</div>
+        <label htmlFor="wall-kind">Тип стены</label>
+        <select
+          id="wall-kind"
+          value={wallKindOf(wall)}
+          onChange={(event) => onSetWallKind(wall.id, event.target.value as WallKind)}
+        >
+          {WALL_KINDS.map((kind) => (
+            <option key={kind} value={kind}>{WALL_KIND_LABELS[kind]}</option>
+          ))}
+        </select>
+        <p className="wall-kind-note" data-testid="wall-kind-note">
+          {wall.kind === "bearing"
+            ? "Несущая стена: перенос, удаление и снятие отметки потребуют подтверждения."
+            : wall.kind === "partition"
+              ? "Перегородка."
+              : "Тип не указан: приложение его не угадывает. Укажите вручную."}
+        </p>
         <div className="section-label">НАЧАЛО СТЕНЫ</div>
         <div className="field-pair">
           <MeterField

@@ -1,5 +1,6 @@
 import { BrickWall, DoorOpen, RectangleHorizontal } from "lucide-react";
 import type { Opening, Wall } from "@/domain/floor-plan/types";
+import { WALL_KIND_LABELS, wallKindOf } from "@/domain/floor-plan/wall-kind";
 import { wallLength } from "@/domain/geometry";
 import { formatLength } from "@/lib/format";
 
@@ -28,6 +29,7 @@ export function WallList({
           <small>
             {formatLength(wallLength(wall.start, wall.end))} м ·{" "}
             {formatLength(wall.thickness)} м
+            {wallKindOf(wall) !== "unknown" && <> · {WALL_KIND_LABELS[wallKindOf(wall)].toLowerCase()}</>}
           </small>
         </span>
       </button>

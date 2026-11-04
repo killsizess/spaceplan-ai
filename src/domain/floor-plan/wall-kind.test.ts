@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { editorReducer, initialEditorState } from "@/features/editor/editor-state";
+import { connectWallJunction } from "./connect-wall-junction";
+import { setWallKind } from "./construction";
 import { createEmptyPlan } from "./operations";
 import { bearingWallsRequirement, evaluateRequirements } from "./plan-requirements";
 import { floorPlanSchema } from "./schema";
 import type { FloorPlan, Wall } from "./types";
+import { analyzeWallConnections } from "./wall-diagnostics";
 import { bearingAmong, bearingWallIds, wallKindOf, withWallKind } from "./wall-kind";
 
 function wall(id: string, x1: number, y1: number, x2: number, y2: number, kind?: Wall["kind"]): Wall {
@@ -90,5 +94,48 @@ describe("requirement: bearing walls kept", () => {
     expect(floorPlanSchema.safeParse({ ...value, requirements: [requirement] }).success).toBe(true);
     expect(floorPlanSchema.safeParse({ ...value, requirements: [{ ...requirement, walls: [] }] }).success).toBe(false);
     expect(floorPlanSchema.safeParse({ ...value, requirements: [{ ...requirement, walls: [requirement.walls[0], requirement.walls[0]] }] }).success).toBe(false);
+  });
+});
+
+describe("setting a wall type", () => {
+  it("changes only the type, keeps every other object and is one undo step", () => {
+    const value = plan();
+    const next = setWallKind(value, "c", "bearing");
+    expect(next.walls.find((item) => item.id === "c")).toEqual({ ...value.walls[2], kind: "bearing" });
+    expect(next.walls.filter((item) => item.id !== "c")).toEqual(value.walls.filter((item) => item.id !== "c"));
+    expect(next.openings).toEqual(value.openings);
+    const state = initialEditorState(value);
+    const after = editorReducer(state, { type: "wall:set-kind", wallId: "c", kind: "bearing" });
+    expect(after.past).toHaveLength(1);
+    expect(after.selectedId).toBe("c");
+    const undone = editorReducer(after, { type: "undo" });
+    expect(undone.plan).toBe(value);
+  });
+
+  it("returns the same plan when the type is unchanged, clears the field for unknown, and rejects a missing wall", () => {
+    const value = plan();
+    expect(setWallKind(value, "a", "bearing")).toBe(value);
+    expect(setWallKind(value, "c", "unknown")).toBe(value);
+    const cleared = setWallKind(value, "a", "unknown");
+    expect("kind" in cleared.walls[0]).toBe(false);
+    expect(() => setWallKind(value, "nope", "bearing")).toThrow(/Стена не найдена/);
+    const refused = editorReducer(initialEditorState(value), { type: "wall:set-kind", wallId: "nope", kind: "bearing" });
+    expect(refused.error).toMatch(/Стена не найдена/);
+    expect(refused.past).toHaveLength(0);
+  });
+
+  it("is kept on both parts when a bearing wall is split by a T junction", () => {
+    const base: FloorPlan = {
+      ...createEmptyPlan("tee"),
+      roomMode: "manual",
+      walls: [wall("long", 0, 0, 6, 0, "bearing"), wall("stem", 3, 0.2, 3, 3, "partition")],
+    };
+    const diagnostic = analyzeWallConnections(base.walls).find((item) => item.wallId === "stem" && item.endpoint === "start");
+    expect(diagnostic).toBeDefined();
+    const joined = connectWallJunction(base, diagnostic!, "long-2");
+    const parts = joined.walls.filter((item) => item.id === "long" || item.id === "long-2");
+    expect(parts).toHaveLength(2);
+    expect(parts.map((item) => item.kind)).toEqual(["bearing", "bearing"]);
+    expect(joined.walls.find((item) => item.id === "stem")?.kind).toBe("partition");
   });
 });

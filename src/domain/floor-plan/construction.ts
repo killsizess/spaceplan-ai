@@ -1,6 +1,7 @@
 import type { Point } from "@/domain/geometry";
 import { floorPlanSchema, underlaySchema } from "./schema";
-import type { FloorPlan, Opening, RoomMode, Underlay, Wall } from "./types";
+import type { FloorPlan, Opening, RoomMode, Underlay, Wall, WallKind } from "./types";
+import { wallKindOf, withWallKind } from "./wall-kind";
 import { previewWallUpdate, rebaseOpenings, type WallEndpoint } from "./wall-nodes";
 
 function validatedPlan(plan: FloorPlan): FloorPlan {
@@ -65,6 +66,20 @@ export function updateWall(
     ...plan,
     walls: [...walls],
     openings: [...rebaseOpenings(plan.walls, walls, plan.openings)],
+  });
+}
+
+/**
+ * Sets the structural type of one wall and nothing else: geometry, openings and room
+ * labels are untouched. Setting the type a wall already has returns the same plan.
+ */
+export function setWallKind(plan: FloorPlan, wallId: string, kind: WallKind): FloorPlan {
+  const wall = plan.walls.find((item) => item.id === wallId);
+  if (!wall) throw new Error("Стена не найдена.");
+  if (wallKindOf(wall) === kind) return plan;
+  return validatedPlan({
+    ...plan,
+    walls: plan.walls.map((item) => (item.id === wallId ? withWallKind(item, kind) : item)),
   });
 }
 

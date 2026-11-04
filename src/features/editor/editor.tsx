@@ -68,6 +68,8 @@ import { UnassignedRoomLabels } from "./components/unassigned-room-labels";
 import { RectangularRoomDialog } from "./components/rectangular-room-dialog";
 import { UnderlayPanel } from "./components/underlay-panel";
 import { PdfWallSuggestions } from "./components/pdf-wall-suggestions";
+import { bearingChangeMessage } from "./bearing-guard";
+import type { EditorAction } from "./editor-state";
 import { findWallCandidates, type WallCandidate } from "@/domain/floor-plan/wall-candidates";
 import type { PdfLines } from "./pdf-vector-lines";
 import { ConstructionProperties } from "./components/construction-properties";
@@ -111,7 +113,12 @@ const PlanCompareDialog = dynamic(() => import("./components/plan-compare-dialog
 export default function Editor() {
   const { workspace, snapshot } = useProjectWorkspace();
   const state = snapshot.editor;
-  const dispatch = workspace.dispatch;
+  // A bearing wall is never moved, deleted or unmarked without the user confirming it first.
+  const dispatch = useCallback((action: EditorAction) => {
+    const message = bearingChangeMessage(workspace.getSnapshot().editor, action);
+    if (message && !window.confirm(message)) return;
+    workspace.dispatch(action);
+  }, [workspace]);
   const importRef = useRef<HTMLInputElement>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const libraryButtonRef = useRef<HTMLButtonElement>(null);
@@ -1309,6 +1316,7 @@ export default function Editor() {
               opening={selectedOpening}
               walls={state.plan.walls}
               onUpdateWall={(wall, connectEndpoints = true) => dispatch({ type: "wall:update", wall, connectEndpoints })}
+              onSetWallKind={(wallId, kind) => dispatch({ type: "wall:set-kind", wallId, kind })}
               onMoveWall={(wallId, delta) => dispatch({ type: "wall:move", wallId, delta })}
               onOffsetWall={(wallId, distance) => dispatch({ type: "wall:offset", wallId, distance })}
               keepDirections={keepDirections}

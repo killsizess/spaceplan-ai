@@ -36,3 +36,44 @@ export function bearingAmong(plan: Pick<FloorPlan, "walls">, wallIds: readonly s
   const ids = new Set(wallIds);
   return plan.walls.filter((wall) => ids.has(wall.id) && isBearing(wall));
 }
+
+/** What happened to a wall that was bearing before an edit. `unmarked`: it is still there but no longer bearing. */
+export type BearingChange = "deleted" | "moved" | "thickness" | "unmarked";
+
+export interface BearingWallChange {
+  readonly wallId: string;
+  /** 1-based position of the wall in the plan before the edit (what the editor calls "Стена N"). */
+  readonly number: number;
+  readonly change: BearingChange;
+}
+
+const TOLERANCE = 1e-9;
+const same = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+  Math.hypot(a.x - b.x, a.y - b.y) <= TOLERANCE;
+
+/**
+ * The bearing walls of `before` that `after` deletes, moves, thickens or stops marking
+ * bearing. It compares plans, not actions, so every way of editing a wall (drag, offset,
+ * node move, room resize, connect, delete, type change) is covered the same way.
+ * A wall whose axis is the same in either direction counts as unmoved.
+ */
+export function bearingWallChanges(
+  before: Pick<FloorPlan, "walls">,
+  after: Pick<FloorPlan, "walls">,
+): BearingWallChange[] {
+  const changes: BearingWallChange[] = [];
+  before.walls.forEach((wall, index) => {
+    if (!isBearing(wall)) return;
+    const next = after.walls.find((item) => item.id === wall.id);
+    let change: BearingChange | undefined;
+    if (!next) change = "deleted";
+    else if (
+      !((same(next.start, wall.start) && same(next.end, wall.end)) ||
+        (same(next.start, wall.end) && same(next.end, wall.start)))
+    ) change = "moved";
+    else if (Math.abs(next.thickness - wall.thickness) > TOLERANCE) change = "thickness";
+    else if (!isBearing(next)) change = "unmarked";
+    if (change) changes.push({ wallId: wall.id, number: index + 1, change });
+  });
+  return changes;
+}

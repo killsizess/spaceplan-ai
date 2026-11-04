@@ -9,6 +9,7 @@ import {
   setUnderlay,
   setRoomMode,
   moveWallNode,
+  setWallKind,
 } from "@/domain/floor-plan/construction";
 import { sameWallNode, type WallEndpoint } from "@/domain/floor-plan/wall-nodes";
 import { connectWallEndpoints } from "@/domain/floor-plan/connect-wall-endpoints";
@@ -41,6 +42,7 @@ import type {
   Underlay,
   RoomMode,
   PlanRequirement,
+  WallKind,
 } from "@/domain/floor-plan/types";
 
 export interface EditorState {
@@ -59,6 +61,7 @@ export type EditorAction =
   /** Accepted suggestions (walls found in a PDF): one undo step. */
   | { type: "wall:add-many"; walls: readonly Wall[] }
   | { type: "wall:update"; wall: Wall; connectEndpoints?: boolean }
+  | { type: "wall:set-kind"; wallId: string; kind: WallKind }
   | { type: "wall:connect-endpoints"; diagnostic: WallConnectionDiagnostic }
   | { type: "wall:connect-junction"; diagnostic: WallConnectionDiagnostic; newWallId: string }
   | { type: "wall:connect-intersection"; diagnostic: WallIntersectionDiagnostic; newWallIds: readonly [string, string] }
@@ -180,6 +183,9 @@ export function editorReducer(
       selectedId = null;
     } else if (action.type === "wall:update") {
       plan = updateWall(state.plan, action.wall, action.connectEndpoints);
+    } else if (action.type === "wall:set-kind") {
+      plan = setWallKind(state.plan, action.wallId, action.kind);
+      selectedId = action.wallId;
     } else if (action.type === "wall:connect-endpoints") {
       plan = connectWallEndpoints(state.plan, action.diagnostic);
       selectedId = action.diagnostic.wallId;
@@ -240,7 +246,8 @@ export function editorReducer(
       selectedId = null;
     }
     if (plan === state.plan) return { ...state, selectedId, error: null };
-    if (action.type.startsWith("wall:") || action.type === "wall-room:add" || action.type === "wall-room:resize" || action.type === "delete" || action.type === "roomMode:set") {
+    // A wall type changes no geometry, so no room can change either.
+    if ((action.type.startsWith("wall:") && action.type !== "wall:set-kind") || action.type === "wall-room:add" || action.type === "wall-room:resize" || action.type === "delete" || action.type === "roomMode:set") {
       plan = reconcileWallRoomLabels(state.plan, plan);
     }
     return {
