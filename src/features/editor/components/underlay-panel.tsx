@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, type ReactNode } from "react";
-import { FileUp, ImagePlus, Move, Ruler, Trash2 } from "lucide-react";
+import { DraftingCompass, FileUp, ImagePlus, Move, Ruler, Trash2 } from "lucide-react";
 import type { Underlay } from "@/domain/floor-plan/types";
 import "../construction.css";
 
@@ -25,6 +25,7 @@ export function UnderlayPanel({
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const pdfRef = useRef<HTMLInputElement>(null);
+  const dxfRef = useRef<HTMLInputElement>(null);
   const id = useId();
   return (
     <section className="underlay-panel" aria-label="Подложка плана">
@@ -77,6 +78,27 @@ export function UnderlayPanel({
       >
         <FileUp size={16} />
         {underlay ? "Заменить из PDF" : "Загрузить PDF"}
+      </button>
+      <input
+        ref={dxfRef}
+        type="file"
+        accept=".dxf,application/dxf,image/vnd.dxf"
+        hidden
+        aria-label="Файл чертежа DXF"
+        disabled={busy}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) onUpload(file);
+          event.target.value = "";
+        }}
+      />
+      <button
+        className="underlay-upload"
+        onClick={() => dxfRef.current?.click()}
+        disabled={busy}
+      >
+        <DraftingCompass size={16} />
+        {underlay ? "Заменить из DXF" : "Загрузить DXF"}
       </button>
       {underlay ? (
         <>
@@ -150,7 +172,8 @@ export function UnderlayPanel({
       <p className="underlay-help">
         JPG / PNG до 12 МБ. Изображение сохраняется в проекте; для экономии
         места оно уменьшается до 2048 px и сжимается. Обработка — в браузере.{" "}
-        PDF до 25 МБ: выберите страницу, затем задайте масштаб.
+        PDF до 25 МБ: выберите страницу, затем задайте масштаб. DXF до 30 МБ:
+        масштаб берётся из единиц чертежа, DWG сначала сохраните как DXF.
       </p>
     </section>
   );

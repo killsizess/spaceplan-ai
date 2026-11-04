@@ -103,6 +103,9 @@ const PdfImportDialog = dynamic(
     ssr: false,
   },
 );
+const DxfImportDialog = dynamic(() => import("./components/dxf-import-dialog"), {
+  ssr: false,
+});
 const PlanExportDialog = dynamic(() => import("./components/plan-export-dialog"), {
   ssr: false,
 });
@@ -147,6 +150,12 @@ export default function Editor() {
     generation: number;
   } | null>(null);
   const activePdfImport = pdfImport?.plan === state.plan ? pdfImport : null;
+  const [dxfImport, setDxfImport] = useState<{
+    file: File;
+    plan: FloorPlan;
+    generation: number;
+  } | null>(null);
+  const activeDxfImport = dxfImport?.plan === state.plan ? dxfImport : null;
   // Vector lines of the imported PDF page live only in this session, for the underlay
   // they came with: replacing the image ends them, calibration and moving do not.
   const [pdfLines, setPdfLines] = useState<{ dataUrl: string; lines: PdfLines } | null>(null);
@@ -413,7 +422,7 @@ export default function Editor() {
     (message: string) => workspace.reportNotice(message),
     [workspace],
   );
-  const applyUnderlay = (underlay: Underlay, expectedPlan: FloorPlan): boolean => {
+  const applyUnderlay = (underlay: Underlay, expectedPlan: FloorPlan, calibrate = true): boolean => {
     const current = workspace.getSnapshot();
     if (
       !current.ready ||
@@ -430,7 +439,7 @@ export default function Editor() {
     if (!updated.error && updated.plan.underlay?.dataUrl === underlay.dataUrl) {
       dispatch({ type: "select", id: null });
       setSidebar("source");
-      enter2D("calibrate");
+      enter2D(calibrate ? "calibrate" : "select");
       fit();
       return true;
     }
@@ -501,11 +510,17 @@ export default function Editor() {
     if (!workspace.getSnapshot().editor.error) setWallSuggestion(null);
   };
   const uploadUnderlay = async (file: File) => {
-    if (imageBusy || activePdfImport || !snapshot.ready || snapshot.busy)
+    if (imageBusy || activePdfImport || activeDxfImport || !snapshot.ready || snapshot.busy)
       return;
     const expectedPlan = workspace.getSnapshot().editor.plan;
     const generation = ++uploadGeneration.current;
     workspace.dismissNotice();
+    if (/\.dxf$/i.test(file.name)) {
+      setHelpOpen(false);
+      setViewOpen(false);
+      setDxfImport({ file, plan: expectedPlan, generation });
+      return;
+    }
     if (file.type === "application/pdf" || /\.pdf$/i.test(file.name)) {
       setHelpOpen(false);
       setViewOpen(false);
@@ -1535,6 +1550,25 @@ export default function Editor() {
             setPdfLines(applied && lines ? { dataUrl: underlay.dataUrl, lines } : null);
             uploadGeneration.current += 1;
             setPdfImport(null);
+          }}
+        />
+      )}
+      {activeDxfImport && (
+        <DxfImportDialog
+          file={activeDxfImport.file}
+          onClose={() => {
+            uploadGeneration.current += 1;
+            setDxfImport(null);
+          }}
+          onApply={(underlay, lines) => {
+            if (uploadGeneration.current !== activeDxfImport.generation) return;
+            // The scale comes from the file's units, so no calibration step follows.
+            const applied = applyUnderlay(underlay, activeDxfImport.plan, false);
+            setWallSuggestion(null);
+            setOpeningSuggestion(null);
+            setPdfLines(applied ? { dataUrl: underlay.dataUrl, lines } : null);
+            uploadGeneration.current += 1;
+            setDxfImport(null);
           }}
         />
       )}

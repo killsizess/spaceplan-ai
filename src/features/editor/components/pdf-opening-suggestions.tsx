@@ -46,9 +46,9 @@ export function PdfOpeningSuggestions({
   const selected = items.filter((item) => item.selected).length;
   const doubtful = items.filter((item) => item.confidence === "low").length;
   return (
-    <section className="pdf-wall-suggestions pdf-opening-suggestions" aria-label="Двери и окна из PDF" data-testid="pdf-opening-suggestions">
+    <section className="pdf-wall-suggestions pdf-opening-suggestions" aria-label="Двери и окна из чертежа" data-testid="pdf-opening-suggestions">
       <h3>
-        <DoorOpen size={13} /> Двери и окна из PDF
+        <DoorOpen size={13} /> Двери и окна из чертежа
       </h3>
       {suggestion ? (
         items.length > 0 ? (

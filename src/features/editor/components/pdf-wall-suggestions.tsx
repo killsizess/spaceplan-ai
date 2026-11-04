@@ -39,9 +39,9 @@ export function PdfWallSuggestions({
 }) {
   const selected = suggestion?.walls.filter((wall) => wall.selected).length ?? 0;
   return (
-    <section className="pdf-wall-suggestions" aria-label="Стены из PDF" data-testid="pdf-wall-suggestions">
+    <section className="pdf-wall-suggestions" aria-label="Стены из чертежа" data-testid="pdf-wall-suggestions">
       <h3>
-        <BrickWall size={13} /> Стены из PDF
+        <BrickWall size={13} /> Стены из чертежа
       </h3>
       {suggestion ? (
         suggestion.walls.length > 0 ? (
