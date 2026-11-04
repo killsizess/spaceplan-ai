@@ -5,6 +5,7 @@ import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import { spatialBounds } from "../src/domain/floor-plan/spatial";
 import type { FloorPlan, Wall } from "../src/domain/floor-plan/types";
 import { detectWallRooms } from "../src/domain/floor-plan/wall-rooms";
+import { settleFrames } from "./frames";
 
 const RED = "#d84646";
 const BLUE = "#4477dd";
@@ -147,6 +148,7 @@ test("room labels apply atomically, change real 2D/3D floor colors and preserve 
   const viewer = page.getByTestId("plan-three");
   await expect(viewer).toHaveAttribute("data-renderer-status", "ready");
   await page.getByRole("button", { name: "Вид сверху", exact: true }).click();
+  await settleFrames(page);
   await expect(viewer).toHaveAttribute("data-camera-position", /,/);
   const camera = await viewer.getAttribute("data-camera-position");
   const named = await labelRoom(page, "Гостиная у окна");

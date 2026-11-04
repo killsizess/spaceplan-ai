@@ -4,6 +4,7 @@ import { PerspectiveCamera, Vector3 } from "three";
 import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import { spatialBounds } from "../src/domain/floor-plan/spatial";
 import type { FloorPlan, Opening, Wall } from "../src/domain/floor-plan/types";
+import { settleFrames } from "./frames";
 
 const wall = (
   id: string,
@@ -185,6 +186,7 @@ test("a nearby T end closes a real room in 2D and 3D without moving the camera",
   await expect(viewer).toHaveAttribute("data-renderer-status", "ready");
   await expect(viewer).toHaveAttribute("data-floor-count", "0");
   await page.getByRole("button", { name: "Вид сверху", exact: true }).click();
+  await settleFrames(page);
   const cameraPosition = (await viewer.getAttribute("data-camera-position"))!;
   await join(page, 2, "начало").click();
   await expect.poll(async () => (await saved(page)).walls.length).toBe(5);

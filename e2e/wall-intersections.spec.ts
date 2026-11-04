@@ -290,6 +290,7 @@ test("exact splitting preserves room areas, selectable 3D floors and the current
   await expect(viewer).toHaveAttribute("data-renderer-status", "ready");
   await expect(viewer).toHaveAttribute("data-floor-count", "4");
   await page.getByRole("button", { name: "Вид сверху", exact: true }).click();
+  await settleFrames(page);
   const position = (await viewer.getAttribute("data-camera-position"))!;
   await join(page).click();
   await expect.poll(async () => (await saved(page)).walls.length).toBe(8);

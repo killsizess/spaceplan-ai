@@ -6,6 +6,7 @@ import { spatialBounds } from "../src/domain/floor-plan/spatial";
 import type { FloorPlan, Wall } from "../src/domain/floor-plan/types";
 import { detectWallRooms } from "../src/domain/floor-plan/wall-rooms";
 import { formatArea } from "../src/lib/format";
+import { settleFrames } from "./frames";
 
 const wall = (
   id: string,
@@ -115,6 +116,7 @@ test("one command closes a real gap, creates a 3D floor and is one undo step", a
   await expect(viewer).toHaveAttribute("data-renderer-status", "ready");
   await expect(viewer).toHaveAttribute("data-floor-count", "0");
   await page.getByRole("button", { name: "Вид сверху", exact: true }).click();
+  await settleFrames(page);
   const cameraPosition = (await viewer.getAttribute("data-camera-position"))!;
   await connect(page, 1, "конец").click();
   const repaired = {
@@ -156,6 +158,7 @@ test("the reverse command moves only its source and survives reload and JSON", a
   const viewer = page.getByTestId("plan-three");
   await expect(viewer).toHaveAttribute("data-renderer-status", "ready");
   await page.getByRole("button", { name: "Вид сверху", exact: true }).click();
+  await settleFrames(page);
   const cameraPosition = (await viewer.getAttribute("data-camera-position"))!;
   await connect(page, 2, "начало").click();
   const repaired = {
