@@ -378,8 +378,16 @@ function warningIssues(plan: FloorPlan, state: ObjectState, notes: string[]): Is
  * field checks, so the editor, imports and saved projects share one definition.
  * Objects whose own fields are invalid are skipped instead of guessed at.
  */
-export function checkPlanRelations(plan: FloorPlan): PlanIntegrityIssue[] {
-  return relationIssues(plan, objectState(plan), []);
+export function checkPlanRelations(
+  plan: FloorPlan,
+  options: { readonly allowUnresolvedRooms?: boolean } = {},
+): PlanIntegrityIssue[] {
+  const issues = relationIssues(plan, objectState(plan), []);
+  // Opening a saved project must not fail only because its rooms cannot be computed:
+  // the editor reports that case to the user instead (see `floorPlanLoadSchema`).
+  return options.allowUnresolvedRooms
+    ? issues.filter((item) => item.code !== "wall-rooms.unresolved")
+    : issues;
 }
 
 /**

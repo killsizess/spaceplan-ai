@@ -9,7 +9,12 @@ import type { RoomNeighbour } from "./components/wall-room-properties";
  * so selection by ID stays unambiguous; detection errors become warnings instead of
  * breaking the editor.
  */
-export function detectViewRooms(plan: FloorPlan): WallRoomLabelResolution {
+export type ViewRoomDetection = WallRoomLabelResolution & {
+  /** Set only when the rooms of a wall plan cannot be computed: the reason, in the user's words. */
+  unresolved?: string;
+};
+
+export function detectViewRooms(plan: FloorPlan): ViewRoomDetection {
   if (plan.roomMode !== "walls") return { rooms: [], warnings: [], unassigned: [] };
   try {
     const result = resolveWallRoomLabels(plan);
@@ -29,14 +34,13 @@ export function detectViewRooms(plan: FloorPlan): WallRoomLabelResolution {
       }),
     };
   } catch (error) {
+    const reason =
+      error instanceof Error ? error.message : "Не удалось определить помещения.";
     return {
       rooms: [],
       unassigned: plan.wallRoomLabels,
-      warnings: [
-        error instanceof Error
-          ? error.message
-          : "Не удалось определить помещения.",
-      ],
+      warnings: [reason],
+      unresolved: reason,
     };
   }
 }

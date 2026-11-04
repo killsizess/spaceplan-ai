@@ -69,6 +69,7 @@ import { RectangularRoomDialog } from "./components/rectangular-room-dialog";
 import { UnderlayPanel } from "./components/underlay-panel";
 import { PdfWallSuggestions } from "./components/pdf-wall-suggestions";
 import { bearingChangeMessage } from "./bearing-guard";
+import { UnresolvedRoomsNotice } from "./components/unresolved-rooms-notice";
 import type { EditorAction } from "./editor-state";
 import { findWallCandidates, type WallCandidate } from "@/domain/floor-plan/wall-candidates";
 import type { PdfLines } from "./pdf-vector-lines";
@@ -1014,6 +1015,15 @@ export default function Editor() {
                   onRemove={(labelId) => {
                     if (snapshot.ready && !snapshot.busy) dispatch({ type: "wall-room:label-remove", labelId });
                   }}
+                />
+              )}
+              {wallMode && detection.unresolved && (
+                <UnresolvedRoomsNotice
+                  reason={detection.unresolved}
+                  wallCount={state.plan.walls.length}
+                  labelCount={state.plan.wallRoomLabels.length}
+                  busy={!snapshot.ready || snapshot.busy}
+                  onUseManualRooms={() => changeRoomMode("manual")}
                 />
               )}
               {wallMode && (

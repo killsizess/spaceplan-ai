@@ -3,6 +3,15 @@ import type { FloorPlan, Opening, Wall } from "./types";
 import { doorSwingWorld } from "./door-swing";
 import { detectWallRooms } from "./wall-rooms";
 
+/** False both when there are no rooms and when they cannot be computed (an opened project may be like that). */
+function hasWallRooms(plan: FloorPlan): boolean {
+  try {
+    return detectWallRooms(plan.walls).rooms.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** Rendered room floors occupy the interval [-FLOOR_THICKNESS, 0] in metres. */
 export const FLOOR_THICKNESS = 0.06;
 const EPSILON = 1e-9;
@@ -173,7 +182,7 @@ export function spatialBounds(plan: FloorPlan): SpatialBounds {
     maxZ,
     minY: (
       plan.roomMode === "walls"
-        ? detectWallRooms(plan.walls).rooms.length > 0
+        ? hasWallRooms(plan)
         : rooms.length > 0
     )
       ? -FLOOR_THICKNESS

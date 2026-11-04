@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { floorPlanSchema } from "@/domain/floor-plan/schema";
+import { floorPlanLoadSchema } from "@/domain/floor-plan/schema";
 import type { FloorPlan } from "@/domain/floor-plan/types";
 
 export interface StorageLike {
@@ -85,7 +85,7 @@ function toCurrentVersion(value: unknown): unknown {
 
 const persistedPlanSchema = z.preprocess(
   (value) => toCurrentVersion(toVersionSix(value)),
-  floorPlanSchema,
+  floorPlanLoadSchema,
 );
 
 const recordFields = {

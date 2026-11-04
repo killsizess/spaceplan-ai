@@ -8,6 +8,7 @@ import {
   wallLength,
 } from "@/domain/geometry";
 import { checkPlanRelations } from "./plan-integrity";
+import type { FloorPlan } from "./types";
 
 export { MAX_PLAN_DIMENSION };
 
@@ -200,7 +201,7 @@ export const planOriginSchema = z.object({
   snapshot: planSnapshotSchema,
 }).strict();
 
-export const floorPlanSchema = z
+const floorPlanFields = z
   .object({
     schemaVersion: z.literal(7),
     unit: z.literal("m"),
@@ -215,11 +216,29 @@ export const floorPlanSchema = z
     underlay: underlaySchema.optional(),
     origin: planOriginSchema.optional(),
   })
-  .strict()
-  .superRefine((plan, ctx) => {
-    // Field rules above describe single objects; relations between objects
-    // (IDs, overlaps, references, wall rooms) have one source of truth.
-    for (const issue of checkPlanRelations(plan)) {
+  .strict();
+
+type FloorPlanFields = z.infer<typeof floorPlanFields>;
+
+/**
+ * Field rules describe single objects; relations between objects (IDs, overlaps,
+ * references, wall rooms) have one source of truth, `checkPlanRelations`.
+ */
+function relationRefinement(allowUnresolvedRooms: boolean) {
+  return (plan: FloorPlanFields, ctx: z.RefinementCtx) => {
+    for (const issue of checkPlanRelations(plan as FloorPlan, { allowUnresolvedRooms })) {
       ctx.addIssue({ code: "custom", message: issue.message, path: [...issue.path] });
     }
-  });
+  };
+}
+
+/** Every edit and every new plan: wall rooms must be computable. */
+export const floorPlanSchema = floorPlanFields.superRefine(relationRefinement(false));
+
+/**
+ * Opening a saved or imported project. The same rules, except that wall rooms which
+ * cannot be computed (too many rooms, a degenerate contour) do not make the project
+ * unreadable: it opens unchanged and the editor says what is wrong. Editing still
+ * goes through `floorPlanSchema`, so a plan like this cannot be produced by an edit.
+ */
+export const floorPlanLoadSchema = floorPlanFields.superRefine(relationRefinement(true));

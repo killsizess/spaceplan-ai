@@ -136,7 +136,14 @@ export function removeWallRoomLabel(plan: FloorPlan, labelId: string): FloorPlan
 /** Rebase safe bindings inside the same geometry transaction; orphan records stay untouched. */
 export function reconcileWallRoomLabels(previous: FloorPlan, next: FloorPlan): FloorPlan {
   if (next === previous || next.roomMode !== "walls" || !next.wallRoomLabels.length) return next;
-  const result = resolve(next);
+  let result: ReturnType<typeof resolve>;
+  try {
+    result = resolve(next);
+  } catch {
+    // The rooms cannot be computed (an opened project may be like that): the labels stay
+    // exactly as saved, nothing is dropped, and the editor reports the cause.
+    return next;
+  }
   let changed = false;
   const labels = next.wallRoomLabels.map((label) => {
     const index = result.rooms.findIndex((room) => room.labelId === label.id);
