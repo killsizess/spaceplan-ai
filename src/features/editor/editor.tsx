@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   ClipboardCheck,
   FileCheck2,
+  ScanSearch,
   CircleHelp,
   Focus,
   Grid2X2,
@@ -117,6 +118,9 @@ const PlanCheckDialog = dynamic(() => import("./components/plan-check-dialog"), 
 const PlanCompareDialog = dynamic(() => import("./components/plan-compare-dialog"), {
   ssr: false,
 });
+const PlanXrayDialog = dynamic(() => import("../xray/plan-xray-dialog"), {
+  ssr: false,
+});
 const PlanReportDialog = dynamic(() => import("../report/plan-report-dialog"), {
   ssr: false,
 });
@@ -137,6 +141,7 @@ export default function Editor() {
   const [planCheckOpen, setPlanCheckOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [xrayOpen, setXrayOpen] = useState(false);
   const [importBusy, setImportBusy] = useState(false);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
   const [exportPlan, setExportPlan] = useState<FloorPlan | null>(null);
@@ -800,6 +805,14 @@ export default function Editor() {
               onClick={() => setCompareOpen(true)}
             >
               <GitCompare size={15} /> Сравнить
+            </button>
+            <button
+              className="secondary-button"
+              disabled={!snapshot.ready}
+              title="Что в этой квартире можно изменить и что для этого понадобится"
+              onClick={() => setXrayOpen(true)}
+            >
+              <ScanSearch size={15} /> X-Ray
             </button>
             <button
               className="primary-button"
@@ -1517,6 +1530,19 @@ export default function Editor() {
           </span>
         </span>
       </footer>
+      {xrayOpen && (
+        <PlanXrayDialog
+          plan={state.plan}
+          onFacts={(facts) => dispatch({ type: "facts:set", facts })}
+          onShowWall={(wallId) => {
+            setXrayOpen(false);
+            setSidebar("structure");
+            enter2D();
+            dispatch({ type: "select", id: wallId });
+          }}
+          onClose={() => setXrayOpen(false)}
+        />
+      )}
       {reportOpen && (
         <PlanReportDialog
           plan={state.plan}

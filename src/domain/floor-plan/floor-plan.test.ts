@@ -42,7 +42,7 @@ describe("floor-plan operations and boundaries", () => {
       false,
     );
     expect(
-      floorPlanSchema.safeParse({ ...plan, schemaVersion: 8 }).success,
+      floorPlanSchema.safeParse({ ...plan, schemaVersion: 9 }).success,
     ).toBe(false);
     expect(
       floorPlanSchema.safeParse({ ...plan, schemaVersion: 5 }).success,
@@ -79,7 +79,7 @@ describe("floor-plan operations and boundaries", () => {
   });
   it("requires an explicit current room mode and rejects unsupported values", () => {
     const plan = createEmptyPlan("new");
-    expect(plan.schemaVersion).toBe(7);
+    expect(plan.schemaVersion).toBe(8);
     expect(plan.wallRoomLabels).toEqual([]);
     expect(plan.roomMode).toBe("manual");
     expect(

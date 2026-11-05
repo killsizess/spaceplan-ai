@@ -4,6 +4,7 @@ import { createEmptyPlan } from "@/domain/floor-plan/operations";
 import { createPlanOrigin } from "@/domain/floor-plan/plan-origin";
 import type { FloorPlan, Opening, Wall } from "@/domain/floor-plan/types";
 import { APP_VERSION } from "@/lib/app-version";
+import { apartment, variantOf } from "@/domain/rules/rules.fixtures";
 import { buildPlanReport, REPORT_DISCLAIMER, REPORT_RULES_NOTE, type PlanReport, type ReportFinding } from "./plan-report";
 
 const wall = (id: string, x1: number, y1: number, x2: number, y2: number, kind?: Wall["kind"]): Wall => ({
@@ -230,5 +231,58 @@ describe("a variant compared with its source", () => {
 describe("app version", () => {
   it("matches package.json", () => {
     expect(APP_VERSION).toBe(JSON.parse(readFileSync("package.json", "utf8")).version);
+  });
+});
+
+describe("a report on a plan with a chosen region", () => {
+  const moscow = () => apartment();
+
+  it("says which edition it was built on and that no specialist confirmed it", () => {
+    const report = buildPlanReport(moscow(), { generatedAt: "2026-11-05T10:00:00.000Z", appVersion: "test" });
+    expect(report.limits).not.toContain(REPORT_RULES_NOTE);
+    expect(report.limits[0]).toBe("Нормы: Москва, база правил от 05.11.2026. База не сверена со специалистом, поэтому выводы по ней остаются предположениями.");
+    expect(report.limits.some((limit) => limit.startsWith("508-ПП:") && limit.includes("№ 841-ПП от 18.04.2025"))).toBe(true);
+    expect(report.limits.some((limit) => limit.startsWith("СП 54:") && limit.includes("27.12.2024"))).toBe(true);
+    expect(report.limits.some((limit) => limit.startsWith("База не проверяет:"))).toBe(true);
+    expect(report.limits.at(-1)).toBe(REPORT_DISCLAIMER);
+  });
+
+  it("carries the rule findings with the document behind them", () => {
+    const report = buildPlanReport(moscow(), { generatedAt: "2026-11-05T10:00:00.000Z", appVersion: "test" });
+    const daylight = report.findings.find((finding) => finding.title.startsWith("Окно наружу есть"))!;
+    expect(daylight.source).toBe("ПП РФ № 47, п. 25");
+    expect(daylight.level).toBe("assumption");
+  });
+
+  it("replaces uncited change notes with cited ones, without saying the same thing twice", () => {
+    const variant = variantOf(moscow(), (plan) => ({
+      ...plan,
+      walls: plan.walls.filter((wall) => wall.id !== "top"),
+      openings: plan.openings.filter((opening) => opening.wallId !== "top"),
+    }));
+    const report = buildPlanReport(variant, { generatedAt: "2026-11-05T10:00:00.000Z", appVersion: "test" });
+    const bearing = report.findings.filter((finding) => finding.title.startsWith("Затронута несущая стена"));
+    expect(bearing).toHaveLength(1);
+    expect(bearing[0].source).toBe("508-ПП, прил. 1, пп. 9.3, 9.6");
+    expect(report.verdict.level).toBe("specialist");
+    expect(report.origin?.planName).toBe("Квартира");
+  });
+
+  it("forbidden work makes the verdict «specialist», never a clearance", () => {
+    const variant = variantOf(apartment({ region: "moscow", gasified: true }), (plan) => ({
+      ...plan,
+      walls: plan.walls.filter((wall) => wall.id !== "living-kitchen"),
+    }));
+    const report = buildPlanReport(variant, { generatedAt: "2026-11-05T10:00:00.000Z", appVersion: "test" });
+    const finding = report.findings.find((item) => item.title.startsWith("Газифицированная кухня"))!;
+    expect(finding.level).toBe("specialist");
+    expect(finding.state).toBe("problem");
+    expect(report.verdict.level).toBe("specialist");
+  });
+
+  it("checks no rules for another region and says so", () => {
+    const report = buildPlanReport(apartment({ region: "other" }), { generatedAt: "2026-11-05T10:00:00.000Z", appVersion: "test" });
+    expect(report.limits[0]).toBe(REPORT_RULES_NOTE);
+    expect(report.findings.some((finding) => finding.source)).toBe(false);
   });
 });

@@ -201,9 +201,21 @@ export const planOriginSchema = z.object({
   snapshot: planSnapshotSchema,
 }).strict();
 
+const neighbourFloorSchema = z.enum(["same-layout", "other-layout", "no-dwelling"]);
+
+export const buildingFactsSchema = z.object({
+  region: z.enum(["moscow", "other"]).optional(),
+  gasified: z.boolean().optional(),
+  woodenFloors: z.boolean().optional(),
+  heritage: z.boolean().optional(),
+  emergency: z.boolean().optional(),
+  below: neighbourFloorSchema.optional(),
+  above: neighbourFloorSchema.optional(),
+}).strict();
+
 const floorPlanFields = z
   .object({
-    schemaVersion: z.literal(7),
+    schemaVersion: z.literal(8),
     unit: z.literal("m"),
     id,
     name: z.string().trim().min(1).max(100),
@@ -215,6 +227,7 @@ const floorPlanFields = z
     requirements: z.array(planRequirementSchema).max(50, "В одном плане может быть не больше 50 требований."),
     underlay: underlaySchema.optional(),
     origin: planOriginSchema.optional(),
+    buildingFacts: buildingFactsSchema.optional(),
   })
   .strict();
 

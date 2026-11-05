@@ -10,6 +10,8 @@ import { analyzeWallConnections } from "@/domain/floor-plan/wall-diagnostics";
 import { analyzeWallIntersections } from "@/domain/floor-plan/wall-intersections";
 import { bearingWallChanges, wallKindOf, type BearingChange } from "@/domain/floor-plan/wall-kind";
 import { analyzeWallOverlaps } from "@/domain/floor-plan/wall-overlaps";
+import { citation, rulesForPlan } from "@/domain/rules/engine";
+import type { RuleReport } from "@/domain/rules/types";
 import { formatArea, pluralRu } from "@/lib/format";
 import { conflictText, describeRequirement, requirementDetail } from "../editor/requirement-text";
 import { ROOM_KINDS } from "../editor/room-kinds";
@@ -18,7 +20,8 @@ import { detectViewRooms } from "../editor/view-rooms";
 /**
  * The report on a plan: what the system can state about it, how sure it is of each
  * statement and where its knowledge ends. It only reads the plan and computes everything
- * from it; nothing is stored. It has no regional rules yet and says so on every copy.
+ * from it; nothing is stored. Regional rules run only for the region the owner chose, and
+ * every copy says which edition it was built on, or that no rules were checked.
  */
 export type ReportLevel = "specialist" | "undetermined" | "assumption" | "verified";
 /** `problem` is something to fix or decide; `ok` holds; `note` is for information. */
@@ -38,6 +41,8 @@ export interface ReportFinding {
   state: ReportState;
   title: string;
   detail?: string;
+  /** The document and point behind the statement. */
+  source?: string;
 }
 
 export interface ReportRoom {
@@ -75,6 +80,16 @@ export const REPORT_DISCLAIMER =
 export const REPORT_RULES_NOTE =
   "Строительные нормы и правила региона в этой версии не проверяются: база правил ещё не подключена.";
 
+/** The limits of a report built on a rule base: which editions, and how far they can be trusted. */
+function regulationLimits(rules: RuleReport): string[] {
+  const version = rules.version.split("-").reverse().join(".");
+  return [
+    `Нормы: ${rules.region}, база правил от ${version}. ${rules.reviewed ? "База сверена со специалистом." : "База не сверена со специалистом, поэтому выводы по ней остаются предположениями."}`,
+    ...rules.documents.map((item) => `${item.short}: ${item.edition}. ${item.gaps}`),
+    `База не проверяет: ${rules.notChecked.join(" ")}`,
+  ];
+}
+
 const WET_ROOMS: readonly RoomKind[] = ["kitchen", "bathroom"];
 const AREA_TOLERANCE = 0.01;
 
@@ -98,10 +113,22 @@ const sameGeometry = (a: Wall, b: Wall) =>
   a.thickness === b.thickness && a.height === b.height;
 
 /** What differs from the plan this variant was made from, by what the user marked. */
-function changeFindings(plan: FloorPlan, findings: ReportFinding[]): PlanReport["origin"] {
+function changeFindings(plan: FloorPlan, findings: ReportFinding[], rules: RuleReport | null): PlanReport["origin"] {
   if (!plan.origin) return null;
   const source = planFromOrigin(plan.origin);
   const diff = diffPlans(source, plan);
+  const area = (computed: boolean, value: number) => (computed ? value : null);
+  const summary = {
+    planName: plan.origin.planName,
+    createdAt: plan.origin.createdAt,
+    areaBefore: area(diff.before.roomsComputed, diff.before.totalArea),
+    areaAfter: area(diff.after.roomsComputed, diff.after.totalArea),
+  };
+  if (diff.identical) {
+    findings.push({ level: "verified", state: "ok", title: "Вариант совпадает с исходным планом" });
+  }
+  // A rule base says the same about these changes, and names the document behind it.
+  if (rules) return summary;
   const before = new Map(source.walls.map((wall) => [wall.id, wall]));
   const after = new Map(plan.walls.map((wall) => [wall.id, wall]));
 
@@ -184,16 +211,7 @@ function changeFindings(plan: FloorPlan, findings: ReportFinding[]): PlanReport[
       });
     }
   }
-  if (diff.identical) {
-    findings.push({ level: "verified", state: "ok", title: "Вариант совпадает с исходным планом" });
-  }
-  const area = (computed: boolean, value: number) => (computed ? value : null);
-  return {
-    planName: plan.origin.planName,
-    createdAt: plan.origin.createdAt,
-    areaBefore: area(diff.before.roomsComputed, diff.before.totalArea),
-    areaAfter: area(diff.after.roomsComputed, diff.after.totalArea),
-  };
+  return summary;
 }
 
 export function buildPlanReport(plan: FloorPlan, meta: { generatedAt: string; appVersion: string }): PlanReport {
@@ -301,7 +319,20 @@ export function buildPlanReport(plan: FloorPlan, meta: { generatedAt: string; ap
   }
 
   // Changes against the source of a variant.
-  const origin = changeFindings(plan, findings);
+  const rules = rulesForPlan(plan);
+  const origin = changeFindings(plan, findings, rules);
+  if (rules) {
+    for (const finding of rules.findings) {
+      const source = citation(rules, finding);
+      findings.push({
+        level: finding.level,
+        state: finding.state,
+        title: finding.title,
+        ...(finding.detail ? { detail: finding.detail } : {}),
+        ...(source ? { source } : {}),
+      });
+    }
+  }
 
   const order = (finding: ReportFinding) => REPORT_LEVEL_ORDER.indexOf(finding.level) * 3 + ["problem", "note", "ok"].indexOf(finding.state);
   const sorted = findings
@@ -333,7 +364,7 @@ export function buildPlanReport(plan: FloorPlan, meta: { generatedAt: string; ap
     rooms,
     findings: sorted,
     origin,
-    limits: [REPORT_RULES_NOTE, REPORT_DISCLAIMER],
+    limits: rules ? [...regulationLimits(rules), REPORT_DISCLAIMER] : [REPORT_RULES_NOTE, REPORT_DISCLAIMER],
   };
 }
 

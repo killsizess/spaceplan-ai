@@ -113,8 +113,29 @@ export interface PlanOrigin {
   snapshot: PlanSnapshot;
 }
 
+/** What is under or over the apartment, as far as the owner knows. */
+export type NeighbourFloor = "same-layout" | "other-layout" | "no-dwelling";
+
+/**
+ * v8. What only the owner can know about the apartment and its building. Every field is
+ * optional, and an absent one means "not known": no rule treats it as a "no".
+ */
+export interface BuildingFacts {
+  /** Which rule base applies. Without it no regional rules are checked. */
+  region?: "moscow" | "other";
+  /** The apartment has a gas stove or other gas appliances. */
+  gasified?: boolean;
+  woodenFloors?: boolean;
+  /** Cultural heritage site, or a site identified as one. */
+  heritage?: boolean;
+  /** The building is officially declared unsafe. */
+  emergency?: boolean;
+  below?: NeighbourFloor;
+  above?: NeighbourFloor;
+}
+
 export interface FloorPlan {
-  schemaVersion: 7;
+  schemaVersion: 8;
   unit: "m";
   id: string;
   name: string;
@@ -128,4 +149,6 @@ export interface FloorPlan {
   underlay?: Underlay;
   /** v7. Present on variants created from another project. */
   origin?: PlanOrigin;
+  /** v8. */
+  buildingFacts?: BuildingFacts;
 }

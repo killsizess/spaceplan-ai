@@ -1,0 +1,210 @@
+.plan-xray-dialog[open] {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.xray-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 14px;
+  padding: 14px;
+  border: 1px solid var(--line-1);
+  border-radius: 10px;
+  background: var(--surface-1);
+}
+.xray-facts label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.xray-no-rules,
+.xray-missing,
+.xray-empty {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+.xray-draft {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--warn-200);
+  background: var(--warn-100);
+  color: var(--warn-700);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.xray-draft svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+.xray-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.procedure-forbidden { background: var(--danger-100); color: var(--danger-700); }
+.procedure-specialist { background: var(--warn-100); color: var(--warn-700); }
+.procedure-project { background: var(--info-100); color: var(--info-700); }
+.procedure-simplified { background: var(--accent-100); color: var(--accent-700); }
+.procedure-unknown { background: var(--surface-2); color: var(--text-3); }
+.xray-overall {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--line-1);
+  border-radius: 10px;
+}
+.xray-overall p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.xray-overall small,
+.xray-findings small,
+.xray-answer small {
+  font-size: 11px;
+  color: var(--text-4);
+}
+.xray-findings,
+.xray-potential,
+.xray-documents,
+.xray-not-checked {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.plan-xray-dialog h3 {
+  font-size: 15px;
+}
+.plan-xray-dialog p {
+  margin: 0;
+}
+.xray-show {
+  align-self: flex-start;
+  font-size: 12px;
+  color: var(--accent-700);
+  text-decoration: underline;
+}
+.plan-xray-dialog h4 {
+  font-size: 13px;
+}
+.plan-xray-dialog ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.xray-level {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border-left: 3px solid var(--level-fg);
+  background: var(--level-bg);
+}
+.xray-level h4 {
+  color: var(--level-fg);
+}
+.xray-level li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.xray-level li p,
+.xray-level li small {
+  flex-basis: 100%;
+}
+.xray-level li p {
+  color: var(--text-2);
+}
+.xray-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.xray-counts div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.xray-counts dd {
+  font-weight: 700;
+  font-size: 14px;
+}
+.xray-group summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 0;
+}
+.xray-group summary small {
+  font-weight: 400;
+  font-size: 11.5px;
+  color: var(--text-4);
+}
+.xray-wall,
+.xray-rooms li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-1);
+  border-radius: 10px;
+  font-size: 13px;
+}
+.xray-wall strong span {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--text-4);
+}
+.xray-answer {
+  display: grid;
+  grid-template-columns: 112px auto minmax(0, 1fr);
+  gap: 4px 8px;
+  align-items: baseline;
+}
+.xray-answer-label {
+  font-size: 12px;
+  color: var(--text-4);
+}
+.xray-answer p {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.xray-documents li,
+.xray-not-checked li {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-3);
+}
+.xray-documents a {
+  color: var(--accent-700);
+  text-decoration: underline;
+}
+.plan-report-source {
+  font-size: 11px;
+  color: var(--text-4);
+}
+@media (max-width: 620px) {
+  .xray-answer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .xray-answer .xray-chip {
+    justify-self: start;
+  }
+}

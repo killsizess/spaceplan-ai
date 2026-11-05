@@ -128,6 +128,7 @@ export default function PlanReportDialog({
                     <div>
                       <strong>{finding.title}</strong>
                       {finding.detail && <p>{finding.detail}</p>}
+                      {finding.source && <p className="plan-report-source">{finding.source}</p>}
                     </div>
                   </li>
                 ))}

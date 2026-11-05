@@ -1365,7 +1365,13 @@ h3 {
     flex-wrap: wrap;
   }
   .project-header-right {
+    flex: 1 1 100%;
+    justify-content: flex-end;
     margin-left: auto;
+  }
+  .project-variant-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
   .project-tag {
     display: none;

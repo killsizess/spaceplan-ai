@@ -117,7 +117,7 @@ test("wall rooms show true internal area, select in 2D/3D and persist the chosen
   await expect(page.getByTestId("wall-room-area")).toHaveText("18,24 м²");
   await expect(page.getByTestId("wall-room-perimeter")).toHaveText("17,2 м");
   const stored = await saved(page);
-  expect(stored.schemaVersion).toBe(7);
+  expect(stored.schemaVersion).toBe(8);
   expect(stored.roomMode).toBe("walls");
   expect(stored.rooms).toEqual(original.rooms);
   await page.getByRole("button", { name: "Режим 3D", exact: true }).click();

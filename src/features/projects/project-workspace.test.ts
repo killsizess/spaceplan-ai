@@ -45,7 +45,7 @@ describe("project workspace lifecycle", () => {
     workspace.initialize(createTestServices(storage));
     await workspace.flush();
     expect(workspace.getSnapshot().editor.plan).toEqual({
-      ...oldPlan, schemaVersion: 7, wallRoomLabels: [], requirements: [],
+      ...oldPlan, schemaVersion: 8, wallRoomLabels: [], requirements: [],
     });
     expect(workspace.hasUnsavedChanges()).toBe(false);
     expect(storage.getItem(PROJECT_PREFIX + oldPlan.id)).toBe(raw);
@@ -60,7 +60,7 @@ describe("project workspace lifecycle", () => {
     workspace.dispatch({ type: "wall:add", wall: { ...invalidWall, end: { x: 5, y: 0 } } });
     await workspace.flush();
     const saved = JSON.parse(storage.getItem(PROJECT_PREFIX + oldPlan.id)!);
-    expect(saved.plan.schemaVersion).toBe(7);
+    expect(saved.plan.schemaVersion).toBe(8);
     expect(saved.plan.wallRoomLabels).toEqual([]);
     expect(saved.plan.walls).toHaveLength(1);
   });

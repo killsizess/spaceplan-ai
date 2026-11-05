@@ -110,7 +110,7 @@ describe("project repository", () => {
       const restored = readProject(storage, oldPlan.id)!;
       expect(restored.plan).toEqual({
         ...oldPlan,
-        schemaVersion: 7,
+        schemaVersion: 8,
         roomMode: "manual",
         wallRoomLabels: [],
         requirements: [],
@@ -125,9 +125,9 @@ describe("project repository", () => {
       expect(storage.getItem(PROJECT_PREFIX + oldPlan.id)).toBe(raw);
       storage.failWrites = false;
       saveProject(storage, restored.plan, "legacy-r1", "r2", now);
-      expect(readProject(storage, oldPlan.id)!.plan.schemaVersion).toBe(7);
+      expect(readProject(storage, oldPlan.id)!.plan.schemaVersion).toBe(8);
       expect(storage.getItem(PROJECT_PREFIX + oldPlan.id)).toContain(
-        '"schemaVersion":7',
+        '"schemaVersion":8',
       );
     },
   );
@@ -139,7 +139,7 @@ describe("project repository", () => {
     });
     storage.setItem(PROJECT_PREFIX + oldPlan.id, raw);
     const restored = readProject(storage, oldPlan.id)!;
-    expect(restored.plan).toEqual({ ...oldPlan, schemaVersion: 7, wallRoomLabels: [], requirements: [] });
+    expect(restored.plan).toEqual({ ...oldPlan, schemaVersion: 8, wallRoomLabels: [], requirements: [] });
     expect(listProjects(storage).projects[0].plan).toEqual(restored.plan);
     expect(storage.getItem(PROJECT_PREFIX + oldPlan.id)).toBe(raw);
     storage.failWrites = true;
@@ -156,7 +156,7 @@ describe("project repository", () => {
     const raw = JSON.stringify({ storageVersion: 1, revision: "legacy-v4", updatedAt: now, plan: oldPlan });
     storage.setItem(key, raw);
     const write = vi.spyOn(storage, "setItem");
-    const migrated = { ...oldPlan, schemaVersion: 7, requirements: [] };
+    const migrated = { ...oldPlan, schemaVersion: 8, requirements: [] };
     expect(readProject(storage, oldPlan.id)!.plan).toEqual(migrated);
     expect(listProjects(storage).projects[0].plan).toEqual(migrated);
     const unchanged = renameProject(storage, oldPlan.id, ` ${oldPlan.name} `, "legacy-v4", "unused", now);
@@ -308,7 +308,7 @@ describe("project names and recoverable trash", () => {
     const unchanged = renameProject(storage, plan.id, ` ${plan.name} `, "legacy", "new", later);
     expect(unchanged.revision).toBe("legacy");
     expect(unchanged.updatedAt).toBe(now);
-    expect(unchanged.plan.schemaVersion).toBe(7);
+    expect(unchanged.plan.schemaVersion).toBe(8);
     expect(write).not.toHaveBeenCalled();
     expect(storage.getItem(key)).toBe(raw);
     expect(() => renameProject(storage, plan.id, plan.name, "stale", "new", later)).toThrow(ProjectConflictError);
@@ -414,9 +414,9 @@ describe("project names and recoverable trash", () => {
     storage.setItem(key, raw);
     const write = vi.spyOn(storage, "setItem");
     const record = readTrashedProject(storage, oldPlan.id)!;
-    expect(record.plan.schemaVersion).toBe(7);
+    expect(record.plan.schemaVersion).toBe(8);
     expect(record.plan).toEqual({
-      ...oldPlan, schemaVersion: 7, requirements: [],
+      ...oldPlan, schemaVersion: 8, requirements: [],
       wallRoomLabels: "wallRoomLabels" in oldPlan ? oldPlan.wallRoomLabels : [],
       roomMode: version >= 3 ? "walls" : "manual",
     });
@@ -476,7 +476,7 @@ describe("versioned JSON transfer", () => {
   it("migrates version 4 JSON without inventing door metadata or losing labels and raster data", () => {
     const old = legacyLabelledPlan();
     const migrated = parsePlanFile(JSON.stringify(old));
-    expect(migrated).toEqual({ ...old, schemaVersion: 7, requirements: [] });
+    expect(migrated).toEqual({ ...old, schemaVersion: 8, requirements: [] });
     expect(migrated.openings[0]).not.toHaveProperty("door");
     expect(JSON.parse(serializePlan(migrated))).toEqual(migrated);
   });
@@ -538,12 +538,12 @@ describe("versioned JSON transfer", () => {
       const migrated = parsePlanFile(JSON.stringify(old));
       expect(migrated).toEqual({
         ...old,
-        schemaVersion: 7,
+        schemaVersion: 8,
         roomMode: "manual",
         wallRoomLabels: [],
         requirements: [],
       });
-      expect(JSON.parse(serializePlan(migrated)).schemaVersion).toBe(7);
+      expect(JSON.parse(serializePlan(migrated)).schemaVersion).toBe(8);
       expect(() =>
         parsePlanFile(JSON.stringify({ ...old, underlay: null })),
       ).toThrow();
@@ -558,9 +558,9 @@ describe("versioned JSON transfer", () => {
     ).toThrow();
     expect(() =>
       parsePlanFile(
-        JSON.stringify({ ...createExamplePlan(), schemaVersion: 8 }),
+        JSON.stringify({ ...createExamplePlan(), schemaVersion: 9 }),
       ),
-    ).toThrow(/версии от 1 до 7/);
+    ).toThrow(/версии от 1 до 8/);
     for (const old of [legacyExample(1), legacyExample(2), legacyWallPlan()]) {
       expect(() => parsePlanFile(JSON.stringify({ ...old, wallRoomLabels: [] }))).toThrow();
     }
@@ -589,7 +589,7 @@ describe("versioned JSON transfer", () => {
     const legacy = { ...legacyExample(2), underlay: plan.underlay };
     expect(parsePlanFile(JSON.stringify(legacy))).toEqual({
       ...legacy,
-      schemaVersion: 7,
+      schemaVersion: 8,
       roomMode: "manual",
       wallRoomLabels: [],
       requirements: [],
@@ -610,7 +610,7 @@ describe("versioned JSON transfer", () => {
   it("migrates version 3 JSON and exports explicit current metadata without derived contours", () => {
     const old = legacyWallPlan();
     const migrated = parsePlanFile(JSON.stringify(old));
-    expect(migrated).toEqual({ ...old, schemaVersion: 7, wallRoomLabels: [], requirements: [] });
+    expect(migrated).toEqual({ ...old, schemaVersion: 8, wallRoomLabels: [], requirements: [] });
     expect(JSON.parse(serializePlan(migrated))).toEqual(migrated);
   });
   it("migrates version 5 to 6 with no requirements and roundtrips saved requirements", () => {

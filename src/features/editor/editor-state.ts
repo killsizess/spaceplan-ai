@@ -18,6 +18,7 @@ import { connectWallJunction } from "@/domain/floor-plan/connect-wall-junction";
 import { connectWallIntersection } from "@/domain/floor-plan/connect-wall-intersection";
 import { moveWall, offsetWall } from "@/domain/floor-plan/move-wall";
 import { addRequirement, removeRequirement } from "@/domain/floor-plan/plan-requirements";
+import { withBuildingFacts } from "@/domain/floor-plan/building-facts";
 import type { WallIntersectionDiagnostic } from "@/domain/floor-plan/wall-intersections";
 import type { WallConnectionDiagnostic } from "@/domain/floor-plan/wall-diagnostics";
 import type { Point } from "@/domain/geometry";
@@ -36,6 +37,7 @@ import {
   type WallRoomLabelValues,
 } from "@/domain/floor-plan/wall-room-labels";
 import type {
+  BuildingFacts,
   FloorPlan,
   Room,
   Wall,
@@ -88,6 +90,8 @@ export type EditorAction =
   | { type: "wall-room:label-remove"; labelId: string }
   | { type: "requirement:add"; requirement: PlanRequirement }
   | { type: "requirement:remove"; id: string }
+  /** Answers about the building: one undo step. No answers left removes the field. */
+  | { type: "facts:set"; facts: BuildingFacts }
   | {
       type: "wall:node-move";
       wallId: string;
@@ -225,6 +229,8 @@ export function editorReducer(
       plan = addRequirement(state.plan, action.requirement);
     } else if (action.type === "requirement:remove") {
       plan = removeRequirement(state.plan, action.id);
+    } else if (action.type === "facts:set") {
+      plan = withBuildingFacts(state.plan, action.facts);
     } else if (action.type === "wall:node-move") {
       const wall = state.plan.walls.find((item) => item.id === action.wallId);
       if (!wall) throw new Error("Стена не найдена.");

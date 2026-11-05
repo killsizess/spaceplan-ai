@@ -15,7 +15,7 @@ export const MAX_PLAN_FILE_BYTES = 4 * 1024 * 1024;
 
 /**
  * Migration is in memory only; a normal successful save upgrades the record.
- * Formats 1–5 are brought to 6 here, then 6 to the current version by `toCurrentVersion`.
+ * Formats 1–5 are brought to 6 here, then 6 to 7 and 7 to the current version.
  */
 function toVersionSix(value: unknown): unknown {
   if (
@@ -69,7 +69,7 @@ function toVersionSix(value: unknown): unknown {
  * A version-6 file that already carries one of them is not migrated, so its injected
  * field fails validation instead of being blessed.
  */
-function toCurrentVersion(value: unknown): unknown {
+function toVersionSeven(value: unknown): unknown {
   if (
     typeof value !== "object" || value === null ||
     !("schemaVersion" in value) || value.schemaVersion !== 6 ||
@@ -83,8 +83,18 @@ function toCurrentVersion(value: unknown): unknown {
   return { ...value, schemaVersion: 7 };
 }
 
+/** A v7 file that already carries the v8 field is refused rather than blessed. */
+function toCurrentVersion(value: unknown): unknown {
+  if (
+    typeof value !== "object" || value === null ||
+    !("schemaVersion" in value) || value.schemaVersion !== 7 ||
+    "buildingFacts" in value
+  ) return value;
+  return { ...value, schemaVersion: 8 };
+}
+
 const persistedPlanSchema = z.preprocess(
-  (value) => toCurrentVersion(toVersionSix(value)),
+  (value) => toCurrentVersion(toVersionSeven(toVersionSix(value))),
   floorPlanLoadSchema,
 );
 
@@ -159,10 +169,11 @@ function validatePlan(value: unknown): FloorPlan {
     value.schemaVersion !== 4 &&
     value.schemaVersion !== 5 &&
     value.schemaVersion !== 6 &&
-    value.schemaVersion !== 7
+    value.schemaVersion !== 7 &&
+    value.schemaVersion !== 8
   ) {
     throw new Error(
-      "Версия формата не поддерживается. Нужен план SpacePlan версии от 1 до 7.",
+      "Версия формата не поддерживается. Нужен план SpacePlan версии от 1 до 8.",
     );
   }
   const result = persistedPlanSchema.safeParse(value);

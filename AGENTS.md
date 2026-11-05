@@ -57,3 +57,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Правила и нормы (с 0.30.0)
+
+- Правила региона живут в `src/domain/rules/`. Новое правило вносится только из прочитанного текста документа, с пунктом и редакцией, и записывается в `docs/RULES_MOSCOW.md`. Из памяти модели правила не вносятся.
+- Пока `reviewed: false`, вывод по нормам не может быть «Проверено правилом». Менять это может только подтверждение специалиста.
+- Приложение не говорит «допустимо». Нет данных значит нет вывода.
+- Формат плана: `schemaVersion: 8`. Поле `buildingFacts` необязательное, отсутствие ответа значит «не знаю».
