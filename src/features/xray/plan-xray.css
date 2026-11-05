@@ -19,6 +19,7 @@
 }
 .xray-no-rules,
 .xray-missing,
+.xray-hint,
 .xray-empty {
   font-size: 13px;
   line-height: 1.6;

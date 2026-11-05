@@ -286,3 +286,17 @@ describe("a report on a plan with a chosen region", () => {
     expect(report.findings.some((finding) => finding.source)).toBe(false);
   });
 });
+
+describe("the answers a report was built on", () => {
+  const meta = { generatedAt: "2026-11-05T10:00:00.000Z", appVersion: "test" };
+
+  it("lists them, with an unanswered one as not known", () => {
+    const { facts } = buildPlanReport(apartment({ region: "moscow", gasified: true }), meta);
+    expect(facts).toContainEqual({ label: "В квартире есть газ", answer: "Да" });
+    expect(facts).toContainEqual({ label: "Этажом ниже", answer: "Не знаю" });
+  });
+
+  it("has none without a region", () => {
+    expect(buildPlanReport(apartment({}), meta).facts).toEqual([]);
+  });
+});

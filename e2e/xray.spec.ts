@@ -225,9 +225,10 @@ test("X-Ray on a plan without walls offers an example, and it is a project of it
   await page.getByLabel("Где находится квартира").selectOption("moscow");
   await expect(page.getByTestId("xray-no-walls")).toBeVisible();
   await page.getByRole("button", { name: "Открыть пример со стенами" }).click();
-  await expect(page.getByRole("heading", { name: "Тестовая квартира для сверки", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "X-Ray", exact: true }).click();
+  // The example opens with X-Ray already showing what it is for.
   await expect(page.getByTestId("xray-wall")).toHaveCount(7);
+  await page.getByRole("button", { name: "Закрыть X-Ray" }).click();
+  await expect(page.getByRole("heading", { name: "Тестовая квартира для сверки", exact: true })).toBeVisible();
 });
 
 test("the library and the comparison name what a variant takes", async ({ page }) => {
@@ -309,4 +310,50 @@ test("a door can become a door-way with no door, and the gas rule sees it", asyn
   await page.getByRole("button", { name: "Отменить", exact: true }).click();
   await expect.poll(async () => (await saved(page)).openings.find((item) => item.id === "d")?.doorless).toBeUndefined();
   expect(errors).toEqual([]);
+});
+
+test("a first visit says where to start, and the hint stays hidden once hidden", async ({ page }) => {
+  await page.goto("/");
+  await saved(page);
+  const strip = page.getByTestId("welcome-strip");
+  await expect(strip).toContainText("С чего начать");
+
+  await strip.getByRole("button", { name: "Загрузить чертёж" }).click();
+  await expect(page.getByRole("tab", { name: "Подложка", exact: true })).toHaveAttribute("aria-selected", "true");
+
+  await strip.getByRole("button", { name: "Скрыть подсказку" }).click();
+  await expect(strip).toHaveCount(0);
+  await page.reload();
+  await saved(page);
+  await expect(page.getByTestId("project-title").or(page.getByRole("heading", { name: "Квартира на Садовой" }))).toBeVisible();
+  await expect(strip).toHaveCount(0);
+});
+
+test("the hint leads to a working example, and is not shown on someone's own plan", async ({ page }) => {
+  await page.goto("/");
+  await saved(page);
+  await page.getByTestId("welcome-strip").getByRole("button", { name: "Посмотреть на примере" }).click();
+  await expect(page.getByTestId("xray-wall")).toHaveCount(7);
+  await expect(page.getByTestId("welcome-strip")).toHaveCount(0);
+});
+
+test("X-Ray says how to check a change, and the report lists the answers it was built on", async ({ page }) => {
+  await importPlan(page, apartment({ region: "moscow", gasified: true, floorLevel: "upper" }));
+  await expect(page.getByTestId("welcome-strip")).toHaveCount(0);
+  await page.getByRole("button", { name: "X-Ray", exact: true }).click();
+  await expect(page.getByTestId("xray-variant-hint")).toContainText("нажмите «Вариант»");
+  await page.getByRole("button", { name: "Закрыть X-Ray" }).click();
+  await page.getByRole("button", { name: "Отчёт", exact: true }).click();
+  const facts = page.getByTestId("report-facts");
+  await expect(facts).toContainText("В квартире есть газ");
+  await expect(facts.locator("div", { hasText: "В квартире есть газ" }).locator("dd")).toHaveText("Да");
+  await expect(facts.locator("div", { hasText: "Этаж квартиры" }).locator("dd")).toHaveText("Второй и выше");
+  await expect(facts.locator("div", { hasText: "Этажом ниже" }).locator("dd")).toHaveText("Не знаю");
+});
+
+test("a report on a plan with no region lists no answers", async ({ page }) => {
+  await importPlan(page, apartment({}));
+  await page.getByRole("button", { name: "Отчёт", exact: true }).click();
+  await expect(page.getByTestId("report-limits")).toContainText("база правил ещё не подключена");
+  await expect(page.getByTestId("report-facts")).toHaveCount(0);
 });

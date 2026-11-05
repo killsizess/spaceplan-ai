@@ -68,6 +68,15 @@ describe("report pages", () => {
     expect(text).toMatch(/0[456]\.11\.(20)?26/);
   });
 
+  it("prints the answers about the building, and leaves them out when no region is chosen", () => {
+    const facts: FloorPlan["buildingFacts"] = { region: "moscow", gasified: true };
+    const text = allText(layoutPlanReport(buildPlanReport({ ...plan, buildingFacts: facts }, meta), measure));
+    expect(text).toContain("Ответы о доме");
+    expect(text).toContain("В квартире есть газ");
+    expect(text).toContain("Этажом ниже");
+    expect(allText(layoutPlanReport(buildPlanReport(plan, meta), measure))).not.toContain("Ответы о доме");
+  });
+
   it("carries a footer with the page number and the warning on every page", () => {
     const pages = layoutPlanReport(longReport(60), measure);
     expect(pages.length).toBeGreaterThan(2);

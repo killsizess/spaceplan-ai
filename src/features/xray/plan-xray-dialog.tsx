@@ -5,6 +5,16 @@ import { ScanSearch, TriangleAlert, X } from "lucide-react";
 import type { BuildingFacts, FloorPlan, NeighbourFloor } from "@/domain/floor-plan/types";
 import { WALL_KIND_LABELS } from "@/domain/floor-plan/wall-kind";
 import { citation, rulesForPlan } from "@/domain/rules/engine";
+import {
+  FLOOR_ANSWERS,
+  FLOOR_LABEL,
+  NEIGHBOUR_ANSWERS,
+  NEIGHBOUR_LABELS,
+  REGION_ANSWERS,
+  REGION_LABEL,
+  UNKNOWN_ANSWER,
+  YES_NO_QUESTIONS,
+} from "@/domain/rules/facts";
 import { PROCEDURE_ORDER, PROCEDURES } from "@/domain/rules/moscow";
 import type { ConfidenceLevel, Procedure, RuleFinding, RuleReport, RuleSource } from "@/domain/rules/types";
 import { roomsOfPlan } from "@/domain/rules/rule-rooms";
@@ -14,22 +24,11 @@ import "../report/plan-report.css";
 import "./plan-xray.css";
 
 const YES_NO: readonly { value: string; label: string }[] = [
-  { value: "", label: "Не знаю" },
+  { value: "", label: UNKNOWN_ANSWER },
   { value: "yes", label: "Да" },
   { value: "no", label: "Нет" },
 ];
-const NEIGHBOURS: readonly { value: "" | NeighbourFloor; label: string }[] = [
-  { value: "", label: "Не знаю" },
-  { value: "same-layout", label: "Такая же планировка" },
-  { value: "other-layout", label: "Другая планировка" },
-  { value: "no-dwelling", label: "Квартир нет" },
-];
-const BOOLEAN_FACTS: readonly { key: "gasified" | "woodenFloors" | "heritage" | "emergency"; label: string }[] = [
-  { key: "gasified", label: "В квартире есть газ" },
-  { key: "woodenFloors", label: "Перекрытия деревянные" },
-  { key: "heritage", label: "Дом — объект культурного наследия" },
-  { key: "emergency", label: "Дом признан аварийным" },
-];
+const NEIGHBOURS = Object.entries(NEIGHBOUR_ANSWERS) as [NeighbourFloor, string][];
 
 const toAnswer = (value: boolean | undefined) => (value === undefined ? "" : value ? "yes" : "no");
 const fromAnswer = (value: string) => (value === "" ? undefined : value === "yes");
@@ -47,17 +46,17 @@ function Facts({ facts, onFacts }: { facts: BuildingFacts; onFacts: (facts: Buil
   return (
     <section className="xray-facts" aria-label="О квартире и доме">
       <label>
-        <span>Где находится квартира</span>
+        <span>{REGION_LABEL}</span>
         <select
           value={facts.region ?? ""}
           onChange={(event) => onFacts({ ...facts, region: (event.target.value || undefined) as BuildingFacts["region"] })}
         >
           <option value="">Не указано</option>
-          <option value="moscow">Москва</option>
-          <option value="other">Другой регион</option>
+          <option value="moscow">{REGION_ANSWERS.moscow}</option>
+          <option value="other">{REGION_ANSWERS.other}</option>
         </select>
       </label>
-      {moscow && BOOLEAN_FACTS.map(({ key, label }) => (
+      {moscow && YES_NO_QUESTIONS.map(({ key, label }) => (
         <label key={key}>
           <span>{label}</span>
           <select value={toAnswer(facts[key])} onChange={(event) => onFacts({ ...facts, [key]: fromAnswer(event.target.value) })}>
@@ -67,25 +66,26 @@ function Facts({ facts, onFacts }: { facts: BuildingFacts; onFacts: (facts: Buil
       ))}
       {moscow && (
         <label>
-          <span>Этаж квартиры</span>
+          <span>{FLOOR_LABEL}</span>
           <select
             value={facts.floorLevel ?? ""}
             onChange={(event) => onFacts({ ...facts, floorLevel: (event.target.value || undefined) as BuildingFacts["floorLevel"] })}
           >
-            <option value="">Не знаю</option>
-            <option value="first">Первый</option>
-            <option value="upper">Второй и выше</option>
+            <option value="">{UNKNOWN_ANSWER}</option>
+            <option value="first">{FLOOR_ANSWERS.first}</option>
+            <option value="upper">{FLOOR_ANSWERS.upper}</option>
           </select>
         </label>
       )}
       {moscow && (["below", "above"] as const).map((side) => (
         <label key={side}>
-          <span>{side === "below" ? "Этажом ниже" : "Этажом выше"}</span>
+          <span>{NEIGHBOUR_LABELS[side]}</span>
           <select
             value={facts[side] ?? ""}
             onChange={(event) => onFacts({ ...facts, [side]: (event.target.value || undefined) as NeighbourFloor | undefined })}
           >
-            {NEIGHBOURS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+            <option value="">{UNKNOWN_ANSWER}</option>
+            {NEIGHBOURS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>
       ))}
@@ -294,6 +294,11 @@ export default function PlanXrayDialog({
             {rules.missingFacts.length > 0 && (
               <p className="xray-missing" data-testid="xray-missing">
                 Без ответов выше часть выводов остаётся без данных. Осталось вопросов: {rules.missingFacts.length}.
+              </p>
+            )}
+            {!rules.checkedChanges && (
+              <p className="xray-hint" data-testid="xray-variant-hint">
+                Чтобы проверить изменения, нажмите «Вариант», измените план и откройте X-Ray снова: он сравнит вариант с исходным планом.
               </p>
             )}
             {rules.checkedChanges && rules.overall && (

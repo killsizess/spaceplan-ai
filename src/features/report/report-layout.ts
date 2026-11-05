@@ -208,6 +208,21 @@ export function layoutPlanReport(report: PlanReport, measure: MeasureText): Repo
     flow.y += 3;
   }
 
+  // The answers the rule findings were drawn from.
+  if (report.facts.length) {
+    flow.heading("Ответы о доме");
+    flow.y += flow.lines(left, width, "Указаны владельцем плана и не проверялись. Выводы по нормам зависят от них.", 3, 400, MUTED) + 1.4;
+    for (const fact of report.facts) {
+      flow.need(5.2);
+      flow.rect(left, flow.y, width, 0.2, LINE);
+      flow.y += 1.1;
+      flow.text(left, flow.y + 3.1, fact.label, 3.1, 400, INK);
+      flow.text(left + width, flow.y + 3.1, fact.answer, 3.1, 600, INK, "right");
+      flow.y += 4.1;
+    }
+    flow.y += 3;
+  }
+
   // Limits.
   const limitHeight = report.limits.reduce((sum, limit) => sum + flow.height(width - 10, limit, 3, 400) + 1.6, 0) + 12;
   flow.need(limitHeight + 3);

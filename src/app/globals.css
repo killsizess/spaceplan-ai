@@ -1624,3 +1624,25 @@ h3 {
     display: none;
   }
 }
+.welcome-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 8px 14px;
+  background: var(--accent-100);
+  border-bottom: 1px solid var(--line-1);
+}
+.welcome-strip p {
+  flex: 1 1 420px;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.welcome-strip div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

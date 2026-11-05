@@ -43,6 +43,7 @@ import type { WallOverlapDiagnostic } from "@/domain/floor-plan/wall-overlaps";
 import { createSpatialExamplePlan } from "@/domain/floor-plan/examples";
 import { rulesForPlan } from "@/domain/rules/engine";
 import { createRulesExamplePlan } from "@/domain/rules/example-apartment";
+import { startedAsExample, WelcomeStrip } from "./components/welcome-strip";
 import { getRectangularRoomWalls, type RectangularWallRoomInput } from "@/domain/floor-plan/rectangular-wall-room";
 import { wallLength, type Point } from "@/domain/geometry";
 import { formatLength, pluralRu } from "@/lib/format";
@@ -362,6 +363,7 @@ export default function Editor() {
       setSidebar("structure");
       enter2D();
       fit();
+      setXrayOpen(true);
     }
   };
   const createWallRoomExample = async () => {
@@ -801,6 +803,9 @@ export default function Editor() {
           </button>
         </div>
       </header>
+      {snapshot.ready && startedAsExample(state.plan) && (
+        <WelcomeStrip onExample={() => void createRulesExample()} onUpload={() => setSidebar("source")} />
+      )}
       <section className="project-header">
         <ScenarioRail steps={scenario} onOpen={openScenarioStep} />
         <div className="project-header-right">

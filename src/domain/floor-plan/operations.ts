@@ -22,10 +22,17 @@ export function createEmptyPlan(id: string): FloorPlan {
   };
 }
 
+const EXAMPLE_PLAN_NAME = "Квартира на Садовой";
+
+/** The built-in plan a new visitor starts on, before it has become their own. */
+export function isExamplePlan(plan: Pick<FloorPlan, "name" | "walls">): boolean {
+  return plan.name === EXAMPLE_PLAN_NAME && plan.walls.length === 0;
+}
+
 export function createExamplePlan(): FloorPlan {
   return {
     ...createEmptyPlan("example"),
-    name: "Квартира на Садовой",
+    name: EXAMPLE_PLAN_NAME,
     rooms: [
       {
         id: "living",

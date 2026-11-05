@@ -6,7 +6,7 @@ import {
   createExamplePlan,
   deleteRoom,
   getTotalArea,
-  updateRoom,
+  updateRoom, isExamplePlan,
 } from "./operations";
 import { floorPlanSchema } from "./schema";
 import { setRoomMode } from "./construction";
@@ -196,5 +196,13 @@ describe("floor-plan operations and boundaries", () => {
       ],
     };
     expect(floorPlanSchema.safeParse(plan).success).toBe(false);
+  });
+});
+
+describe("the built-in example", () => {
+  it("is recognised until it has walls or another name", () => {
+    expect(isExamplePlan(createExamplePlan())).toBe(true);
+    expect(isExamplePlan({ ...createExamplePlan(), name: "Моя квартира" })).toBe(false);
+    expect(isExamplePlan(createEmptyPlan("new"))).toBe(false);
   });
 });

@@ -11,6 +11,7 @@ import { analyzeWallIntersections } from "@/domain/floor-plan/wall-intersections
 import { bearingWallChanges, wallKindOf, type BearingChange } from "@/domain/floor-plan/wall-kind";
 import { analyzeWallOverlaps } from "@/domain/floor-plan/wall-overlaps";
 import { citation, rulesForPlan } from "@/domain/rules/engine";
+import { factLines, type FactLine } from "@/domain/rules/facts";
 import type { RuleReport } from "@/domain/rules/types";
 import { formatArea, pluralRu } from "@/lib/format";
 import { conflictText, describeRequirement, requirementDetail } from "../editor/requirement-text";
@@ -72,6 +73,8 @@ export interface PlanReport {
   rooms: ReportRoom[];
   findings: ReportFinding[];
   origin: { planName: string; createdAt: string; areaBefore: number | null; areaAfter: number | null } | null;
+  /** The owner's answers about the building, which the rule findings were drawn from. */
+  facts: FactLine[];
   limits: string[];
 }
 
@@ -367,6 +370,7 @@ export function buildPlanReport(plan: FloorPlan, meta: { generatedAt: string; ap
     rooms,
     findings: sorted,
     origin,
+    facts: factLines(plan.buildingFacts),
     limits: rules ? [...regulationLimits(rules), REPORT_DISCLAIMER] : [REPORT_RULES_NOTE, REPORT_DISCLAIMER],
   };
 }

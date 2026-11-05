@@ -153,6 +153,18 @@ export default function PlanReportDialog({
           </section>
         )}
 
+        {report.facts.length > 0 && (
+          <section className="plan-report-facts" data-testid="report-facts">
+            <h3>Ответы о доме</h3>
+            <p>Указаны владельцем плана и не проверялись. Выводы по нормам зависят от них.</p>
+            <dl>
+              {report.facts.map((fact) => (
+                <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.answer}</dd></div>
+              ))}
+            </dl>
+          </section>
+        )}
+
         <section className="plan-report-limits" data-testid="report-limits">
           <h3>Границы этого отчёта</h3>
           {report.limits.map((limit) => <p key={limit}>{limit}</p>)}
