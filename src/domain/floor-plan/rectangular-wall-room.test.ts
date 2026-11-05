@@ -24,7 +24,7 @@ describe("rectangular room from physical walls", () => {
     const original = createEmptyPlan("plan");
     const plan = addRectangularWallRoom(original, input, ids);
     expect(plan.roomMode).toBe("walls");
-    expect(plan.schemaVersion).toBe(10);
+    expect(plan.schemaVersion).toBe(11);
     expect(plan.rooms).toEqual([]);
     expect(plan.walls.map((wall) => wall.id)).toEqual(ids);
     expect(plan.walls[0]).toMatchObject({ start: { x: -0.1, y: -0.1 }, end: { x: 5.1, y: -0.1 }, height: 2.7, thickness: 0.2 });

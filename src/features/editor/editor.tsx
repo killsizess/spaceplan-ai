@@ -186,9 +186,10 @@ export default function Editor() {
   const activeDxfImport = dxfImport?.plan === state.plan ? dxfImport : null;
   // Vector lines of the imported PDF page live only in this session, for the underlay
   // they came with: replacing the image ends them, calibration and moving do not.
-  const [pdfLines, setPdfLines] = useState<{ dataUrl: string; lines: PdfLines } | null>(null);
+  const [pdfLines, setPdfLines] = useState<{ dataUrl: string; lines: PdfLines; source: "pdf" | "dxf" } | null>(null);
   const activePdfLines =
     pdfLines && state.plan.underlay?.dataUrl === pdfLines.dataUrl ? pdfLines.lines : null;
+  const recognitionSource = pdfLines?.source ?? "pdf";
   // Suggested walls belong to the plan they were computed for; any edit retires them.
   const [wallSuggestion, setWallSuggestion] = useState<{
     plan: FloorPlan;
@@ -585,7 +586,23 @@ export default function Editor() {
       if (wallId) openings.push(openingFromCandidate(candidate, crypto.randomUUID(), wallId, activeOpeningSuggestion.kinds[index]));
     });
     if (!openings.length) return;
-    dispatch({ type: "openings:add-many", walls, openings });
+    dispatch({
+      type: "openings:add-many",
+      walls,
+      openings,
+      // Everything recognition offered, chosen or not: that is what its accuracy is measured on.
+      recognition: {
+        source: recognitionSource,
+        at: new Date().toISOString(),
+        appVersion: APP_VERSION,
+        openings: activeOpeningSuggestion.candidates.map((candidate) => ({
+          kind: candidate.kind,
+          center: { x: (candidate.from.x + candidate.to.x) / 2, y: (candidate.from.y + candidate.to.y) / 2 },
+          width: candidate.width,
+          confidence: candidate.confidence,
+        })),
+      },
+    });
     if (!workspace.getSnapshot().editor.error) setOpeningSuggestion(null);
   };
   const acceptWalls = () => {
@@ -601,6 +618,12 @@ export default function Editor() {
         thickness: candidate.thickness,
         height: defaultWallSize().height,
       })),
+      recognition: {
+        source: recognitionSource,
+        at: new Date().toISOString(),
+        appVersion: APP_VERSION,
+        walls: activeSuggestion.candidates.map(({ start, end, thickness }) => ({ start, end, thickness })),
+      },
     });
     if (!workspace.getSnapshot().editor.error) setWallSuggestion(null);
   };
@@ -1674,7 +1697,7 @@ export default function Editor() {
             if (uploadGeneration.current !== activePdfImport.generation) return;
             const applied = applyUnderlay(underlay, activePdfImport.plan);
             setWallSuggestion(null);
-            setPdfLines(applied && lines ? { dataUrl: underlay.dataUrl, lines } : null);
+            setPdfLines(applied && lines ? { dataUrl: underlay.dataUrl, lines, source: "pdf" } : null);
             uploadGeneration.current += 1;
             setPdfImport(null);
           }}
@@ -1693,7 +1716,7 @@ export default function Editor() {
             const applied = applyUnderlay(underlay, activeDxfImport.plan, false);
             setWallSuggestion(null);
             setOpeningSuggestion(null);
-            setPdfLines(applied ? { dataUrl: underlay.dataUrl, lines } : null);
+            setPdfLines(applied ? { dataUrl: underlay.dataUrl, lines, source: "dxf" } : null);
             uploadGeneration.current += 1;
             setDxfImport(null);
           }}

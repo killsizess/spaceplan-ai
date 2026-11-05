@@ -31,8 +31,8 @@ describe("format 7", () => {
   it("opens a version 6 file as version 7 without changing any data", () => {
     const old = versionSixPlan();
     const opened = parsePlanFile(JSON.stringify(old));
-    expect(opened.schemaVersion).toBe(10);
-    expect(opened).toEqual({ ...old, schemaVersion: 10 });
+    expect(opened.schemaVersion).toBe(11);
+    expect(opened).toEqual({ ...old, schemaVersion: 11 });
     expect(opened.walls.every((item) => !("kind" in item))).toBe(true);
     expect(opened).not.toHaveProperty("origin");
   });
@@ -44,11 +44,11 @@ describe("format 7", () => {
     const raw = JSON.stringify({ storageVersion: 1, revision: "r1", updatedAt: now, plan: old });
     storage.setItem(key, raw);
     const read = readProject(storage, old.id)!;
-    expect(read.plan.schemaVersion).toBe(10);
+    expect(read.plan.schemaVersion).toBe(11);
     expect(listProjects(storage).unreadableCount).toBe(0);
     expect(storage.getItem(key)).toBe(raw);
     saveProject(storage, read.plan, "r1", "r2", now);
-    expect(JSON.parse(storage.getItem(key)!).plan.schemaVersion).toBe(10);
+    expect(JSON.parse(storage.getItem(key)!).plan.schemaVersion).toBe(11);
   });
 
   it("does not bless data that format 6 never had", () => {
@@ -88,7 +88,7 @@ describe("format 7", () => {
   });
 
   it("refuses a future version and still opens the example plan", () => {
-    expect(() => parsePlanFile(JSON.stringify({ ...createExamplePlan(), schemaVersion: 11 }))).toThrow(/от 1 до 10/);
-    expect(parsePlanFile(serializePlan(createExamplePlan())).schemaVersion).toBe(10);
+    expect(() => parsePlanFile(JSON.stringify({ ...createExamplePlan(), schemaVersion: 12 }))).toThrow(/от 1 до 11/);
+    expect(parsePlanFile(serializePlan(createExamplePlan())).schemaVersion).toBe(11);
   });
 });

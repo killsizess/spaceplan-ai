@@ -231,7 +231,7 @@ describe("live plan diagnostics summary", () => {
     expect(report.total).toBe(0);
     expect(report.incomplete).toBe(false);
     expect(JSON.stringify(plan)).toBe(before);
-    expect(plan.schemaVersion).toBe(10);
+    expect(plan.schemaVersion).toBe(11);
     expect(Object.keys(plan)).not.toContain("diagnostics");
   });
 

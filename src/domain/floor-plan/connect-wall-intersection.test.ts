@@ -70,7 +70,7 @@ describe("explicit crossing connection", () => {
       { ...plan.walls[0], id: "h-after", start: { x: 4, y: 0 } },
       { ...plan.walls[1], id: "v-after", start: { x: 4, y: 0 } },
     ]);
-    expect(result.schemaVersion).toBe(10);
+    expect(result.schemaVersion).toBe(11);
     expect(result.roomMode).toBe(plan.roomMode);
     expect(result.rooms).toEqual(plan.rooms);
     expect(result.openings).toEqual(plan.openings);

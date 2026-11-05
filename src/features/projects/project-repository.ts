@@ -123,7 +123,7 @@ function toVersionNine(value: unknown): unknown {
 }
 
 /** A v9 file that already carries the v10 field is refused rather than blessed. */
-function toCurrentVersion(value: unknown): unknown {
+function toVersionTen(value: unknown): unknown {
   if (
     typeof value !== "object" || value === null ||
     !("schemaVersion" in value) || value.schemaVersion !== 9 ||
@@ -132,8 +132,20 @@ function toCurrentVersion(value: unknown): unknown {
   return { ...value, schemaVersion: 10 };
 }
 
+/** Fields format 11 added. A v10 file that carries one of them is refused rather than blessed. */
+const VERSION_ELEVEN_FIELDS = ["recognition", "template", "purchase"];
+
+function toCurrentVersion(value: unknown): unknown {
+  if (
+    typeof value !== "object" || value === null ||
+    !("schemaVersion" in value) || value.schemaVersion !== 10 ||
+    VERSION_ELEVEN_FIELDS.some((field) => field in value)
+  ) return value;
+  return { ...value, schemaVersion: 11 };
+}
+
 const persistedPlanSchema = z.preprocess(
-  (value) => toCurrentVersion(toVersionNine(toVersionEight(toVersionSeven(toVersionSix(value))))),
+  (value) => toCurrentVersion(toVersionTen(toVersionNine(toVersionEight(toVersionSeven(toVersionSix(value)))))),
   floorPlanLoadSchema,
 );
 
@@ -211,10 +223,11 @@ function validatePlan(value: unknown): FloorPlan {
     value.schemaVersion !== 7 &&
     value.schemaVersion !== 8 &&
     value.schemaVersion !== 9 &&
-    value.schemaVersion !== 10
+    value.schemaVersion !== 10 &&
+    value.schemaVersion !== 11
   ) {
     throw new Error(
-      tr`Версия формата не поддерживается. Нужен план SpacePlan версии от 1 до 10.`,
+      tr`Версия формата не поддерживается. Нужен план SpacePlan версии от 1 до 11.`,
     );
   }
   const result = persistedPlanSchema.safeParse(value);

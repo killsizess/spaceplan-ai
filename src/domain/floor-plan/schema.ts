@@ -249,9 +249,22 @@ export const ruleProfileSchema = z.object({
   notUnderstood: z.array(z.string().max(500)).max(100),
 }).strict();
 
+const recognitionSchema = z.object({
+  source: z.enum(["pdf", "dxf"]),
+  at: z.string().min(1).max(40),
+  appVersion: z.string().min(1).max(40),
+  walls: z.array(z.object({ start: pointSchema, end: pointSchema, thickness: z.number().finite().positive().max(100) }).strict()).max(1000).optional(),
+  openings: z.array(z.object({
+    kind: z.enum(["door", "window"]),
+    center: pointSchema,
+    width: z.number().finite().positive().max(100),
+    confidence: z.enum(["high", "low"]),
+  }).strict()).max(1000).optional(),
+}).strict();
+
 const floorPlanFields = z
   .object({
-    schemaVersion: z.literal(10),
+    schemaVersion: z.literal(11),
     unit: z.literal("m"),
     id,
     name: z.string().trim().min(1).max(100),
@@ -265,6 +278,7 @@ const floorPlanFields = z
     origin: planOriginSchema.optional(),
     buildingFacts: buildingFactsSchema.optional(),
     ruleProfile: ruleProfileSchema.optional(),
+    recognition: recognitionSchema.optional(),
   })
   .strict();
 

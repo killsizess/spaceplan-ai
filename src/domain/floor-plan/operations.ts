@@ -10,7 +10,7 @@ import { countsInTotal, type FloorPlan, type Room } from "./types";
 
 export function createEmptyPlan(id: string): FloorPlan {
   return {
-    schemaVersion: 10,
+    schemaVersion: 11,
     unit: "m",
     id,
     name: tr`Новый проект`,

@@ -27,7 +27,7 @@ export function createPlanOrigin(source: FloorPlan, createdAt: string): PlanOrig
 /** The source plan as it was when the variant was made, usable wherever a plan is compared. */
 export function planFromOrigin(origin: PlanOrigin): FloorPlan {
   return {
-    schemaVersion: 10,
+    schemaVersion: 11,
     unit: "m",
     id: origin.planId,
     name: origin.planName,

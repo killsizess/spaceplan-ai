@@ -1,0 +1,18 @@
+{
+ "в плане нет записи распознавания: стены и проёмы добавлены не из предложений": "the plan has no recognition record: its walls and openings were not added from suggestions",
+ "# Точность распознавания": "# Recognition accuracy",
+ "Планов измерено: {0}, пропущено: {1}.": "Plans measured: {0}, skipped: {1}.",
+ "| | Найдено (полнота) | Верно из предложенного (точность) |": "| | Found (recall) | Right among proposed (precision) |",
+ "| Стены, по длине | {0} | {1} |": "| Walls, by length | {0} | {1} |",
+ "| Двери | {0} | {1} |": "| Doors | {0} | {1} |",
+ "| Окна | {0} | {1} |": "| Windows | {0} | {1} |",
+ "Площади: средняя ошибка {0} от площади по документам.": "Areas: mean error {0} of the documented area.",
+ "## По планам": "## By plan",
+ "| План | Источник | Эталон | Стены: полнота / точность | Стен найдено / лишних | Двери | Окна | Площади |": "| Plan | Source | Reference | Walls: recall / precision | Walls found / extra | Doors | Windows | Areas |",
+ "| {0} | — | — | пропущен: {1} | | | | |": "| {0} | — | — | skipped: {1} | | | | |",
+ "{0} из {1}, лишних {2}": "{0} of {1}, extra {2}",
+ "подтверждено застройщиком": "confirmed by the developer",
+ "сохранённый план": "saved plan",
+ "{0} из {1} / {2}": "{0} of {1} / {2}",
+ "ошибка в среднем {0}": "mean error {0}"
+}

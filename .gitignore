@@ -23,6 +23,11 @@
 # production
 /build
 
+# plans of the accuracy set are confidential; only their description is kept
+/bench/plans/*
+!/bench/plans/.gitkeep
+/bench/accuracy-report.md
+
 # misc
 .DS_Store
 *.pem

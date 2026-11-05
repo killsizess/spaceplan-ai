@@ -1,3 +1,4 @@
+import accuracy from "./i18n-en/accuracy.json";
 import editor1 from "./i18n-en/editor-1.json";
 import editor2 from "./i18n-en/editor-2.json";
 import editor3 from "./i18n-en/editor-3.json";
@@ -17,4 +18,5 @@ export const EN: Readonly<Record<string, string>> = {
   ...editor2,
   ...editor3,
   ...units,
+  ...accuracy,
 };

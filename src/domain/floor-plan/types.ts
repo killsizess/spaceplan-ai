@@ -174,8 +174,21 @@ export interface RuleProfile {
   notUnderstood: string[];
 }
 
+/**
+ * v11. What recognition proposed from a drawing, kept as it was proposed: everything it
+ * offered, accepted or not. Set against the walls a person confirms, it measures how
+ * well the drawing was read. Positions are in plan metres.
+ */
+export interface RecognitionRecord {
+  source: "pdf" | "dxf";
+  at: string;
+  appVersion: string;
+  walls?: { start: Point; end: Point; thickness: number }[];
+  openings?: { kind: "door" | "window"; center: Point; width: number; confidence: "high" | "low" }[];
+}
+
 export interface FloorPlan {
-  schemaVersion: 10;
+  schemaVersion: 11;
   unit: "m";
   id: string;
   name: string;
@@ -193,4 +206,6 @@ export interface FloorPlan {
   buildingFacts?: BuildingFacts;
   /** v10. */
   ruleProfile?: RuleProfile;
+  /** v11. */
+  recognition?: RecognitionRecord;
 }

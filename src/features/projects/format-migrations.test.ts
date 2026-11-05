@@ -13,7 +13,7 @@ describe("formats 7 to 9", () => {
     for (const schemaVersion of [7, 8, 9]) {
       const old = { ...example(), schemaVersion };
       const opened = parsePlanFile(JSON.stringify(old));
-      expect(opened).toEqual({ ...old, schemaVersion: 10 });
+      expect(opened).toEqual({ ...old, schemaVersion: 11 });
       expect("buildingFacts" in opened).toBe(false);
     }
   });
@@ -55,7 +55,7 @@ describe("format 9", () => {
     const again = parsePlanFile(serializePlan(plan));
     expect(again.buildingFacts).toEqual(plan.buildingFacts);
     expect(again.rooms.map((item) => item.kind)).toEqual(plan.rooms.map((item) => item.kind));
-    expect(again.schemaVersion).toBe(10);
+    expect(again.schemaVersion).toBe(11);
   });
 
   it("refuses a v8 file carrying anything format 9 added", () => {
@@ -73,6 +73,6 @@ describe("format 9", () => {
   });
 
   it("refuses an unknown version", () => {
-    expect(() => parsePlanFile(JSON.stringify({ ...createExamplePlan(), schemaVersion: 11 }))).toThrow(/версии от 1 до 10/);
+    expect(() => parsePlanFile(JSON.stringify({ ...createExamplePlan(), schemaVersion: 12 }))).toThrow(/версии от 1 до 11/);
   });
 });

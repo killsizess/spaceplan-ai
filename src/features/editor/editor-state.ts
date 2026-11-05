@@ -48,6 +48,7 @@ import type {
   RoomMode,
   PlanRequirement,
   WallKind,
+  RecognitionRecord,
 } from "@/domain/floor-plan/types";
 
 export interface EditorState {
@@ -64,8 +65,8 @@ export type EditorAction =
   | { type: "update"; room: Room }
   | { type: "wall:add"; wall: Wall }
   /** Accepted suggestions (walls found in a PDF): one undo step. */
-  | { type: "wall:add-many"; walls: readonly Wall[] }
-  | { type: "openings:add-many"; walls: readonly Wall[]; openings: readonly Opening[] }
+  | { type: "wall:add-many"; walls: readonly Wall[]; recognition?: RecognitionUpdate }
+  | { type: "openings:add-many"; walls: readonly Wall[]; openings: readonly Opening[]; recognition?: RecognitionUpdate }
   | { type: "wall:update"; wall: Wall; connectEndpoints?: boolean }
   | { type: "wall:set-kind"; wallId: string; kind: WallKind }
   | { type: "wall:connect-endpoints"; diagnostic: WallConnectionDiagnostic }
@@ -111,6 +112,14 @@ export type EditorAction =
   | { type: "undo" }
   | { type: "redo" }
   | { type: "clearError" };
+
+/** Proposals of one run of recognition: walls, or openings, with where they came from. */
+export type RecognitionUpdate = Pick<RecognitionRecord, "source" | "at" | "appVersion"> & Partial<Pick<RecognitionRecord, "walls" | "openings">>;
+
+/** Keeps what recognition proposed, so it can be set against what a person confirms. */
+function withRecognition(plan: FloorPlan, update: RecognitionUpdate | undefined): FloorPlan {
+  return update ? { ...plan, recognition: { ...plan.recognition, ...update } } : plan;
+}
 
 export function initialEditorState(plan: FloorPlan): EditorState {
   return {
@@ -188,10 +197,10 @@ export function editorReducer(
       plan = addWall(state.plan, action.wall);
       selectedId = action.wall.id;
     } else if (action.type === "wall:add-many") {
-      plan = addWalls(state.plan, action.walls);
+      plan = withRecognition(addWalls(state.plan, action.walls), action.recognition);
       selectedId = null;
     } else if (action.type === "openings:add-many") {
-      plan = addWallsAndOpenings(state.plan, action.walls, action.openings);
+      plan = withRecognition(addWallsAndOpenings(state.plan, action.walls, action.openings), action.recognition);
       selectedId = null;
     } else if (action.type === "wall:update") {
       plan = updateWall(state.plan, action.wall, action.connectEndpoints);
