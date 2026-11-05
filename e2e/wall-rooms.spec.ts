@@ -71,6 +71,7 @@ async function importPlan(page: Page, plan: FloorPlan) {
   await saved(page);
 }
 async function worldClick(page: Page, x: number, y: number) {
+  await settleCamera(page);
   const canvas = page.getByTestId("plan-canvas");
   const box = await canvas.boundingBox();
   const transform = await canvas.evaluate((node) => ({
@@ -280,6 +281,7 @@ test("drawing closed walls creates rooms without manual rectangles", async ({
     .getByRole("button", { name: "Начать обводку стен", exact: true })
     .click();
   const drawWall = async (x1: number, y1: number, x2: number, y2: number) => {
+    await settleCamera(page);
     await settleCamera(page);
     const canvas = page.getByTestId("plan-canvas");
     const box = await canvas.boundingBox();

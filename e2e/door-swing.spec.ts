@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
+import { settleCamera } from "./frames";
 import { PerspectiveCamera, Vector3 } from "three";
 import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import type { DoorSwing, FloorPlan, Wall } from "../src/domain/floor-plan/types";
@@ -61,6 +62,7 @@ async function draftSwing(page: Page, door: DoorSwing) {
 }
 
 async function worldPoint(page: Page, x: number, y: number) {
+  await settleCamera(page);
   const canvas = page.getByTestId("plan-canvas");
   await canvas.scrollIntoViewIfNeeded();
   const box = (await canvas.boundingBox())!;

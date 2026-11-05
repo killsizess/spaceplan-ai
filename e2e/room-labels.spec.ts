@@ -5,7 +5,7 @@ import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import { spatialBounds } from "../src/domain/floor-plan/spatial";
 import type { FloorPlan, Wall } from "../src/domain/floor-plan/types";
 import { detectWallRooms } from "../src/domain/floor-plan/wall-rooms";
-import { fitPlan, settleFrames } from "./frames";
+import { fitPlan, settleFrames, settleCamera } from "./frames";
 
 const RED = "#d84646";
 const BLUE = "#4477dd";
@@ -61,6 +61,7 @@ async function importPlan(page: Page, fixture = enclosedPlan()): Promise<FloorPl
 }
 
 async function worldPoint(page: Page, x: number, y: number) {
+  await settleCamera(page);
   const canvas = page.getByTestId("plan-canvas");
   await canvas.scrollIntoViewIfNeeded();
   const box = (await canvas.boundingBox())!;

@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import type { FloorPlan, Opening, Wall } from "../src/domain/floor-plan/types";
-import { fitPlan } from "./frames";
+import { fitPlan, settleCamera } from "./frames";
 
 const wall = (id: string, x1: number, y1: number, x2: number, y2: number): Wall => ({
   id,
@@ -102,6 +102,7 @@ async function selectPartition(page: Page) {
 }
 
 async function screenPoint(page: Page, point: { x: number; y: number }) {
+  await settleCamera(page);
   const canvas = page.getByTestId("plan-canvas");
   const box = (await canvas.boundingBox())!;
   const camera = await canvas.evaluate((node) => ({

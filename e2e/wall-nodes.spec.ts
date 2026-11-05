@@ -4,7 +4,7 @@ import { PerspectiveCamera, Vector3 } from "three";
 import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import { spatialBounds } from "../src/domain/floor-plan/spatial";
 import type { FloorPlan, Wall } from "../src/domain/floor-plan/types";
-import { fitPlan } from "./frames";
+import { fitPlan, settleCamera } from "./frames";
 
 const wall = (
   id: string,
@@ -148,6 +148,7 @@ async function expectSavedPlan(page: Page, plan: FloorPlan) {
 }
 
 async function worldPoint(page: Page, x: number, y: number) {
+  await settleCamera(page);
   const canvas = page.getByTestId("plan-canvas");
   const box = await canvas.boundingBox();
   const camera = await canvas.evaluate((node) => ({

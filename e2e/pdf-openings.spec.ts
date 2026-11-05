@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { settleCamera } from "./frames";
 import type { FloorPlan } from "../src/domain/floor-plan/types";
 import { openingPlanPdfFixture, WALL_PLAN_ORIGIN, WALL_PLAN_UNITS_PER_METRE } from "./pdf-fixture";
 
@@ -15,6 +16,7 @@ async function savedPlan(page: Page): Promise<FloorPlan> {
 }
 
 async function clickWorld(page: Page, x: number, y: number) {
+  await settleCamera(page);
   const canvas = page.getByTestId("plan-canvas");
   const box = await canvas.boundingBox();
   if (!box) throw new Error("Missing canvas");

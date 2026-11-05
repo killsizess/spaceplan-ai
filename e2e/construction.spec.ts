@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
+import { settleCamera } from "./frames";
 import type { FloorPlan } from "../src/domain/floor-plan/types";
 
 async function saved(page: Page) {
@@ -30,6 +31,7 @@ async function emptyPlan(page: Page) {
   await saved(page);
 }
 async function screenPoint(page: Page, x: number, y: number) {
+  await settleCamera(page);
   const canvas = page.getByTestId("plan-canvas");
   const box = await canvas.boundingBox();
   if (!box) throw new Error("Missing canvas");
