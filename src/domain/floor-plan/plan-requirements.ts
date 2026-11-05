@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { floorPlanSchema } from "./schema";
 import type { RoomAdjacencyResult } from "./room-adjacency";
 import type { FloorPlan, PlanRequirement, RoomKind, Wall } from "./types";
@@ -47,19 +48,19 @@ function validated(plan: FloorPlan): FloorPlan {
   const parsed = floorPlanSchema.safeParse(plan);
   if (!parsed.success) {
     const issue = parsed.error.issues.find((item) => item.code === "custom") ?? parsed.error.issues[0];
-    throw new Error(issue?.message ?? "Проверьте параметры требования.");
+    throw new Error(issue?.message ?? tr`Проверьте параметры требования.`);
   }
   return parsed.data;
 }
 
 /** Adds a requirement in one undoable step; IDs are unique across all plan objects. */
 export function addRequirement(plan: FloorPlan, requirement: PlanRequirement): FloorPlan {
-  if (plan.requirements.length >= 50) throw new Error("В одном плане может быть не больше 50 требований.");
+  if (plan.requirements.length >= 50) throw new Error(tr`В одном плане может быть не больше 50 требований.`);
   return validated({ ...plan, requirements: [...plan.requirements, requirement] });
 }
 
 export function removeRequirement(plan: FloorPlan, id: string): FloorPlan {
-  if (!plan.requirements.some((item) => item.id === id)) throw new Error("Требование не найдено.");
+  if (!plan.requirements.some((item) => item.id === id)) throw new Error(tr`Требование не найдено.`);
   return validated({ ...plan, requirements: plan.requirements.filter((item) => item.id !== id) });
 }
 
@@ -146,7 +147,7 @@ export function bearingWallsRequirement(
   id: string,
 ): Extract<PlanRequirement, { type: "bearing-walls-kept" }> {
   const bearing = walls.filter((wall) => wall.kind === "bearing");
-  if (!bearing.length) throw new Error("Нет несущих стен: отметьте их в свойствах стены.");
+  if (!bearing.length) throw new Error(tr`Нет несущих стен: отметьте их в свойствах стены.`);
   return {
     id,
     type: "bearing-walls-kept",

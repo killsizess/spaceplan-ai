@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import type { Point } from "@/domain/geometry";
 import { floorPlanSchema, underlaySchema } from "./schema";
 import type { FloorPlan, Opening, RoomMode, Underlay, Wall, WallKind } from "./types";
@@ -9,7 +10,7 @@ function validatedPlan(plan: FloorPlan): FloorPlan {
   if (!parsed.success) {
     const issue = parsed.error.issues.find((item) => item.code === "custom");
     throw new Error(
-      issue?.message ?? "Проверьте размеры, координаты и свойства объекта.",
+      issue?.message ?? tr`Проверьте размеры, координаты и свойства объекта.`,
     );
   }
   return parsed.data;
@@ -21,7 +22,7 @@ function assertNewId(plan: FloorPlan, id: string): void {
       (item) => item.id === id,
     )
   ) {
-    throw new Error("Идентификатор объекта уже существует.");
+    throw new Error(tr`Идентификатор объекта уже существует.`);
   }
 }
 
@@ -42,10 +43,10 @@ export const MAX_PLAN_WALLS = 1000;
 export function addWalls(plan: FloorPlan, walls: readonly Wall[]): FloorPlan {
   if (!walls.length) return plan;
   if (plan.walls.length + walls.length > MAX_PLAN_WALLS) {
-    throw new Error(`В плане может быть не больше ${MAX_PLAN_WALLS} стен.`);
+    throw new Error(tr`В плане может быть не больше ${MAX_PLAN_WALLS} стен.`);
   }
   if (new Set(walls.map((wall) => wall.id)).size !== walls.length) {
-    throw new Error("Идентификатор объекта уже существует.");
+    throw new Error(tr`Идентификатор объекта уже существует.`);
   }
   for (const wall of walls) assertNewId(plan, wall.id);
   return validatedPlan({ ...plan, walls: [...plan.walls, ...walls] });
@@ -63,10 +64,10 @@ export function addWallsAndOpenings(
 ): FloorPlan {
   if (!walls.length && !openings.length) return plan;
   if (plan.walls.length + walls.length > MAX_PLAN_WALLS) {
-    throw new Error(`В плане может быть не больше ${MAX_PLAN_WALLS} стен.`);
+    throw new Error(tr`В плане может быть не больше ${MAX_PLAN_WALLS} стен.`);
   }
   const ids = [...walls, ...openings].map((item) => item.id);
-  if (new Set(ids).size !== ids.length) throw new Error("Идентификатор объекта уже существует.");
+  if (new Set(ids).size !== ids.length) throw new Error(tr`Идентификатор объекта уже существует.`);
   for (const id of ids) assertNewId(plan, id);
   return validatedPlan({
     ...plan,
@@ -99,7 +100,7 @@ export function updateWall(
  */
 export function setWallKind(plan: FloorPlan, wallId: string, kind: WallKind): FloorPlan {
   const wall = plan.walls.find((item) => item.id === wallId);
-  if (!wall) throw new Error("Стена не найдена.");
+  if (!wall) throw new Error(tr`Стена не найдена.`);
   if (wallKindOf(wall) === kind) return plan;
   return validatedPlan({
     ...plan,
@@ -115,9 +116,9 @@ export function moveWallNode(
   connectEndpoints = true,
 ): FloorPlan {
   if (endpoint !== "start" && endpoint !== "end")
-    throw new Error("Некорректная вершина стены.");
+    throw new Error(tr`Некорректная вершина стены.`);
   const wall = plan.walls.find((item) => item.id === wallId);
-  if (!wall) throw new Error("Стена не найдена.");
+  if (!wall) throw new Error(tr`Стена не найдена.`);
   return updateWall(plan, { ...wall, [endpoint]: point }, connectEndpoints);
 }
 
@@ -128,7 +129,7 @@ export function addOpening(plan: FloorPlan, opening: Opening): FloorPlan {
 
 export function updateOpening(plan: FloorPlan, opening: Opening): FloorPlan {
   if (!plan.openings.some((item) => item.id === opening.id))
-    throw new Error("Проём не найден.");
+    throw new Error(tr`Проём не найден.`);
   return validatedPlan({
     ...plan,
     openings: plan.openings.map((item) =>
@@ -176,7 +177,7 @@ export function calibrateUnderlay(
   knownMeters: number,
 ): Underlay {
   const valid = underlaySchema.safeParse(underlay);
-  if (!valid.success) throw new Error("Некорректная подложка.");
+  if (!valid.success) throw new Error(tr`Некорректная подложка.`);
   for (const point of [startPixel, endPixel]) {
     if (
       !Number.isFinite(point.x) ||
@@ -186,7 +187,7 @@ export function calibrateUnderlay(
       point.x > underlay.pixelWidth ||
       point.y > underlay.pixelHeight
     ) {
-      throw new Error("Обе точки масштаба должны находиться на подложке.");
+      throw new Error(tr`Обе точки масштаба должны находиться на подложке.`);
     }
   }
   const pixelDistance = Math.hypot(
@@ -195,10 +196,10 @@ export function calibrateUnderlay(
   );
   if (pixelDistance < 1)
     throw new Error(
-      "Отметьте две разные точки на расстоянии не меньше одного пикселя.",
+      tr`Отметьте две разные точки на расстоянии не меньше одного пикселя.`,
     );
   if (!Number.isFinite(knownMeters) || knownMeters <= 0 || knownMeters > 2000) {
-    throw new Error("Известная длина должна быть больше 0 и не больше 2000 м.");
+    throw new Error(tr`Известная длина должна быть больше 0 и не больше 2000 м.`);
   }
   const metersPerPixel = knownMeters / pixelDistance;
   const result = underlaySchema.safeParse({
@@ -210,7 +211,7 @@ export function calibrateUnderlay(
   });
   if (!result.success)
     throw new Error(
-      "Этот масштаб выводит подложку за пределы ±1000 м. Уменьшите известную длину.",
+      tr`Этот масштаб выводит подложку за пределы ±1000 м. Уменьшите известную длину.`,
     );
   return result.data;
 }

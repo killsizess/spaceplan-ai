@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import polygonClipping, { type MultiPolygon, type Polygon, type Ring } from "polygon-clipping";
 import { resolveWallRoomLabels } from "@/domain/floor-plan/wall-room-labels";
 import type { FloorPlan, Opening, RoomKind, Wall } from "@/domain/floor-plan/types";
@@ -44,7 +45,7 @@ export function roomsOfPlan(plan: FloorPlan): RuleRooms {
   } catch (error) {
     return {
       rooms: [],
-      unresolved: error instanceof Error ? error.message : "Не удалось определить помещения.",
+      unresolved: error instanceof Error ? error.message : tr`Не удалось определить помещения.`,
     };
   }
 }

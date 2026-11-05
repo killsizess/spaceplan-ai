@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { assertA4Page, assertRasterSize, createRasterPdf } from "@/lib/raster-pdf";
 import type { PlanExportLayout } from "./export-layout";
 
@@ -7,7 +8,7 @@ const OPERATION_TIMEOUT_MS = 30_000;
 const MAX_SVG_CHARACTERS = 5 * 1024 * 1024;
 
 function abortError() {
-  return new DOMException("Экспорт отменён.", "AbortError");
+  return new DOMException(tr`Экспорт отменён.`, "AbortError");
 }
 
 function checkAbort(signal: AbortSignal): void {
@@ -28,7 +29,7 @@ export async function rasterizePlanExport(
   checkAbort(signal);
   assertA4Page(layout.widthMm, layout.heightMm);
   if (!Number.isFinite(dpi) || dpi <= 0 || dpi > 600) {
-    throw new Error("Некорректное разрешение экспорта.");
+    throw new Error(tr`Некорректное разрешение экспорта.`);
   }
   const width = Math.round((layout.widthMm * dpi) / 25.4);
   const height = Math.round((layout.heightMm * dpi) / 25.4);
@@ -38,7 +39,7 @@ export async function rasterizePlanExport(
     !layout.svg.trimStart().startsWith("<svg") ||
     layout.svg.length > MAX_SVG_CHARACTERS
   ) {
-    throw new Error("Не удалось подготовить изображение плана.");
+    throw new Error(tr`Не удалось подготовить изображение плана.`);
   }
   const image = new Image();
   image.decoding = "async";
@@ -58,11 +59,11 @@ export async function rasterizePlanExport(
       };
       const aborted = () => finish(() => reject(abortError()));
       const timeout = setTimeout(
-        () => finish(() => reject(new Error("Изображение плана обрабатывается слишком долго. Попробуйте ещё раз."))),
+        () => finish(() => reject(new Error(tr`Изображение плана обрабатывается слишком долго. Попробуйте ещё раз.`))),
         OPERATION_TIMEOUT_MS,
       );
       image.onload = () => finish(resolve);
-      image.onerror = () => finish(() => reject(new Error("Не удалось отрисовать план для экспорта.")));
+      image.onerror = () => finish(() => reject(new Error(tr`Не удалось отрисовать план для экспорта.`)));
       signal.addEventListener("abort", aborted, { once: true });
       if (signal.aborted) aborted();
       else image.src = objectUrl;
@@ -72,7 +73,7 @@ export async function rasterizePlanExport(
     canvas.width = width;
     canvas.height = height;
     const context = canvas.getContext("2d");
-    if (!context) throw new Error("Браузер не поддерживает создание изображения плана.");
+    if (!context) throw new Error(tr`Браузер не поддерживает создание изображения плана.`);
     context.fillStyle = "#ffffff";
     context.fillRect(0, 0, width, height);
     context.drawImage(image, 0, 0, width, height);
@@ -105,7 +106,7 @@ export function canvasBlob(canvas: HTMLCanvasElement, mime: string, signal: Abor
     };
     const aborted = () => finish(() => reject(abortError()));
     const timeout = setTimeout(
-      () => finish(() => reject(new Error("Браузер слишком долго создаёт файл. Попробуйте ещё раз."))),
+      () => finish(() => reject(new Error(tr`Браузер слишком долго создаёт файл. Попробуйте ещё раз.`))),
       OPERATION_TIMEOUT_MS,
     );
     signal.addEventListener("abort", aborted, { once: true });
@@ -113,13 +114,13 @@ export function canvasBlob(canvas: HTMLCanvasElement, mime: string, signal: Abor
       canvas.toBlob(
         (blob) => finish(() => {
           if (blob && blob.size > 0 && blob.type === mime) resolve(blob);
-          else reject(new Error("Браузер не смог создать файл плана."));
+          else reject(new Error(tr`Браузер не смог создать файл плана.`));
         }),
         mime,
         mime === "image/jpeg" ? 0.95 : undefined,
       );
     } catch {
-      finish(() => reject(new Error("Не удалось сохранить изображение плана.")));
+      finish(() => reject(new Error(tr`Не удалось сохранить изображение плана.`)));
     }
   });
 }
@@ -140,13 +141,13 @@ export function blobBytes(blob: Blob, signal: AbortSignal): Promise<Uint8Array<A
     };
     const aborted = () => finish(() => reject(abortError()));
     const timeout = setTimeout(
-      () => finish(() => reject(new Error("Не удалось прочитать изображение для экспорта."))),
+      () => finish(() => reject(new Error(tr`Не удалось прочитать изображение для экспорта.`))),
       OPERATION_TIMEOUT_MS,
     );
     signal.addEventListener("abort", aborted, { once: true });
     blob.arrayBuffer().then(
       (buffer) => finish(() => resolve(new Uint8Array(buffer))),
-      () => finish(() => reject(new Error("Не удалось прочитать изображение для экспорта."))),
+      () => finish(() => reject(new Error(tr`Не удалось прочитать изображение для экспорта.`))),
     );
   });
 }
@@ -166,7 +167,7 @@ export function setPngPrintResolution(bytes: Uint8Array, dpi: number): Uint8Arra
   if (
     !Number.isFinite(dpi) || dpi <= 0 || dpi > 600 ||
     !signature.every((value, index) => bytes[index] === value)
-  ) throw new Error("Не удалось подготовить PNG для экспорта.");
+  ) throw new Error(tr`Не удалось подготовить PNG для экспорта.`);
   const density = Math.round(dpi / 0.0254);
   const chunk = new Uint8Array(21);
   const chunkView = new DataView(chunk.buffer);
@@ -184,9 +185,9 @@ export function setPngPrintResolution(bytes: Uint8Array, dpi: number): Uint8Arra
   while (cursor + 12 <= bytes.length) {
     const length = view.getUint32(cursor);
     const end = cursor + length + 12;
-    if (end > bytes.length) throw new Error("Изображение PNG повреждено.");
+    if (end > bytes.length) throw new Error(tr`Изображение PNG повреждено.`);
     const type = String.fromCharCode(...bytes.subarray(cursor + 4, cursor + 8));
-    if (cursor === 8 && (type !== "IHDR" || length !== 13)) throw new Error("Изображение PNG повреждено.");
+    if (cursor === 8 && (type !== "IHDR" || length !== 13)) throw new Error(tr`Изображение PNG повреждено.`);
     if (type !== "pHYs") parts.push(bytes.subarray(cursor, end));
     if (!inserted && type === "IHDR") {
       parts.push(chunk);
@@ -198,7 +199,7 @@ export function setPngPrintResolution(bytes: Uint8Array, dpi: number): Uint8Arra
       break;
     }
   }
-  if (!inserted || !ended) throw new Error("Изображение PNG повреждено.");
+  if (!inserted || !ended) throw new Error(tr`Изображение PNG повреждено.`);
   const output = new Uint8Array(parts.reduce((length, part) => length + part.length, 0));
   let offset = 0;
   for (const part of parts) {
@@ -215,7 +216,7 @@ export async function createPlanExportBlob(
   signal: AbortSignal,
 ): Promise<Blob> {
   checkAbort(signal);
-  if (format !== "png" && format !== "pdf") throw new Error("Неизвестный формат экспорта.");
+  if (format !== "png" && format !== "pdf") throw new Error(tr`Неизвестный формат экспорта.`);
   const canvas = await rasterizePlanExport(layout, signal);
   try {
     checkAbort(signal);

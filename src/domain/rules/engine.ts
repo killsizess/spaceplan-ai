@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import type { FloorPlan } from "@/domain/floor-plan/types";
 import { MOSCOW_PACK, PROCEDURE_ORDER } from "./moscow";
 import { profilePack } from "./profile-pack";
@@ -55,8 +56,8 @@ export function rulesForPlan(plan: FloorPlan): RuleReport | null {
 
 /** Points that share one of these beginnings are listed together. */
 const CLAUSES = [
-  { point: "прил. 1, п. ", list: "прил. 1, пп. " },
-  { point: "п. ", list: "пп. " },
+  { point: tr`прил. 1, п. `, list: tr`прил. 1, пп. ` },
+  { point: tr`п. `, list: tr`пп. ` },
 ];
 
 /** «508-ПП, прил. 1, пп. 9.3, 9.6; ПП РФ № 47, п. 24; ЖК РФ, ст. 25, ч. 2; ст. 26, ч. 2, п. 3». */

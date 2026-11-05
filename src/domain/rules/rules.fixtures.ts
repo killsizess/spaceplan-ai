@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { createEmptyPlan } from "@/domain/floor-plan/operations";
 import { createPlanOrigin } from "@/domain/floor-plan/plan-origin";
 import type { BuildingFacts, FloorPlan, Opening, RoomKind, Wall, WallKind } from "@/domain/floor-plan/types";
@@ -35,7 +36,7 @@ export function labelled(plan: FloorPlan, point: { x: number; y: number }, name:
 export function apartment(facts: BuildingFacts = { region: "moscow" }): FloorPlan {
   let plan: FloorPlan = {
     ...createEmptyPlan("xray"),
-    name: "Квартира",
+    name: tr`Квартира`,
     roomMode: "walls",
     walls: [
       wall("top", 0, 0, 10, 0, "bearing"),
@@ -49,9 +50,9 @@ export function apartment(facts: BuildingFacts = { region: "moscow" }): FloorPla
     openings: [window_("living-window", "top", 2), window_("kitchen-window", "top", 7)],
     buildingFacts: facts,
   };
-  plan = labelled(plan, { x: 3, y: 3 }, "Гостиная", "living");
-  plan = labelled(plan, { x: 8, y: 1.5 }, "Кухня", "kitchen");
-  plan = labelled(plan, { x: 8, y: 4.5 }, "Санузел", "bathroom");
+  plan = labelled(plan, { x: 3, y: 3 }, tr`Гостиная`, "living");
+  plan = labelled(plan, { x: 8, y: 1.5 }, tr`Кухня`, "kitchen");
+  plan = labelled(plan, { x: 8, y: 4.5 }, tr`Санузел`, "bathroom");
   return plan;
 }
 

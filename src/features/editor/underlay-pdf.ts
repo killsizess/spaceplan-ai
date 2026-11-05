@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import type { PDFDocumentProxy, PDFDocumentLoadingTask, PDFPageProxy } from "pdfjs-dist";
 import { readPdfLines, type PdfLines } from "./pdf-vector-lines";
 
@@ -35,22 +36,22 @@ export function inspectPdfHeader(bytes: Uint8Array, fileSize: number): void {
     fileSize < 1 ||
     fileSize > MAX_PDF_FILE_BYTES
   ) {
-    throw new Error("Выберите непустой PDF размером до 25 МБ.");
+    throw new Error(tr`Выберите непустой PDF размером до 25 МБ.`);
   }
   // PDF readers allow a small prefix before the header.
   const header = new TextDecoder("ascii").decode(bytes.subarray(0, 1024));
   if (!/%PDF-(?:1\.[0-7]|2\.0)(?:\s|$)/.test(header)) {
-    throw new Error("Содержимое файла не соответствует PDF.");
+    throw new Error(tr`Содержимое файла не соответствует PDF.`);
   }
 }
 
 export function pdfPageSize(width: number, height: number) {
   if (![width, height].every((value) => Number.isFinite(value) && value > 0)) {
-    throw new Error("Некорректные размеры страницы PDF.");
+    throw new Error(tr`Некорректные размеры страницы PDF.`);
   }
   const scale = MAX_PAGE_EDGE / Math.max(width, height);
   if (!Number.isFinite(scale) || scale <= 0) {
-    throw new Error("Некорректные размеры страницы PDF.");
+    throw new Error(tr`Некорректные размеры страницы PDF.`);
   }
   return {
     scale,
@@ -60,7 +61,7 @@ export function pdfPageSize(width: number, height: number) {
 }
 
 function abortError() {
-  return new DOMException("Операция отменена.", "AbortError");
+  return new DOMException(tr`Операция отменена.`, "AbortError");
 }
 
 /** Stop waiting immediately; the cancel callback also releases the worker/render task. */
@@ -100,7 +101,7 @@ function cancellable<T>(
           cancel();
           reject(
             new Error(
-              "PDF обрабатывается слишком долго. Попробуйте файл с меньшим числом страниц или сохраните нужный лист отдельно.",
+              tr`PDF обрабатывается слишком долго. Попробуйте файл с меньшим числом страниц или сохраните нужный лист отдельно.`,
             ),
           );
         }),
@@ -115,18 +116,18 @@ function pdfError(error: unknown): Error {
   const name = error instanceof Error ? error.name : "";
   if (name === "PasswordException") {
     return new Error(
-      "PDF защищён паролем. Откройте его в своём PDF-редакторе и сохраните копию без пароля.",
+      tr`PDF защищён паролем. Откройте его в своём PDF-редакторе и сохраните копию без пароля.`,
     );
   }
   if (name === "InvalidPDFException" || name === "FormatError") {
     return new Error(
-      "Не удалось прочитать PDF: файл повреждён или имеет неподдерживаемый формат.",
+      tr`Не удалось прочитать PDF: файл повреждён или имеет неподдерживаемый формат.`,
     );
   }
   if (error instanceof Error && !/worker|fetch|network/i.test(error.message))
     return error;
   return new Error(
-    "Не удалось открыть PDF. Обновите страницу и попробуйте ещё раз.",
+    tr`Не удалось открыть PDF. Обновите страницу и попробуйте ещё раз.`,
   );
 }
 
@@ -177,7 +178,7 @@ export async function openLocalPdf(
     });
     pdf = await cancellable(loading.promise, signal, cancel);
     if (!Number.isSafeInteger(pdf.numPages) || pdf.numPages < 1) {
-      throw new Error("В PDF нет страниц для импорта.");
+      throw new Error(tr`В PDF нет страниц для импорта.`);
     }
     signal.throwIfAborted();
   } catch (error) {
@@ -194,7 +195,7 @@ export async function openLocalPdf(
       ![0, 90, 180, 270].includes(rotation)
     ) {
       throw new Error(
-        "Выберите существующую страницу PDF и поворот с шагом 90°.",
+        tr`Выберите существующую страницу PDF и поворот с шагом 90°.`,
       );
     }
   };

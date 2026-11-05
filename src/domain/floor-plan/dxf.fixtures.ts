@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 /** A small DXF writer for tests: the real format, written the way CAD programs write it. */
 export type DxfPairs = readonly (readonly [number, string | number])[];
 
@@ -103,22 +104,22 @@ export function apartmentDxf(): string {
   const line = (layer: string, x1: number, y1: number, x2: number, y2: number) => dxfLine(layer, mm(x1), mm(y1), mm(x2), mm(y2));
   return dxfFile({
     units: 4,
-    layers: [{ name: "СТЕНЫ" }, { name: "ДВЕРИ" }, { name: "ОКНА" }, { name: "МЕБЕЛЬ" }, { name: "ОФОРМЛЕНИЕ", color: -7 }],
+    layers: [{ name: tr`СТЕНЫ` }, { name: tr`ДВЕРИ` }, { name: tr`ОКНА` }, { name: tr`МЕБЕЛЬ` }, { name: tr`ОФОРМЛЕНИЕ`, color: -7 }],
     blocks: [{
-      name: "ДВЕРЬ-900",
+      name: tr`ДВЕРЬ-900`,
       entities: [dxfLine("0", 0, 0, 0, 900), dxfArc("0", 0, 0, 900, 0, 90), dxfLine("0", 0, -100, 0, 100), dxfLine("0", 900, -100, 900, 100)],
     }],
     entities: [
-      ...faces.map(([x1, y1, x2, y2]) => line("СТЕНЫ", x1, y1, x2, y2)),
+      ...faces.map(([x1, y1, x2, y2]) => line(tr`СТЕНЫ`, x1, y1, x2, y2)),
       // The door block: hinge at x = 2.0 m on the bottom wall axis, opening up into the room.
-      dxfInsert("ДВЕРИ", "ДВЕРЬ-900", mm(2.0), 0),
+      dxfInsert(tr`ДВЕРИ`, tr`ДВЕРЬ-900`, mm(2.0), 0),
       // The window in the right wall: jambs and two glazing lines.
-      line("ОКНА", 9.9, 2.0, 10.1, 2.0), line("ОКНА", 9.9, 3.2, 10.1, 3.2),
-      line("ОКНА", 9.95, 2.0, 9.95, 3.2), line("ОКНА", 10.05, 2.0, 10.05, 3.2),
+      line(tr`ОКНА`, 9.9, 2.0, 10.1, 2.0), line(tr`ОКНА`, 9.9, 3.2, 10.1, 3.2),
+      line(tr`ОКНА`, 9.95, 2.0, 9.95, 3.2), line(tr`ОКНА`, 10.05, 2.0, 10.05, 3.2),
       // A round table and a stray line that only make noise.
-      dxfCircle("МЕБЕЛЬ", mm(5), mm(3), 500), line("МЕБЕЛЬ", 6, 4, 8, 4), line("МЕБЕЛЬ", 6, 4.2, 8, 4.2),
+      dxfCircle(tr`МЕБЕЛЬ`, mm(5), mm(3), 500), line(tr`МЕБЕЛЬ`, 6, 4, 8, 4), line(tr`МЕБЕЛЬ`, 6, 4.2, 8, 4.2),
       // Off in the file: must start switched off.
-      line("ОФОРМЛЕНИЕ", -5, -5, 15, -5),
+      line(tr`ОФОРМЛЕНИЕ`, -5, -5, 15, -5),
     ],
   });
 }

@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import type { FloorPlan } from "@/domain/floor-plan/types";
 import { wallKindOf } from "@/domain/floor-plan/wall-kind";
 import type { RuleReport } from "@/domain/rules/types";
@@ -35,26 +36,26 @@ export function scenarioSteps(input: {
   const ruleProblems = rules ? rules.findings.filter((finding) => finding.state === "problem").length : 0;
   const ruleQuestions = rules ? rules.missingFacts.length : 0;
   const normsValue = !region
-    ? "регион не указан"
+    ? tr`регион не указан`
     : !rules
-      ? "правила не заданы"
+      ? tr`правила не заданы`
       : ruleProblems
-        ? `замечаний ${ruleProblems}`
+        ? tr`замечаний ${ruleProblems}`
         : ruleQuestions
-          ? `вопросов ${ruleQuestions}`
-          : "без замечаний";
+          ? tr`вопросов ${ruleQuestions}`
+          : tr`без замечаний`;
   const walls = plan.walls.length;
   const unknown = plan.walls.filter((wall) => wallKindOf(wall) === "unknown").length;
   const hasDrawing = Boolean(plan.underlay) || walls > 0 || plan.rooms.length > 0;
   const isVariant = Boolean(plan.origin);
   const steps: Omit<ScenarioStep, "state">[] & { done?: never } = [
-    { id: "drawing", label: "Чертёж", value: plan.underlay ? "загружен" : hasDrawing ? "нарисован" : "DXF, PDF или вручную" },
-    { id: "walls", label: "Стены", value: walls ? pluralRu(walls, "стена", "стены", "стен") : "нет" },
-    { id: "kinds", label: "Типы стен", value: !walls ? "нет стен" : unknown ? `без типа ${unknown}` : "указаны" },
-    { id: "requirements", label: "Требования", value: !plan.requirements.length ? "не заданы" : violatedRequirements ? `нарушено ${violatedRequirements}` : `${plan.requirements.length}, выполнены` },
-    { id: "norms", label: "Нормы", value: normsValue },
-    { id: "variants", label: "Варианты", value: isVariant ? "это вариант" : variants ? `${variants}` : "нет" },
-    { id: "report", label: "Отчёт", value: "итог и PDF" },
+    { id: "drawing", label: tr`Чертёж`, value: plan.underlay ? tr`загружен` : hasDrawing ? tr`нарисован` : tr`DXF, PDF или вручную` },
+    { id: "walls", label: tr`Стены`, value: walls ? pluralRu(walls, tr`стена`, tr`стены`, tr`стен`) : tr`нет` },
+    { id: "kinds", label: tr`Типы стен`, value: !walls ? tr`нет стен` : unknown ? tr`без типа ${unknown}` : tr`указаны` },
+    { id: "requirements", label: tr`Требования`, value: !plan.requirements.length ? tr`не заданы` : violatedRequirements ? tr`нарушено ${violatedRequirements}` : tr`${plan.requirements.length}, выполнены` },
+    { id: "norms", label: tr`Нормы`, value: normsValue },
+    { id: "variants", label: tr`Варианты`, value: isVariant ? tr`это вариант` : variants ? `${variants}` : tr`нет` },
+    { id: "report", label: tr`Отчёт`, value: tr`итог и PDF` },
   ];
   const done: Record<ScenarioStepId, boolean> = {
     drawing: hasDrawing,

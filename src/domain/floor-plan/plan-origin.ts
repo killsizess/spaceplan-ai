@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { diffPlans } from "./plan-diff";
 import type { FloorPlan, PlanOrigin, PlanSnapshot } from "./types";
 
@@ -52,10 +53,10 @@ export function originStatus(origin: PlanOrigin, library: readonly FloorPlan[]):
 export function originNote(origin: PlanOrigin, status: OriginStatus): string {
   const date = origin.createdAt.slice(0, 10);
   if (status === "missing") {
-    return `Исходного проекта «${origin.planName}» больше нет в библиотеке: он удалён или лежит в корзине. Сравнение идёт с сохранённым слепком его плана на ${date}, когда был создан вариант.`;
+    return tr`Исходного проекта «${origin.planName}» больше нет в библиотеке: он удалён или лежит в корзине. Сравнение идёт с сохранённым слепком его плана на ${date}, когда был создан вариант.`;
   }
   if (status === "changed") {
-    return `Исходный проект «${origin.planName}» изменён после создания варианта. Сравнение идёт с его планом на ${date}, а не с нынешним.`;
+    return tr`Исходный проект «${origin.planName}» изменён после создания варианта. Сравнение идёт с его планом на ${date}, а не с нынешним.`;
   }
-  return `Вариант создан из проекта «${origin.planName}» ${date}; с тех пор тот проект не менялся.`;
+  return tr`Вариант создан из проекта «${origin.planName}» ${date}; с тех пор тот проект не менялся.`;
 }

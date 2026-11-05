@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import {
   MAX_COORDINATE,
   MAX_PLAN_DIMENSION,
@@ -51,7 +52,7 @@ export interface PlanIntegrityReport {
 }
 
 const TOLERANCE = 1e-9;
-const COORDINATES = "Координаты должны быть числами в пределах ±1000 м.";
+const COORDINATES = tr`Координаты должны быть числами в пределах ±1000 м.`;
 
 type Path = readonly (string | number)[];
 type Issue = PlanIntegrityIssue;
@@ -84,7 +85,7 @@ const axisLength = (wall: Wall) => Math.hypot(wall.end.x - wall.start.x, wall.en
 function idIssues(id: unknown, path: Path): Issue[] {
   return validId(id)
     ? []
-    : [issue("id.invalid", "Идентификатор объекта должен содержать от 1 до 100 символов.", [], [...path, "id"])];
+    : [issue("id.invalid", tr`Идентификатор объекта должен содержать от 1 до 100 символов.`, [], [...path, "id"])];
 }
 
 function wallIssues(wall: Wall, index: number): Issue[] {
@@ -98,7 +99,7 @@ function wallIssues(wall: Wall, index: number): Issue[] {
     wall.thickness > MAX_ROOM_SIZE || wall.height > MAX_ROOM_SIZE) {
     found.push(issue(
       "number.invalid",
-      "Толщина и высота стены должны быть положительными числами не больше 100 м.",
+      tr`Толщина и высота стены должны быть положительными числами не больше 100 м.`,
       ids,
       path,
     ));
@@ -106,9 +107,9 @@ function wallIssues(wall: Wall, index: number): Issue[] {
   if (validPoint(wall.start) && validPoint(wall.end)) {
     const length = axisLength(wall);
     if (length <= TOLERANCE) {
-      found.push(issue("wall.degenerate", "Стена должна иметь ненулевую длину.", ids, path, wall.start));
+      found.push(issue("wall.degenerate", tr`Стена должна иметь ненулевую длину.`, ids, path, wall.start));
     } else if (length > MAX_PLAN_DIMENSION) {
-      found.push(issue("wall.too-long", "Длина стены не должна превышать 2000 м.", ids, path));
+      found.push(issue("wall.too-long", tr`Длина стены не должна превышать 2000 м.`, ids, path));
     }
   }
   return found;
@@ -118,7 +119,7 @@ function openingIssues(opening: Opening, index: number): Issue[] {
   const path = ["openings", index];
   const found = idIssues(opening.id, path);
   if (!validId(opening.wallId)) {
-    found.push(issue("id.invalid", "Идентификатор стены проёма должен содержать от 1 до 100 символов.", [], [...path, "wallId"]));
+    found.push(issue("id.invalid", tr`Идентификатор стены проёма должен содержать от 1 до 100 символов.`, [], [...path, "wallId"]));
   }
   // Negative offsets and sills are reported against the wall as leaving it.
   if (
@@ -128,7 +129,7 @@ function openingIssues(opening: Opening, index: number): Issue[] {
     !(opening.height > 0) || opening.height > MAX_ROOM_SIZE ||
     opening.sillHeight > MAX_ROOM_SIZE
   ) {
-    found.push(issue("number.invalid", "Некорректные размеры проёма.", validId(opening.id) ? [opening.id] : [], path));
+    found.push(issue("number.invalid", tr`Некорректные размеры проёма.`, validId(opening.id) ? [opening.id] : [], path));
   }
   return found;
 }
@@ -155,11 +156,11 @@ function labelIssues(label: WallRoomLabel, index: number): Issue[] {
   const boundary = label.boundaryWallIds;
   if (!Array.isArray(boundary) || boundary.length < 1 || boundary.length > 1000 || !boundary.every(validId)) {
     found.push(issue(
-      "id.invalid", "Подпись помещения должна ссылаться на стены корректными идентификаторами.", ids,
+      "id.invalid", tr`Подпись помещения должна ссылаться на стены корректными идентификаторами.`, ids,
       [...path, "boundaryWallIds"],
     ));
   } else if (new Set(boundary).size !== boundary.length) {
-    found.push(issue("id.duplicate", "Границы помещения не должны повторяться.", ids, [...path, "boundaryWallIds"]));
+    found.push(issue("id.duplicate", tr`Границы помещения не должны повторяться.`, ids, [...path, "boundaryWallIds"]));
   }
   return found;
 }
@@ -182,31 +183,31 @@ function requirementIssues(requirement: PlanRequirement, index: number): Issue[]
   const invalid = (message: string, field?: string) =>
     found.push(issue("requirement.invalid", message, ids, field ? [...path, field] : path));
   if (!fields) {
-    invalid("Неизвестный тип требования.", "type");
+    invalid(tr`Неизвестный тип требования.`, "type");
     return found;
   }
-  if (Object.keys(requirement).some((key) => !fields.includes(key))) invalid("У требования есть лишние поля.");
-  if ("kind" in requirement && !ROOM_KINDS.has(requirement.kind)) invalid("Неизвестное назначение помещения.", "kind");
-  if ("otherKind" in requirement && !ROOM_KINDS.has(requirement.otherKind)) invalid("Неизвестное назначение помещения.", "otherKind");
-  if ("byDoor" in requirement && typeof requirement.byDoor !== "boolean") invalid("Признак двери должен быть логическим.", "byDoor");
+  if (Object.keys(requirement).some((key) => !fields.includes(key))) invalid(tr`У требования есть лишние поля.`);
+  if ("kind" in requirement && !ROOM_KINDS.has(requirement.kind)) invalid(tr`Неизвестное назначение помещения.`, "kind");
+  if ("otherKind" in requirement && !ROOM_KINDS.has(requirement.otherKind)) invalid(tr`Неизвестное назначение помещения.`, "otherKind");
+  if ("byDoor" in requirement && typeof requirement.byDoor !== "boolean") invalid(tr`Признак двери должен быть логическим.`, "byDoor");
   if ("labelId" in requirement && requirement.labelId !== undefined && !validId(requirement.labelId)) {
-    invalid("Требование должно ссылаться на параметры помещения корректным идентификатором.", "labelId");
+    invalid(tr`Требование должно ссылаться на параметры помещения корректным идентификатором.`, "labelId");
   }
   for (const field of ["minArea", "maxArea"] as const) {
     if (field in requirement) {
       const value = (requirement as Record<string, unknown>)[field];
       if (!finite(value) || (value as number) <= 0 || (value as number) > 10000) {
-        found.push(issue("number.invalid", "Площадь в требовании должна быть больше 0 и не больше 10 000 м².", ids, [...path, field]));
+        found.push(issue("number.invalid", tr`Площадь в требовании должна быть больше 0 и не больше 10 000 м².`, ids, [...path, field]));
       }
     }
   }
   if (requirement.type === "wall-fixed") {
-    if (!validId(requirement.wallId)) invalid("Требование должно ссылаться на стену корректным идентификатором.", "wallId");
+    if (!validId(requirement.wallId)) invalid(tr`Требование должно ссылаться на стену корректным идентификатором.`, "wallId");
     for (const end of ["start", "end"] as const) {
       if (!validPoint(requirement[end])) found.push(issue("number.invalid", COORDINATES, ids, [...path, end]));
     }
     if (!finite(requirement.thickness) || requirement.thickness <= 0 || requirement.thickness > MAX_ROOM_SIZE) {
-      found.push(issue("number.invalid", "Толщина в требовании должна быть больше 0 и не больше 100 м.", ids, [...path, "thickness"]));
+      found.push(issue("number.invalid", tr`Толщина в требовании должна быть больше 0 и не больше 100 м.`, ids, [...path, "thickness"]));
     }
   }
   return found;
@@ -237,7 +238,7 @@ function objectState(plan: FloorPlan): ObjectState {
   if (Array.isArray(plan.requirements)) {
     plan.requirements.forEach((requirement, index) => issues.push(...requirementIssues(requirement, index)));
   } else {
-    issues.push(issue("requirement.invalid", "Список требований должен быть массивом.", [], ["requirements"]));
+    issues.push(issue("requirement.invalid", tr`Список требований должен быть массивом.`, [], ["requirements"]));
   }
   return { issues, validWalls, validRooms };
 }
@@ -259,13 +260,13 @@ function relationIssues(plan: FloorPlan, state: ObjectState, notes: string[]): I
       } catch (error) {
         found.push(issue(
           "wall-rooms.unresolved",
-          error instanceof Error ? error.message : "Не удалось определить помещения по стенам.",
+          error instanceof Error ? error.message : tr`Не удалось определить помещения по стенам.`,
           [],
           ["walls"],
         ));
       }
     } else {
-      notes.push("Помещения по стенам не проверены: сначала исправьте некорректные стены.");
+      notes.push(tr`Помещения по стенам не проверены: сначала исправьте некорректные стены.`);
     }
   }
 
@@ -279,7 +280,7 @@ function relationIssues(plan: FloorPlan, state: ObjectState, notes: string[]): I
     objects.forEach((object, index) => {
       if (seen.has(object.id) && !reported.has(object.id)) {
         reported.add(object.id);
-        found.push(issue("id.duplicate", "Идентификаторы объектов должны быть уникальными.", [object.id], [key, index, "id"]));
+        found.push(issue("id.duplicate", tr`Идентификаторы объектов должны быть уникальными.`, [object.id], [key, index, "id"]));
       }
       seen.add(object.id);
     });
@@ -289,7 +290,7 @@ function relationIssues(plan: FloorPlan, state: ObjectState, notes: string[]): I
     for (let j = i + 1; j < plan.rooms.length; j++) {
       const first = plan.rooms[i], second = plan.rooms[j];
       if (state.validRooms.has(first) && state.validRooms.has(second) && roomsOverlap(first, second)) {
-        found.push(issue("room.overlap", "Комнаты не должны пересекаться.", [first.id, second.id], ["rooms", j]));
+        found.push(issue("room.overlap", tr`Комнаты не должны пересекаться.`, [first.id, second.id], ["rooms", j]));
       }
     }
   }
@@ -300,7 +301,7 @@ function relationIssues(plan: FloorPlan, state: ObjectState, notes: string[]): I
     const wall = walls.get(opening.wallId);
     if (!wall) {
       found.push(issue(
-        "opening.missing-wall", "У проёма должна быть существующая стена.", [opening.id], ["openings", index, "wallId"],
+        "opening.missing-wall", tr`У проёма должна быть существующая стена.`, [opening.id], ["openings", index, "wallId"],
       ));
       return;
     }
@@ -309,7 +310,7 @@ function relationIssues(plan: FloorPlan, state: ObjectState, notes: string[]): I
       opening.offset < -TOLERANCE || opening.offset + opening.width > axisLength(wall) + TOLERANCE ||
       opening.sillHeight < -TOLERANCE || opening.sillHeight + opening.height > wall.height + TOLERANCE
     ) {
-      found.push(issue("opening.outside-wall", "Проём выходит за границы стены.", [opening.id, wall.id], ["openings", index]));
+      found.push(issue("opening.outside-wall", tr`Проём выходит за границы стены.`, [opening.id, wall.id], ["openings", index]));
     }
   });
 
@@ -322,7 +323,7 @@ function relationIssues(plan: FloorPlan, state: ObjectState, notes: string[]): I
         first.offset + first.width > second.offset + TOLERANCE
       ) {
         found.push(issue(
-          "opening.overlap", "Проёмы на одной стене не должны перекрываться.", [first.id, second.id], ["openings", j],
+          "opening.overlap", tr`Проёмы на одной стене не должны перекрываться.`, [first.id, second.id], ["openings", j],
         ));
       }
     }
@@ -345,24 +346,24 @@ function warningIssues(plan: FloorPlan, state: ObjectState, notes: string[]): Is
         const [first, second] = [...overlap.wallIds].sort((a, b) => order.get(a)! - order.get(b)!);
         found.push(issue(
           "wall.overlap",
-          "Стены лежат на одной оси и частично совпадают. Одна из них может закрывать проёмы другой.",
+          tr`Стены лежат на одной оси и частично совпадают. Одна из них может закрывать проёмы другой.`,
           [first, second],
           ["walls", order.get(second)!],
           overlap.point,
         ));
       }
-      if (truncated) notes.push(`Показаны первые ${overlaps.length} наложений стен.`);
+      if (truncated) notes.push(tr`Показаны первые ${overlaps.length} наложений стен.`);
     } catch {
-      notes.push("Наложения стен не проверены.");
+      notes.push(tr`Наложения стен не проверены.`);
     }
   } else {
-    notes.push("Наложения стен не проверены: идентификаторы стен повторяются.");
+    notes.push(tr`Наложения стен не проверены: идентификаторы стен повторяются.`);
   }
   plan.wallRoomLabels.forEach((label, index) => {
     if (Array.isArray(label.boundaryWallIds) && !label.boundaryWallIds.some((id) => ids.has(id))) {
       found.push(issue(
         "label.detached",
-        "Подпись помещения не связана ни с одной существующей стеной. Назначьте её вручную или удалите.",
+        tr`Подпись помещения не связана ни с одной существующей стеной. Назначьте её вручную или удалите.`,
         [label.id],
         ["wallRoomLabels", index],
       ));

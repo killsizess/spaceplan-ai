@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 export interface RasterPdfInput {
   jpeg: Uint8Array;
   widthPixels: number;
@@ -21,7 +22,7 @@ export function assertA4Page(widthMm: number, heightMm: number): void {
       (close(widthMm, 297) && close(heightMm, 210))
     )
   ) {
-    throw new Error("Экспорт поддерживает лист A4 размером 210 × 297 мм.");
+    throw new Error(tr`Экспорт поддерживает лист A4 размером 210 × 297 мм.`);
   }
 }
 
@@ -34,7 +35,7 @@ export function assertRasterSize(width: number, height: number): void {
     Math.max(width, height) > MAX_RASTER_EDGE ||
     width * height > MAX_RASTER_PIXELS
   ) {
-    throw new Error("Размер изображения для экспорта слишком велик или некорректен.");
+    throw new Error(tr`Размер изображения для экспорта слишком велик или некорректен.`);
   }
 }
 
@@ -48,7 +49,7 @@ function assertJpeg(jpeg: Uint8Array, width: number, height: number): void {
     jpeg[jpeg.length - 2] !== 0xff ||
     jpeg[jpeg.length - 1] !== 0xd9
   ) {
-    throw new Error("Не удалось подготовить JPEG для PDF.");
+    throw new Error(tr`Не удалось подготовить JPEG для PDF.`);
   }
   let cursor = 2;
   while (cursor < jpeg.length - 2) {
@@ -74,7 +75,7 @@ function assertJpeg(jpeg: Uint8Array, width: number, height: number): void {
     }
     cursor += length;
   }
-  throw new Error("Размеры или цветовой формат JPEG не подходят для PDF.");
+  throw new Error(tr`Размеры или цветовой формат JPEG не подходят для PDF.`);
 }
 
 function concatenate(parts: readonly Uint8Array[]): Uint8Array<ArrayBuffer> {
@@ -96,7 +97,7 @@ function pdfNumber(value: number): string {
  * the image, so Cyrillic uses the browser's fonts and needs no embedded font.
  */
 export function createRasterPdfDocument(pages: readonly RasterPdfInput[]): Uint8Array<ArrayBuffer> {
-  if (!pages.length) throw new Error("В документе нет страниц.");
+  if (!pages.length) throw new Error(tr`В документе нет страниц.`);
   const objects: Uint8Array[] = [
     encoder.encode("<< /Type /Catalog /Pages 2 0 R >>"),
     encoder.encode(`<< /Type /Pages /Kids [${pages.map((_, index) => `${3 + index * 3} 0 R`).join(" ")}] /Count ${pages.length} >>`),

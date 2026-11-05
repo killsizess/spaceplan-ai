@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { Check, ChevronRight } from "lucide-react";
 import type { Room } from "@/domain/floor-plan/types";
 import type { WallRoom } from "@/domain/floor-plan/wall-rooms";
@@ -47,13 +48,9 @@ export function RoomList({
       {!rooms.length && (
         <p className="empty-list">
           {wallMode ? (
-            "Замкните стены, чтобы появились помещения и их площадь."
+            tr`Замкните стены, чтобы появились помещения и их площадь.`
           ) : (
-            <>
-              Здесь появятся
-              <br />
-              ваши комнаты
-            </>
+            <>{tr`Здесь появятся`}<br />{tr`ваши комнаты`}</>
           )}
         </p>
       )}
@@ -73,13 +70,12 @@ export function PlanSummary({
 }) {
   return (
     <div className="plan-summary">
-      <span className="eyebrow">ОБЩАЯ ПЛОЩАДЬ</span>
+      <span className="eyebrow">{tr`ОБЩАЯ ПЛОЩАДЬ`}</span>
       <strong data-testid="total-area">{formatArea(totalArea)}</strong>
       <div>
-        <span>{pluralRu(rooms.length, "помещение", "помещения", "помещений")}</span>
+        <span>{pluralRu(rooms.length, tr`помещение`, tr`помещения`, tr`помещений`)}</span>
         <span className="verified-mark">
-          <Check size={12} /> По геометрии
-        </span>
+          <Check size={12} />{tr` По геометрии`}</span>
       </div>
       <div className="area-bar">
         {rooms.map((room) => (
@@ -92,7 +88,7 @@ export function PlanSummary({
           />
         ))}
       </div>
-      <p>{wallMode ? "По внутренним контурам, толщина стен вычтена. Балконы, лоджии и шахты не входят." : "Сумма комнат, без вычета толщины стен. Балконы, лоджии и шахты не входят."}</p>
+      <p>{wallMode ? tr`По внутренним контурам, толщина стен вычтена. Балконы, лоджии и шахты не входят.` : tr`Сумма комнат, без вычета толщины стен. Балконы, лоджии и шахты не входят.`}</p>
     </div>
   );
 }

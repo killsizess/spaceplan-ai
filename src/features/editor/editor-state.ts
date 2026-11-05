@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { addRoom, updateRoom } from "@/domain/floor-plan/operations";
 import {
   addWall,
@@ -237,12 +238,12 @@ export function editorReducer(
       plan = withRuleProfile(state.plan, action.profile);
     } else if (action.type === "wall:node-move") {
       const wall = state.plan.walls.find((item) => item.id === action.wallId);
-      if (!wall) throw new Error("Стена не найдена.");
+      if (!wall) throw new Error(tr`Стена не найдена.`);
       if (
         action.expectedPoint &&
         !sameWallNode(wall[action.endpoint], action.expectedPoint)
       ) {
-        throw new Error("Стена изменилась во время перемещения. Повторите действие.");
+        throw new Error(tr`Стена изменилась во время перемещения. Повторите действие.`);
       }
       plan = moveWallNode(state.plan, action.wallId, action.endpoint, action.point);
       selectedId = action.wallId;
@@ -276,7 +277,7 @@ export function editorReducer(
     return {
       ...state,
       error:
-        error instanceof Error ? error.message : "Не удалось изменить план.",
+        error instanceof Error ? error.message : tr`Не удалось изменить план.`,
     };
   }
 }

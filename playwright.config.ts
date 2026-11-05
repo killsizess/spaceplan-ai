@@ -17,6 +17,8 @@ export default defineConfig({
       }],
     },
     viewport: { width: 1440, height: 1000 },
+    // The interface follows the browser's language; these tests read the Russian one.
+    locale: "ru-RU",
     channel:
       process.env.PLAYWRIGHT_CHANNEL ??
       (process.platform === "win32" ? "msedge" : undefined),

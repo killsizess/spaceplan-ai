@@ -1,24 +1,25 @@
+import { tr } from "@/lib/i18n";
 import type { BuildingFacts, NeighbourFloor } from "@/domain/floor-plan/types";
 
 /** The questions about the building, in the words the screen and the report use. */
 export const YES_NO_QUESTIONS: readonly { key: "gasified" | "woodenFloors" | "heritage" | "emergency"; label: string }[] = [
-  { key: "gasified", label: "В квартире есть газ" },
-  { key: "woodenFloors", label: "Перекрытия деревянные" },
-  { key: "heritage", label: "Дом — объект культурного наследия" },
-  { key: "emergency", label: "Дом признан аварийным" },
+  { key: "gasified", label: tr`В квартире есть газ` },
+  { key: "woodenFloors", label: tr`Перекрытия деревянные` },
+  { key: "heritage", label: tr`Дом — объект культурного наследия` },
+  { key: "emergency", label: tr`Дом признан аварийным` },
 ];
-export const REGION_LABEL = "Где находится квартира";
-export const FLOOR_LABEL = "Этаж квартиры";
-export const NEIGHBOUR_LABELS = { below: "Этажом ниже", above: "Этажом выше" } as const;
-export const UNKNOWN_ANSWER = "Не знаю";
+export const REGION_LABEL = tr`Где находится квартира`;
+export const FLOOR_LABEL = tr`Этаж квартиры`;
+export const NEIGHBOUR_LABELS = { below: tr`Этажом ниже`, above: tr`Этажом выше` } as const;
+export const UNKNOWN_ANSWER = tr`Не знаю`;
 
 export const NEIGHBOUR_ANSWERS: Readonly<Record<NeighbourFloor, string>> = {
-  "same-layout": "Такая же планировка",
-  "other-layout": "Другая планировка",
-  "no-dwelling": "Квартир нет",
+  "same-layout": tr`Такая же планировка`,
+  "other-layout": tr`Другая планировка`,
+  "no-dwelling": tr`Квартир нет`,
 };
-export const FLOOR_ANSWERS = { first: "Первый", upper: "Второй и выше" } as const;
-export const REGION_ANSWERS = { moscow: "Москва", other: "Другая страна или регион" } as const;
+export const FLOOR_ANSWERS = { first: tr`Первый`, upper: tr`Второй и выше` } as const;
+export const REGION_ANSWERS = { moscow: tr`Москва`, other: tr`Другая страна или регион` } as const;
 
 export interface FactLine {
   label: string;
@@ -37,7 +38,7 @@ export function factLines(facts: BuildingFacts | undefined): FactLine[] {
   if (region !== "moscow") return lines;
   for (const { key, label } of YES_NO_QUESTIONS) {
     const value = facts?.[key];
-    lines.push({ label, answer: value === undefined ? UNKNOWN_ANSWER : value ? "Да" : "Нет" });
+    lines.push({ label, answer: value === undefined ? UNKNOWN_ANSWER : value ? tr`Да` : tr`Нет` });
   }
   lines.push({ label: FLOOR_LABEL, answer: facts?.floorLevel ? FLOOR_ANSWERS[facts.floorLevel] : UNKNOWN_ANSWER });
   for (const side of ["below", "above"] as const) {

@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { planFromOrigin } from "@/domain/floor-plan/plan-origin";
 import { countsInTotal, type FloorPlan, type Opening, type Wall, type WallKind } from "@/domain/floor-plan/types";
 import { citation, packForPlan, rulesForPlan } from "@/domain/rules/engine";
@@ -93,9 +94,9 @@ export interface PlanProof {
 }
 
 const WALL_KIND_NAMES: Readonly<Record<WallKind, string>> = {
-  bearing: "несущая",
-  partition: "перегородка",
-  unknown: "тип не указан",
+  bearing: tr`несущая`,
+  partition: tr`перегородка`,
+  unknown: tr`тип не указан`,
 };
 const kindOf = (wall: Wall): WallKind => wall.kind ?? "unknown";
 
@@ -130,7 +131,7 @@ export function planFingerprint(plan: FloorPlan): string {
 }
 
 const openingName = (opening: Opening) =>
-  opening.kind === "window" ? "окно" : opening.doorless ? "проём без двери" : "дверь";
+  opening.kind === "window" ? tr`окно` : opening.doorless ? tr`проём без двери` : tr`дверь`;
 
 interface Draft {
   id: string;
@@ -149,15 +150,15 @@ function draftDecisions(source: FloorPlan, plan: FloorPlan, roomsBefore: readonl
     const names = roomsBefore.filter((room) => room.boundaryWallIds.includes(wall.id)).map((room) => `«${room.name}»`);
     if (!names.length) return "";
     // Rooms along an outer wall stand side by side, not on its two sides.
-    if (names.length === 1 || isPerimeterWall(wall, roomsBefore)) return `, ${names.length > 1 ? "помещения" : "помещение"} ${names.join(", ")}`;
-    return ` между ${names.slice(0, -1).join(", ")} и ${names[names.length - 1]}`;
+    if (names.length === 1 || isPerimeterWall(wall, roomsBefore)) return `, ${names.length > 1 ? tr`помещения` : tr`помещение`} ${names.join(", ")}`;
+    return tr` между ${names.slice(0, -1).join(", ")} и ${names[names.length - 1]}`;
   };
   const drafts: Draft[] = [];
   for (const wall of walls.removed) {
     const own = openings.removed.filter((item) => item.wallId === wall.id);
     drafts.push({
       id: `wall:${wall.id}`,
-      text: `Убрать стену ${number(source, wall.id)} (${WALL_KIND_NAMES[kindOf(wall)]})${between(wall)}`,
+      text: tr`Убрать стену ${number(source, wall.id)} (${WALL_KIND_NAMES[kindOf(wall)]})${between(wall)}`,
       wallIds: [wall.id],
       openingIds: own.map((item) => item.id),
     });
@@ -166,7 +167,7 @@ function draftDecisions(source: FloorPlan, plan: FloorPlan, roomsBefore: readonl
     const own = openings.added.filter((item) => item.wallId === wall.id);
     drafts.push({
       id: `wall:${wall.id}`,
-      text: `Поставить новую стену ${number(plan, wall.id)} (${WALL_KIND_NAMES[kindOf(wall)]})${own.length ? `: ${own.map(openingName).join(", ")} в ней` : ""}`,
+      text: tr`Поставить новую стену ${number(plan, wall.id)} (${WALL_KIND_NAMES[kindOf(wall)]})${own.length ? tr`: ${own.map(openingName).join(", ")} в ней` : ""}`,
       wallIds: [wall.id],
       openingIds: own.map((item) => item.id),
     });
@@ -174,7 +175,7 @@ function draftDecisions(source: FloorPlan, plan: FloorPlan, roomsBefore: readonl
   for (const { before } of walls.moved) {
     drafts.push({
       id: `wall:${before.id}`,
-      text: `Перенести стену ${number(source, before.id)} или изменить её длину (${WALL_KIND_NAMES[kindOf(before)]})`,
+      text: tr`Перенести стену ${number(source, before.id)} или изменить её длину (${WALL_KIND_NAMES[kindOf(before)]})`,
       wallIds: [before.id],
       openingIds: [],
     });
@@ -182,7 +183,7 @@ function draftDecisions(source: FloorPlan, plan: FloorPlan, roomsBefore: readonl
   for (const { before, after } of walls.thickened) {
     drafts.push({
       id: `wall:${before.id}`,
-      text: `Изменить толщину стены ${number(source, before.id)}: ${formatLength(before.thickness)} м → ${formatLength(after.thickness)} м`,
+      text: tr`Изменить толщину стены ${number(source, before.id)}: ${formatLength(before.thickness)} м → ${formatLength(after.thickness)} м`,
       wallIds: [before.id],
       openingIds: [],
     });
@@ -190,20 +191,20 @@ function draftDecisions(source: FloorPlan, plan: FloorPlan, roomsBefore: readonl
   for (const { before, after } of walls.retyped) {
     drafts.push({
       id: `wall:${before.id}`,
-      text: `Сменить тип стены ${number(source, before.id)}: ${WALL_KIND_NAMES[kindOf(before)]} → ${WALL_KIND_NAMES[kindOf(after)]}`,
+      text: tr`Сменить тип стены ${number(source, before.id)}: ${WALL_KIND_NAMES[kindOf(before)]} → ${WALL_KIND_NAMES[kindOf(after)]}`,
       wallIds: [before.id],
       openingIds: [],
     });
   }
   const single = (verb: string, opening: Opening, owner: FloorPlan) => drafts.push({
     id: `opening:${opening.id}`,
-    text: `${verb} ${openingName(opening)} в стене ${number(owner, opening.wallId)}`,
+    text: tr`${verb} ${openingName(opening)} в стене ${number(owner, opening.wallId)}`,
     wallIds: [],
     openingIds: [opening.id],
   });
-  for (const opening of openings.removed) if (!removed.has(opening.wallId)) single("Убрать", opening, source);
-  for (const opening of openings.added) if (!added.has(opening.wallId)) single("Сделать", opening, plan);
-  for (const { after } of openings.moved) single("Перенести", after, plan);
+  for (const opening of openings.removed) if (!removed.has(opening.wallId)) single(tr`Убрать`, opening, source);
+  for (const opening of openings.added) if (!added.has(opening.wallId)) single(tr`Сделать`, opening, plan);
+  for (const { after } of openings.moved) single(tr`Перенести`, after, plan);
   return drafts;
 }
 
@@ -238,7 +239,7 @@ function experimentsFor(plan: FloorPlan, source: FloorPlan): Experiment[] {
     for (const kind of ["bearing", "partition"] as const) {
       if (kindOf(wall) === kind) continue;
       experiments.push({
-        subject: `Тип стены ${source.walls.findIndex((item) => item.id === wall.id) + 1}`,
+        subject: tr`Тип стены ${source.walls.findIndex((item) => item.id === wall.id) + 1}`,
         current: WALL_KIND_NAMES[kindOf(wall)],
         answer: WALL_KIND_NAMES[kind],
         plan: withWallKind(plan, wall.id, kind),
@@ -252,8 +253,8 @@ function experimentsFor(plan: FloorPlan, source: FloorPlan): Experiment[] {
     experiments.push({ subject, current, answer, plan: { ...plan, buildingFacts: { ...facts, ...change } } });
   for (const { key, label } of YES_NO_QUESTIONS) {
     const value = facts[key];
-    const current = value === undefined ? UNKNOWN_ANSWER : value ? "Да" : "Нет";
-    for (const next of [true, false]) if (value !== next) ask(label, current, next ? "Да" : "Нет", { [key]: next });
+    const current = value === undefined ? UNKNOWN_ANSWER : value ? tr`Да` : tr`Нет`;
+    for (const next of [true, false]) if (value !== next) ask(label, current, next ? tr`Да` : tr`Нет`, { [key]: next });
   }
   for (const level of ["first", "upper"] as const) {
     if (facts.floorLevel === level) continue;
@@ -294,7 +295,7 @@ function dependencies(rules: RuleReport, experiments: readonly Experiment[]) {
       current: experiment.current,
       answer: experiment.answer,
       procedure: other.overall,
-      label: other.overall ? other.procedures[other.overall].label : "Порядок работ не назван",
+      label: other.overall ? other.procedures[other.overall].label : tr`Порядок работ не назван`,
       because: [...new Set(speaking.map((finding) => finding.title))],
     });
   }
@@ -364,7 +365,7 @@ export function buildPlanProof(
         const changes = wallChanges(source, plan);
         const owned = [...changes.removed, ...changes.moved.map((item) => item.before), ...changes.thickened.map((item) => item.before)];
         return owned.map((wall) => ({
-          label: `Стена ${source.walls.findIndex((item) => item.id === wall.id) + 1}`,
+          label: tr`Стена ${source.walls.findIndex((item) => item.id === wall.id) + 1}`,
           answer: WALL_KIND_NAMES[kindOf(wall)],
         }));
       })()
@@ -375,17 +376,17 @@ export function buildPlanProof(
   const answer: PlanProof["answer"] = status === "no-decision"
     ? {
         procedure: null,
-        label: "Решения нет",
+        label: tr`Решения нет`,
         meaning: source
-          ? "В этом варианте нет изменений по сравнению с исходным планом, поэтому объяснять нечего."
-          : "Это исходный план, а не решение. Выберите стену в X-Ray или создайте вариант.",
+          ? tr`В этом варианте нет изменений по сравнению с исходным планом, поэтому объяснять нечего.`
+          : tr`Это исходный план, а не решение. Выберите стену в X-Ray или создайте вариант.`,
         citation: "",
       }
     : status === "no-rules"
       ? {
           procedure: null,
-          label: "Нормы не проверялись",
-          meaning: "Для этого плана не выбрана база правил. Ответьте в X-Ray, где находится квартира, или задайте свои правила. Ниже только то, что следует из самого плана.",
+          label: tr`Нормы не проверялись`,
+          meaning: tr`Для этого плана не выбрана база правил. Ответьте в X-Ray, где находится квартира, или задайте свои правила. Ниже только то, что следует из самого плана.`,
           citation: "",
         }
       : rules && overall
@@ -397,8 +398,8 @@ export function buildPlanProof(
           }
         : {
             procedure: null,
-            label: "Порядок работ не назван",
-            meaning: "Правила этой базы не называют порядок работ для этих изменений. Это не значит, что они разрешены: значит только, что об этом здесь ничего не сказано.",
+            label: tr`Порядок работ не назван`,
+            meaning: tr`Правила этой базы не называют порядок работ для этих изменений. Это не значит, что они разрешены: значит только, что об этом здесь ничего не сказано.`,
             citation: "",
           };
 
@@ -411,7 +412,7 @@ export function buildPlanProof(
     status,
     answer,
     draftNote: rules?.kind === "regulation" && !rules.reviewed
-      ? "Это черновик: база правил не сверена со специалистом, поэтому ни один вывод здесь не считается подтверждённым."
+      ? tr`Это черновик: база правил не сверена со специалистом, поэтому ни один вывод здесь не считается подтверждённым.`
       : null,
     decisions,
     general,

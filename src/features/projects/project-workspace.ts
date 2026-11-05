@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import {
   createEmptyPlan,
   createExamplePlan,
@@ -52,11 +53,11 @@ function errorMessage(error: unknown): string {
     error instanceof Error &&
     (error.name === "QuotaExceededError" || error.name === "SecurityError")
   ) {
-    return "Браузер не смог сохранить проект: хранилище недоступно или заполнено. План остаётся открыт — экспортируйте его в JSON.";
+    return tr`Браузер не смог сохранить проект: хранилище недоступно или заполнено. План остаётся открыт — экспортируйте его в JSON.`;
   }
   return error instanceof Error
     ? error.message
-    : "Не удалось сохранить проект. Экспортируйте его в JSON.";
+    : tr`Не удалось сохранить проект. Экспортируйте его в JSON.`;
 }
 
 /** Application state and persistence coordination. No React or browser globals. */
@@ -117,7 +118,7 @@ export class ProjectWorkspace {
         status: active ? "saved" : "saving",
         // User data must not go missing without a word.
         ...(library.unreadableCount > 0
-          ? { notice: `Не удалось прочитать проектов: ${library.unreadableCount}. Записи не тронуты: откройте «Мои проекты», там их можно скачать.` }
+          ? { notice: tr`Не удалось прочитать проектов: ${library.unreadableCount}. Записи не тронуты: откройте «Мои проекты», там их можно скачать.` }
           : {}),
       });
       if (!active) this.scheduleSave();
@@ -198,7 +199,7 @@ export class ProjectWorkspace {
     await this.flush();
     if (this.hasUnsavedChanges())
       throw new Error(
-        "Текущие изменения не сохранены. Повторите сохранение или сохраните копию перед переходом к другому проекту.",
+        tr`Текущие изменения не сохранены. Повторите сохранение или сохраните копию перед переходом к другому проекту.`,
       );
   }
   private async ensureCurrentCanChange() {
@@ -229,7 +230,7 @@ export class ProjectWorkspace {
     const storageFailure = error instanceof Error &&
       (error.name === "QuotaExceededError" || error.name === "SecurityError");
     this.reportNotice(storageFailure
-      ? "Не удалось изменить библиотеку: хранилище браузера недоступно или заполнено. Сохранённая запись проекта не изменена."
+      ? tr`Не удалось изменить библиотеку: хранилище браузера недоступно или заполнено. Сохранённая запись проекта не изменена.`
       : errorMessage(error));
   }
   private load(saved: SavedProject) {
@@ -249,7 +250,7 @@ export class ProjectWorkspace {
     try {
       await this.ensureSavedBeforeSwitch();
       const saved = readProject(this.services.storage, id);
-      if (!saved) throw new Error("Проект больше не найден в браузере.");
+      if (!saved) throw new Error(tr`Проект больше не найден в браузере.`);
       this.services.storage.setItem(ACTIVE_PROJECT_KEY, id);
       this.load(saved);
       return true;
@@ -299,7 +300,7 @@ export class ProjectWorkspace {
       try {
         this.refreshList();
       } catch (error) {
-        this.reportNotice(`Название проекта изменено. ${errorMessage(error)}`);
+        this.reportNotice(tr`Название проекта изменено. ${errorMessage(error)}`);
       }
       return true;
     } catch (error) {
@@ -337,7 +338,7 @@ export class ProjectWorkspace {
       services.storage.setItem(ACTIVE_PROJECT_KEY, this.snapshot.editor.plan.id);
     } catch {
       notices.push(
-        "Проект перемещён в корзину. Не удалось запомнить выбор другого проекта; открытый план сохранён в памяти.",
+        tr`Проект перемещён в корзину. Не удалось запомнить выбор другого проекта; открытый план сохранён в памяти.`,
       );
     }
     if (!fallback) this.scheduleSave();
@@ -374,7 +375,7 @@ export class ProjectWorkspace {
       try {
         this.refreshList();
       } catch (error) {
-        this.reportNotice(`Проект перемещён в корзину. ${errorMessage(error)}`);
+        this.reportNotice(tr`Проект перемещён в корзину. ${errorMessage(error)}`);
       }
     }
     this.publish({ busy: false });
@@ -398,7 +399,7 @@ export class ProjectWorkspace {
       try {
         this.refreshList();
       } catch (error) {
-        this.reportNotice(`Проект восстановлен. ${errorMessage(error)}`);
+        this.reportNotice(tr`Проект восстановлен. ${errorMessage(error)}`);
       }
       return true;
     } catch (error) {
@@ -429,7 +430,7 @@ export class ProjectWorkspace {
           services.now(),
         );
       });
-      if (!saved) throw new Error("Не удалось создать проект.");
+      if (!saved) throw new Error(tr`Не удалось создать проект.`);
       // The project record is already committed. A failed active-pointer write
       // must not leave recovery via saveCopy looking unsuccessful or hidden.
       this.load(saved);
@@ -440,13 +441,13 @@ export class ProjectWorkspace {
         this.publish({
           projects: [saved, ...this.snapshot.projects.filter((project) => project.plan.id !== copy.id)],
         });
-        notices.push(`Проект сохранён. ${errorMessage(error)}`);
+        notices.push(tr`Проект сохранён. ${errorMessage(error)}`);
       }
       try {
         services.storage.setItem(ACTIVE_PROJECT_KEY, copy.id);
       } catch {
         notices.push(
-          "Проект сохранён и открыт. Не удалось запомнить его выбор в браузере; сохранённый проект доступен в библиотеке.",
+          tr`Проект сохранён и открыт. Не удалось запомнить его выбор в браузере; сохранённый проект доступен в библиотеке.`,
         );
       }
       if (notices.length > 0) this.reportNotice(notices.join(" "));
@@ -478,7 +479,7 @@ export class ProjectWorkspace {
     const plan = this.snapshot.editor.plan;
     return this.createFrom({
       ...plan,
-      name: `${plan.name.slice(0, 88)} · вариант`,
+      name: tr`${plan.name.slice(0, 88)} · вариант`,
       // The variant remembers its source and a snapshot of it, so a comparison still works
       // after the source is edited or deleted.
       ...(this.services ? { origin: createPlanOrigin(plan, this.services.now()) } : {}),
@@ -497,7 +498,7 @@ export class ProjectWorkspace {
     this.createFrom(
       {
         ...this.snapshot.editor.plan,
-        name: `${this.snapshot.editor.plan.name.slice(0, 90)} — копия`,
+        name: tr`${this.snapshot.editor.plan.name.slice(0, 90)} — копия`,
       },
       true,
     );
@@ -512,7 +513,7 @@ export class ProjectWorkspace {
       );
       if (!saved)
         throw new Error(
-          "Сохранённая версия не найдена. Экспортируйте текущий план или сохраните копию.",
+          tr`Сохранённая версия не найдена. Экспортируйте текущий план или сохраните копию.`,
         );
       this.load(saved);
       return true;

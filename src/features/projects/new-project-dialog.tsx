@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, X } from "lucide-react";
 
@@ -15,7 +16,7 @@ export function NewProjectDialog({
   busy?: boolean;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [name, setName] = useState("Моя квартира");
+  const [name, setName] = useState(tr`Моя квартира`);
   useEffect(() => {
     dialogRef.current?.showModal();
   }, []);
@@ -30,7 +31,7 @@ export function NewProjectDialog({
     >
       <button
         className="icon-button modal-close"
-        aria-label="Закрыть"
+        aria-label={tr`Закрыть`}
         onClick={onClose}
       >
         <X size={18} />
@@ -38,19 +39,16 @@ export function NewProjectDialog({
       <div className="dialog-symbol">
         <ArrowUpRight size={25} />
       </div>
-      <span className="eyebrow">НОВОЕ ПРОСТРАНСТВО</span>
-      <h2>С чего начинается ваш план?</h2>
-      <p>
-        Создайте пустой проект и добавьте первую комнату. Текущий план останется
-        в списке «Мои проекты».
-      </p>
+      <span className="eyebrow">{tr`НОВОЕ ПРОСТРАНСТВО`}</span>
+      <h2>{tr`С чего начинается ваш план?`}</h2>
+      <p>{tr`Создайте пустой проект и добавьте первую комнату. Текущий план останется в списке «Мои проекты».`}</p>
       <form
         onSubmit={(event) => {
           event.preventDefault();
           if (name.trim()) onCreate(name.trim());
         }}
       >
-        <label htmlFor="project-name">Название проекта</label>
+        <label htmlFor="project-name">{tr`Название проекта`}</label>
         <input
           id="project-name"
           value={name}
@@ -63,8 +61,7 @@ export function NewProjectDialog({
           className="primary-button"
           type="submit"
           disabled={!name.trim() || busy}
-        >
-          Создать пустой план <ArrowUpRight size={16} />
+        >{tr`Создать пустой план `}<ArrowUpRight size={16} />
         </button>
         {error && (
           <p className="projects-warning" role="alert">

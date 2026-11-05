@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import type { DxfGeometry } from "@/domain/floor-plan/dxf";
 import type { Underlay } from "@/domain/floor-plan/types";
 import type { PdfLines } from "./pdf-vector-lines";
@@ -83,7 +84,7 @@ export function createDxfUnderlay(geometry: DxfGeometry, name: string, truncated
   canvas.width = size.width;
   canvas.height = size.height;
   const context = canvas.getContext("2d");
-  if (!context) throw new Error("Браузер не смог подготовить изображение чертежа.");
+  if (!context) throw new Error(tr`Браузер не смог подготовить изображение чертежа.`);
   drawDxfGeometry(context, geometry, scale, 1.4);
   try {
     const underlay = placeDxfUnderlay(underlayFromCanvas(canvas, name), scale, size.width);

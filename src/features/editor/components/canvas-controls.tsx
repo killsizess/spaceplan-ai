@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import {
   BrickWall,
   DoorOpen,
@@ -26,12 +27,12 @@ export function DrawingTools({
   onRoomTool: () => void;
 }) {
   return (
-    <div className="drawing-tools" aria-label="Инструменты">
+    <div className="drawing-tools" aria-label={tr`Инструменты`}>
       <button
         className={tool === "select" ? "active" : ""}
         onClick={() => onTool("select")}
-        title="Выбрать и переместить (V)"
-        aria-label="Выбрать"
+        title={tr`Выбрать и переместить (V)`}
+        aria-label={tr`Выбрать`}
         aria-pressed={tool === "select"}
       >
         <MousePointer2 size={19} />
@@ -39,8 +40,8 @@ export function DrawingTools({
       <button
         className={tool === "room" ? "active" : ""}
         onClick={onRoomTool}
-        title="Нарисовать комнату (R)"
-        aria-label="Нарисовать комнату"
+        title={tr`Нарисовать комнату (R)`}
+        aria-label={tr`Нарисовать комнату`}
         aria-pressed={tool === "room"}
       >
         <SquareDashed size={20} />
@@ -49,8 +50,8 @@ export function DrawingTools({
       <button
         className={tool === "wall" ? "active" : ""}
         onClick={() => onTool("wall")}
-        title="Начертить стену (W)"
-        aria-label="Нарисовать стену"
+        title={tr`Начертить стену (W)`}
+        aria-label={tr`Нарисовать стену`}
         aria-pressed={tool === "wall"}
       >
         <BrickWall size={20} />
@@ -58,8 +59,8 @@ export function DrawingTools({
       <button
         className={tool === "door" ? "active" : ""}
         onClick={() => onTool("door")}
-        title="Поставить дверь на стену (D)"
-        aria-label="Добавить дверь"
+        title={tr`Поставить дверь на стену (D)`}
+        aria-label={tr`Добавить дверь`}
         aria-pressed={tool === "door"}
         disabled={!hasWalls}
       >
@@ -68,8 +69,8 @@ export function DrawingTools({
       <button
         className={tool === "window" ? "active" : ""}
         onClick={() => onTool("window")}
-        title="Поставить окно на стену"
-        aria-label="Добавить окно"
+        title={tr`Поставить окно на стену`}
+        aria-label={tr`Добавить окно`}
         aria-pressed={tool === "window"}
         disabled={!hasWalls}
       >
@@ -79,8 +80,8 @@ export function DrawingTools({
       <button
         className={tool === "pan" ? "active" : ""}
         onClick={() => onTool("pan")}
-        title="Перемещать вид (H)"
-        aria-label="Перемещать вид"
+        title={tr`Перемещать вид (H)`}
+        aria-label={tr`Перемещать вид`}
         aria-pressed={tool === "pan"}
       >
         <Hand size={19} />
@@ -98,11 +99,11 @@ export interface ViewLayers {
 }
 
 const LAYER_LABELS: readonly [keyof ViewLayers, string][] = [
-  ["grid", "Сетка"],
-  ["dimensions", "Размеры комнат"],
-  ["connections", "Свободные концы стен"],
-  ["intersections", "Пересечения стен"],
-  ["doorCollisions", "Столкновения дверей"],
+  ["grid", tr`Сетка`],
+  ["dimensions", tr`Размеры комнат`],
+  ["connections", tr`Свободные концы стен`],
+  ["intersections", tr`Пересечения стен`],
+  ["doorCollisions", tr`Столкновения дверей`],
 ];
 
 /** Checkbox list of the «Настройки вида» menu. */
@@ -144,12 +145,12 @@ export function CanvasBottom({
     <div className="canvas-bottom">
       <div className="scale-indicator">
         <span style={{ width: scaleMeters * BASE_SCALE * zoom }} />
-        <small>{scaleMeters} м</small>
+        <small>{scaleMeters}{tr` м`}</small>
       </div>
       <div className="zoom-controls">
         <button
           className="icon-button"
-          aria-label="Уменьшить масштаб"
+          aria-label={tr`Уменьшить масштаб`}
           disabled={zoom <= MIN_ZOOM}
           onClick={() => onZoom(clampZoom(zoom > 0.2 ? zoom - 0.15 : zoom / 1.5))}
         >
@@ -163,7 +164,7 @@ export function CanvasBottom({
         </span>
         <button
           className="icon-button"
-          aria-label="Увеличить масштаб"
+          aria-label={tr`Увеличить масштаб`}
           disabled={zoom >= MAX_ZOOM}
           onClick={() => onZoom(clampZoom(zoom >= 0.2 ? zoom + 0.15 : zoom * 1.5))}
         >
@@ -172,8 +173,8 @@ export function CanvasBottom({
         <span className="toolbar-divider" />
         <button
           className="icon-button"
-          aria-label="Показать весь план"
-          title="Показать весь план (F)"
+          aria-label={tr`Показать весь план`}
+          title={tr`Показать весь план (F)`}
           onClick={onFit}
         >
           <Maximize size={16} />

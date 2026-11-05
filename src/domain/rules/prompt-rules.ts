@@ -1,3 +1,4 @@
+import { untranslated } from "@/lib/i18n";
 import type { ProfileRule, ProfileTarget, RuleProfile } from "@/domain/floor-plan/types";
 
 /**
@@ -140,7 +141,7 @@ export function interpretPrompt(prompt: string): RuleProfile {
     .filter(Boolean);
   for (const sentence of sentences) {
     for (const clause of sentence.split(/,\s+/).map((part) => part.trim()).filter(Boolean)) {
-      const drafts = readClause(clause.toLowerCase().replaceAll("ё", "е"));
+      const drafts = readClause(clause.toLowerCase().replaceAll(untranslated("ё"), untranslated("е")));
       if (!drafts.length) {
         notUnderstood.push(clause);
         continue;

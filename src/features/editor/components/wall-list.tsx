@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { BrickWall, DoorOpen, RectangleHorizontal } from "lucide-react";
 import type { Opening, Wall, WallKind } from "@/domain/floor-plan/types";
 import { WALL_KIND_LABELS, wallKindOf } from "@/domain/floor-plan/wall-kind";
@@ -5,8 +6,8 @@ import { wallLength } from "@/domain/geometry";
 import { formatLength } from "@/lib/format";
 
 const QUICK_KINDS: readonly { kind: WallKind; mark: string }[] = [
-  { kind: "bearing", mark: "Н" },
-  { kind: "partition", mark: "П" },
+  { kind: "bearing", mark: tr`Н` },
+  { kind: "partition", mark: tr`П` },
   { kind: "unknown", mark: "?" },
 ];
 
@@ -32,21 +33,18 @@ export function WallKindSummary({
     walls.slice(selectedIndex + 1).find((wall) => wallKindOf(wall) === "unknown") ??
     walls.find((wall) => wallKindOf(wall) === "unknown");
   return (
-    <section className="wall-kind-summary" aria-label="Типы стен" data-testid="wall-kind-summary" data-unknown={unknown}>
+    <section className="wall-kind-summary" aria-label={tr`Типы стен`} data-testid="wall-kind-summary" data-unknown={unknown}>
       <div className="wall-kind-summary-bar" aria-hidden="true">
         <i className="kind-bearing" style={{ flexGrow: bearing }} />
         <i className="kind-partition" style={{ flexGrow: partition }} />
         <i className="kind-unknown" style={{ flexGrow: unknown }} />
       </div>
-      <p>
-        Несущих <strong>{bearing}</strong> · перегородок <strong>{partition}</strong> · без типа <strong>{unknown}</strong>
+      <p>{tr`Несущих `}<strong>{bearing}</strong>{tr` · перегородок `}<strong>{partition}</strong>{tr` · без типа `}<strong>{unknown}</strong>
       </p>
       {next ? (
-        <button type="button" className="text-button" onClick={() => onSelect(next.id)}>
-          Следующая стена без типа
-        </button>
+        <button type="button" className="text-button" onClick={() => onSelect(next.id)}>{tr`Следующая стена без типа`}</button>
       ) : (
-        <p className="wall-kind-summary-done">Тип указан у всех стен.</p>
+        <p className="wall-kind-summary-done">{tr`Тип указан у всех стен.`}</p>
       )}
     </section>
   );
@@ -56,10 +54,10 @@ export function WallKindSummary({
 export function WallKindLegend({ walls }: { walls: readonly Wall[] }) {
   if (!walls.length) return <div className="wall-kind-legend" />;
   return (
-    <div className="wall-kind-legend" data-testid="wall-kind-legend" aria-label="Цвета стен на плане">
-      <span><i className="kind-bearing" /> Несущая</span>
-      <span><i className="kind-partition" /> Перегородка</span>
-      <span><i className="kind-unknown" /> Не указано</span>
+    <div className="wall-kind-legend" data-testid="wall-kind-legend" aria-label={tr`Цвета стен на плане`}>
+      <span><i className="kind-bearing" />{tr` Несущая`}</span>
+      <span><i className="kind-partition" />{tr` Перегородка`}</span>
+      <span><i className="kind-unknown" />{tr` Не указано`}</span>
     </div>
   );
 }
@@ -85,21 +83,19 @@ export function WallList({
       <div className="wall-list-row" data-wall-kind={wallKindOf(wall)}>
         <button
           className={`construction-item ${selectedId === wall.id ? "selected" : ""}`}
-          aria-label={`Выбрать стену ${index + 1}`}
+          aria-label={tr`Выбрать стену ${index + 1}`}
           onClick={() => onSelect(wall.id)}
         >
           <BrickWall size={16} />
-          <span>
-            Стена {index + 1}
+          <span>{tr`Стена `}{index + 1}
             <small>
-              {formatLength(wallLength(wall.start, wall.end))} м ·{" "}
-              {formatLength(wall.thickness)} м
-              {wallKindOf(wall) !== "unknown" && <> · {WALL_KIND_LABELS[wallKindOf(wall)].toLowerCase()}</>}
+              {formatLength(wallLength(wall.start, wall.end))}{tr` м ·`}{" "}
+              {formatLength(wall.thickness)}{tr` м`}{wallKindOf(wall) !== "unknown" && <> · {WALL_KIND_LABELS[wallKindOf(wall)].toLowerCase()}</>}
             </small>
           </span>
         </button>
         {onSetKind && (
-          <div className="wall-kind-quick" role="group" aria-label={`Тип стены ${index + 1}`}>
+          <div className="wall-kind-quick" role="group" aria-label={tr`Тип стены ${index + 1}`}>
             {QUICK_KINDS.map(({ kind, mark }) => (
               <button
                 key={kind}
@@ -107,7 +103,7 @@ export function WallList({
                 disabled={busy}
                 className={`kind-${kind}`}
                 aria-pressed={wallKindOf(wall) === kind}
-                aria-label={`Стена ${index + 1}: ${WALL_KIND_LABELS[kind].toLowerCase()}`}
+                aria-label={tr`Стена ${index + 1}: ${WALL_KIND_LABELS[kind].toLowerCase()}`}
                 title={WALL_KIND_LABELS[kind]}
                 onClick={() => onSetKind(wall.id, kind)}
               >
@@ -123,7 +119,7 @@ export function WallList({
           <button
             key={opening.id}
             className={`construction-item opening-item ${selectedId === opening.id ? "selected" : ""}`}
-            aria-label={`Выбрать ${opening.kind === "door" ? "дверь" : "окно"} ${index + 1}.${openingIndex + 1}`}
+            aria-label={tr`Выбрать ${opening.kind === "door" ? tr`дверь` : tr`окно`} ${index + 1}.${openingIndex + 1}`}
             onClick={() => onSelect(opening.id)}
           >
             {opening.kind === "door" ? (
@@ -132,11 +128,10 @@ export function WallList({
               <RectangleHorizontal size={15} />
             )}
             <span>
-              {opening.doorless ? "Проём без двери" : opening.kind === "door" ? "Дверь" : "Окно"}
+              {opening.doorless ? tr`Проём без двери` : opening.kind === "door" ? tr`Дверь` : tr`Окно`}
               <small>
                 {formatLength(opening.width)} ×{" "}
-                {formatLength(opening.height)} м
-              </small>
+                {formatLength(opening.height)}{tr` м`}</small>
             </span>
           </button>
         ))}

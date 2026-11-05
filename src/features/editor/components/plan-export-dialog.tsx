@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, FileImage, LoaderCircle, X } from "lucide-react";
 import type { FloorPlan } from "@/domain/floor-plan/types";
@@ -34,7 +35,7 @@ export default function PlanExportDialog({
     } catch (cause: unknown) {
       return {
         layout: null,
-        error: cause instanceof Error ? cause.message : "Не удалось подготовить план.",
+        error: cause instanceof Error ? cause.message : tr`Не удалось подготовить план.`,
       };
     }
   }, [plan, options]);
@@ -70,10 +71,10 @@ export default function PlanExportDialog({
     setMessage("");
     setDownloadError("");
     try {
-      if (!isCurrent()) throw new Error("План изменился. Откройте экспорт заново.");
+      if (!isCurrent()) throw new Error(tr`План изменился. Откройте экспорт заново.`);
       const blob = await createPlanExportBlob(layout, format, controller.signal);
       if (controller.signal.aborted) return;
-      if (!isCurrent()) throw new Error("План изменился. Откройте экспорт заново.");
+      if (!isCurrent()) throw new Error(tr`План изменился. Откройте экспорт заново.`);
       const url = URL.createObjectURL(blob);
       try {
         const link = document.createElement("a");
@@ -85,13 +86,13 @@ export default function PlanExportDialog({
         } finally {
           link.remove();
         }
-        setMessage(`Файл ${format.toUpperCase()} передан браузеру для скачивания.`);
+        setMessage(tr`Файл ${format.toUpperCase()} передан браузеру для скачивания.`);
       } finally {
         window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
     } catch (cause: unknown) {
       if (!controller.signal.aborted) {
-        setDownloadError(cause instanceof Error ? cause.message : "Не удалось скачать файл.");
+        setDownloadError(cause instanceof Error ? cause.message : tr`Не удалось скачать файл.`);
       }
     } finally {
       if (!controller.signal.aborted) setBusy(false);
@@ -114,58 +115,56 @@ export default function PlanExportDialog({
         if (event.target === event.currentTarget) close();
       }}
     >
-      <button className="icon-button modal-close" aria-label="Закрыть экспорт плана" onClick={close}>
+      <button className="icon-button modal-close" aria-label={tr`Закрыть экспорт плана`} onClick={close}>
         <X size={18} />
       </button>
       <header className="plan-export-header">
         <span className="plan-export-symbol" aria-hidden="true"><FileImage size={24} /></span>
         <div>
-          <span className="eyebrow">ПЛАН, КОТОРЫМ МОЖНО ПОДЕЛИТЬСЯ</span>
-          <h2 id="plan-export-title">Экспорт плана</h2>
+          <span className="eyebrow">{tr`ПЛАН, КОТОРЫМ МОЖНО ПОДЕЛИТЬСЯ`}</span>
+          <h2 id="plan-export-title">{tr`Экспорт плана`}</h2>
           <p title={plan.name}>{plan.name}</p>
         </div>
       </header>
       <div className="plan-export-body">
         <div className="plan-export-settings">
-          <label htmlFor="plan-export-format">Формат экспорта</label>
+          <label htmlFor="plan-export-format">{tr`Формат экспорта`}</label>
           <select id="plan-export-format" autoFocus value={format} disabled={busy} onChange={(event) => {
             setFormat(event.target.value === "pdf" ? "pdf" : "png");
             setMessage("");
             setDownloadError("");
           }}>
-            <option value="png">PNG - изображение</option>
-            <option value="pdf">PDF - лист для печати</option>
+            <option value="png">{tr`PNG - изображение`}</option>
+            <option value="pdf">{tr`PDF - лист для печати`}</option>
           </select>
-          <label htmlFor="plan-export-orientation">Ориентация листа</label>
+          <label htmlFor="plan-export-orientation">{tr`Ориентация листа`}</label>
           <select id="plan-export-orientation" value={options.orientation} disabled={busy} onChange={(event) => changeOptions({
             ...options, orientation: event.target.value === "portrait" ? "portrait" : "landscape",
           })}>
-            <option value="landscape">Альбомная · A4</option>
-            <option value="portrait">Книжная · A4</option>
+            <option value="landscape">{tr`Альбомная · A4`}</option>
+            <option value="portrait">{tr`Книжная · A4`}</option>
           </select>
-          <label htmlFor="plan-export-scale">Масштаб печати</label>
+          <label htmlFor="plan-export-scale">{tr`Масштаб печати`}</label>
           <select id="plan-export-scale" value={options.scale} disabled={busy} onChange={(event) => changeOptions({
             ...options, scale: event.target.value === "auto" ? "auto" : Number(event.target.value),
           })}>
-            <option value="auto">Подобрать под лист</option>
+            <option value="auto">{tr`Подобрать под лист`}</option>
             {[20, 50, 100, 200, 500, 1000].map((scale) => <option key={scale} value={scale}>1:{scale}</option>)}
           </select>
           <label className="plan-export-checkbox">
             <input type="checkbox" checked={options.dimensions} disabled={busy} onChange={(event) => changeOptions({
               ...options, dimensions: event.target.checked,
-            })} />
-            Показывать размеры
-          </label>
+            })} />{tr`Показывать размеры`}</label>
           <div className="plan-export-specs">
-            <span>A4 <b>{layout ? `${layout.widthMm} × ${layout.heightMm}` : options.orientation === "landscape" ? "297 × 210" : "210 × 297"} мм</b></span>
-            <span>Качество <b>300 dpi</b></span>
+            <span>A4 <b>{layout ? `${layout.widthMm} × ${layout.heightMm}` : options.orientation === "landscape" ? "297 × 210" : "210 × 297"}{tr` мм`}</b></span>
+            <span>{tr`Качество `}<b>300 dpi</b></span>
             {layout && <>
-              <span>На листе <b>1:{layout.scaleDenominator}</b></span>
-              <span>Площадь <b>{formatArea(layout.totalArea)}</b></span>
-              <span>Помещений <b>{layout.roomCount}</b></span>
+              <span>{tr`На листе `}<b>1:{layout.scaleDenominator}</b></span>
+              <span>{tr`Площадь `}<b>{formatArea(layout.totalArea)}</b></span>
+              <span>{tr`Помещений `}<b>{layout.roomCount}</b></span>
             </>}
           </div>
-          <p id="plan-export-description">Печатайте в масштабе 100%, без подгонки под страницу. Подложка и элементы редактора в файл не входят.</p>
+          <p id="plan-export-description">{tr`Печатайте в масштабе 100%, без подгонки под страницу. Подложка и элементы редактора в файл не входят.`}</p>
         </div>
         <div
           className="plan-export-preview"
@@ -177,10 +176,10 @@ export default function PlanExportDialog({
           {layout ? <div
             className="plan-export-sheet"
             role="img"
-            aria-label="Предпросмотр экспорта плана"
+            aria-label={tr`Предпросмотр экспорта плана`}
             // SVG is generated locally from validated geometry; all model text is XML-escaped.
             dangerouslySetInnerHTML={{ __html: layout.svg }}
-          /> : <div className="plan-export-empty"><FileImage size={32} /><span>Нет предпросмотра</span></div>}
+          /> : <div className="plan-export-empty"><FileImage size={32} /><span>{tr`Нет предпросмотра`}</span></div>}
         </div>
       </div>
       <footer className="plan-export-footer">
@@ -188,13 +187,13 @@ export default function PlanExportDialog({
         {error && <p role="alert" className="plan-export-error">{error}</p>}
         <div className="plan-export-footer-row">
           <div aria-live="polite" role="status">
-            {busy ? "Готовим файл…" : message || (format === "pdf" ? "PDF: растровый план 300 dpi, текст без выделения." : "PNG: изображение A4 с разрешением 300 dpi.")}
+            {busy ? tr`Готовим файл…` : message || (format === "pdf" ? tr`PDF: растровый план 300 dpi, текст без выделения.` : tr`PNG: изображение A4 с разрешением 300 dpi.`)}
           </div>
           <div className="plan-export-actions">
-            <button className="plan-export-close" onClick={close}>{busy ? "Отменить" : "Закрыть"}</button>
+            <button className="plan-export-close" onClick={close}>{busy ? tr`Отменить` : tr`Закрыть`}</button>
             <button className="primary-button" disabled={!layout || busy} onClick={() => void download()}>
               {busy ? <LoaderCircle className="plan-export-spinner" size={16} /> : <Download size={16} />}
-              {busy ? "Подготовка…" : `Скачать ${format.toUpperCase()}`}
+              {busy ? tr`Подготовка…` : tr`Скачать ${format.toUpperCase()}`}
             </button>
           </div>
         </div>

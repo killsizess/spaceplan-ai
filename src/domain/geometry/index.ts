@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 export type Point = Readonly<{ x: number; y: number }>;
 export type Rectangle = Readonly<{
   x: number;
@@ -18,11 +19,11 @@ export function validateRoomDimensions(
   height: number,
 ): string | null {
   if (!Number.isFinite(width) || !Number.isFinite(height))
-    return "Введите числовые размеры комнаты.";
+    return tr`Введите числовые размеры комнаты.`;
   if (width < MIN_ROOM_SIZE || height < MIN_ROOM_SIZE)
-    return "Каждая сторона должна быть не меньше 0,5 м.";
+    return tr`Каждая сторона должна быть не меньше 0,5 м.`;
   if (width > MAX_ROOM_SIZE || height > MAX_ROOM_SIZE)
-    return "Каждая сторона должна быть не больше 100 м.";
+    return tr`Каждая сторона должна быть не больше 100 м.`;
   return null;
 }
 
@@ -32,7 +33,7 @@ export function assertPoint(point: Point): void {
       (v) => Number.isFinite(v) && Math.abs(v) <= MAX_COORDINATE,
     )
   ) {
-    throw new Error("Координаты должны быть числами в пределах ±1000 м.");
+    throw new Error(tr`Координаты должны быть числами в пределах ±1000 м.`);
   }
 }
 
@@ -46,7 +47,7 @@ export function wallLength(a: Point, b: Point): number {
   assertPoint(a);
   assertPoint(b);
   const length = Math.hypot(b.x - a.x, b.y - a.y);
-  if (length <= EPSILON) throw new Error("Стена должна иметь ненулевую длину.");
+  if (length <= EPSILON) throw new Error(tr`Стена должна иметь ненулевую длину.`);
   return length;
 }
 
@@ -85,10 +86,10 @@ function segmentsIntersect(a: Point, b: Point, c: Point, d: Point): boolean {
 /** Area of a simple, unclosed polygon in m². Rejects invalid topology. */
 export function polygonArea(points: readonly Point[]): number {
   if (points.length < 3 || points.length > 1000)
-    throw new Error("Контур должен содержать от 3 до 1000 вершин.");
+    throw new Error(tr`Контур должен содержать от 3 до 1000 вершин.`);
   points.forEach(assertPoint);
   if (new Set(points.map((p) => `${p.x},${p.y}`)).size !== points.length)
-    throw new Error("Вершины контура не должны повторяться.");
+    throw new Error(tr`Вершины контура не должны повторяться.`);
   const count = points.length;
   for (let i = 0; i < count; i++) {
     const a = points[i],
@@ -100,12 +101,12 @@ export function polygonArea(points: readonly Point[]): number {
       Math.abs(cross(a, b, c)) <= EPSILON &&
       (b.x - a.x) * (c.x - b.x) + (b.y - a.y) * (c.y - b.y) < -EPSILON
     ) {
-      throw new Error("Рёбра контура перекрываются.");
+      throw new Error(tr`Рёбра контура перекрываются.`);
     }
     for (let j = i + 1; j < count; j++) {
       if (j === i + 1 || (i === 0 && j === count - 1)) continue;
       if (segmentsIntersect(a, b, points[j], points[(j + 1) % count]))
-        throw new Error("Контур пересекает сам себя.");
+        throw new Error(tr`Контур пересекает сам себя.`);
     }
   }
   const origin = points[0];
@@ -114,7 +115,7 @@ export function polygonArea(points: readonly Point[]): number {
     twiceArea += cross(origin, points[i], points[i + 1]);
   const area = Math.abs(twiceArea) / 2;
   if (area <= EPSILON)
-    throw new Error("Контур должен иметь ненулевую площадь.");
+    throw new Error(tr`Контур должен иметь ненулевую площадь.`);
   return area;
 }
 

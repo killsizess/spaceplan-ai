@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GitCompare, X } from "lucide-react";
 import { diffPlans, type CollectionDiff, type PlanMetrics } from "@/domain/floor-plan/plan-diff";
@@ -16,7 +17,7 @@ interface CompareRow {
   label: string;
   before: number;
   after: number;
-  unit: "м²" | "м" | "";
+  unit: string;
 }
 
 const number = (value: number) => formatLength(Math.abs(value) < 5e-10 ? 0 : value);
@@ -28,20 +29,20 @@ function signed(value: number, unit: string) {
 function rows(before: PlanMetrics, after: PlanMetrics): CompareRow[] {
   const kinds = (Object.keys(ROOM_KINDS) as RoomKind[]).filter((kind) => before.roomsByKind[kind] || after.roomsByKind[kind]);
   return [
-    { label: "Площадь помещений", before: before.totalArea, after: after.totalArea, unit: "м²" },
-    { label: "Помещений", before: before.roomCount, after: after.roomCount, unit: "" },
+    { label: tr`Площадь помещений`, before: before.totalArea, after: after.totalArea, unit: tr`м²` },
+    { label: tr`Помещений`, before: before.roomCount, after: after.roomCount, unit: "" },
     ...kinds.map((kind) => ({
-      label: `${ROOM_KINDS[kind].label}: площадь`, before: before.areaByKind[kind], after: after.areaByKind[kind], unit: "м²" as const,
+      label: tr`${ROOM_KINDS[kind].label}: площадь`, before: before.areaByKind[kind], after: after.areaByKind[kind], unit: tr`м²`,
     })),
-    { label: "Стен", before: before.wallCount, after: after.wallCount, unit: "" },
-    { label: "Длина стен по осям", before: before.wallLength, after: after.wallLength, unit: "м" },
-    { label: "Дверей", before: before.doorCount, after: after.doorCount, unit: "" },
-    { label: "Окон", before: before.windowCount, after: after.windowCount, unit: "" },
+    { label: tr`Стен`, before: before.wallCount, after: after.wallCount, unit: "" },
+    { label: tr`Длина стен по осям`, before: before.wallLength, after: after.wallLength, unit: tr`м` },
+    { label: tr`Дверей`, before: before.doorCount, after: after.doorCount, unit: "" },
+    { label: tr`Окон`, before: before.windowCount, after: after.windowCount, unit: "" },
   ];
 }
 
 const counts = (diff: CollectionDiff) =>
-  `добавлено ${diff.added.length}, удалено ${diff.removed.length}, изменено ${diff.changed.length}`;
+  tr`добавлено ${diff.added.length}, удалено ${diff.removed.length}, изменено ${diff.changed.length}`;
 
 export interface CompareCandidate {
   plan: FloorPlan;
@@ -98,25 +99,25 @@ export default function PlanCompareDialog({
       onCancel={(event) => { event.preventDefault(); close(); }}
       onClick={(event) => { if (event.target === event.currentTarget) close(); }}
     >
-      <button type="button" className="icon-button modal-close" aria-label="Закрыть сравнение" onClick={close} autoFocus>
+      <button type="button" className="icon-button modal-close" aria-label={tr`Закрыть сравнение`} onClick={close} autoFocus>
         <X size={18} aria-hidden="true" />
       </button>
       <header className="plan-check-header">
         <span className="plan-check-symbol"><GitCompare size={24} aria-hidden="true" /></span>
         <div>
-          <span className="eyebrow">ВАРИАНТЫ ПЛАНИРОВКИ</span>
-          <h2 id="plan-compare-title">Сравнение планов</h2>
-          <p title={current.name}>Текущий: {current.name}</p>
+          <span className="eyebrow">{tr`ВАРИАНТЫ ПЛАНИРОВКИ`}</span>
+          <h2 id="plan-compare-title">{tr`Сравнение планов`}</h2>
+          <p title={current.name}>{tr`Текущий: `}{current.name}</p>
         </div>
       </header>
       {!selected || !diff ? (
-        <p className="plan-compare-empty">В библиотеке нет других проектов. Создайте вариант кнопкой «Вариант», измените его и сравните с исходным планом.</p>
+        <p className="plan-compare-empty">{tr`В библиотеке нет других проектов. Создайте вариант кнопкой «Вариант», измените его и сравните с исходным планом.`}</p>
       ) : (
         <div className="plan-compare-body">
-          <label htmlFor="plan-compare-target">Сравнить с проектом</label>
+          <label htmlFor="plan-compare-target">{tr`Сравнить с проектом`}</label>
           <select id="plan-compare-target" value={useOrigin ? ORIGIN_VALUE : selected.id} onChange={(event) => setSelectedId(event.target.value)}>
             {originPlan && origin && (
-              <option value={ORIGIN_VALUE}>Исходный план «{origin.planName}» на момент создания варианта</option>
+              <option value={ORIGIN_VALUE}>{tr`Исходный план «`}{origin.planName}{tr`» на момент создания варианта`}</option>
             )}
             {candidates.map((candidate) => (
               <option key={candidate.plan.id} value={candidate.plan.id}>{candidate.plan.name}</option>
@@ -128,17 +129,16 @@ export default function PlanCompareDialog({
             </p>
           )}
           {(procedures.current || procedures.selected) && (
-            <p className="plan-compare-rules" data-testid="plan-compare-rules">
-              По нормам: {procedures.current ? `этот план: ${PROCEDURES[procedures.current].label.toLowerCase()}` : "этот план не сравнивался с исходным"}
+            <p className="plan-compare-rules" data-testid="plan-compare-rules">{tr`По нормам: `}{procedures.current ? tr`этот план: ${PROCEDURES[procedures.current].label.toLowerCase()}` : tr`этот план не сравнивался с исходным`}
               {"; "}
-              {procedures.selected ? `выбранный: ${PROCEDURES[procedures.selected].label.toLowerCase()}` : "выбранный не сравнивался с исходным"}.
+              {procedures.selected ? tr`выбранный: ${PROCEDURES[procedures.selected].label.toLowerCase()}` : tr`выбранный не сравнивался с исходным`}.
             </p>
           )}
-          {diff.identical && <p className="plan-compare-same" data-testid="plan-compare-identical">Планы совпадают по стенам, проёмам, помещениям и требованиям.</p>}
+          {diff.identical && <p className="plan-compare-same" data-testid="plan-compare-identical">{tr`Планы совпадают по стенам, проёмам, помещениям и требованиям.`}</p>}
           <div className="plan-compare-table-wrap">
             <table className="plan-compare-table">
               <thead>
-                <tr><th scope="col">Показатель</th><th scope="col">Выбранный</th><th scope="col">Текущий</th><th scope="col">Разница</th></tr>
+                <tr><th scope="col">{tr`Показатель`}</th><th scope="col">{tr`Выбранный`}</th><th scope="col">{tr`Текущий`}</th><th scope="col">{tr`Разница`}</th></tr>
               </thead>
               <tbody>
                 {rows(diff.before, diff.after).map((row) => (
@@ -152,19 +152,17 @@ export default function PlanCompareDialog({
               </tbody>
             </table>
           </div>
-          <h3>Изменения от выбранного к текущему</h3>
+          <h3>{tr`Изменения от выбранного к текущему`}</h3>
           <ul className="plan-compare-changes" data-testid="plan-compare-changes">
-            <li>Стены: {counts(diff.walls)}</li>
-            <li>Объём работ по стенам: {formatLength(diff.changedWallLength)} м</li>
-            <li>Проёмы: {counts(diff.openings)}; перенесено на плане: {diff.movedOpenings.length}</li>
-            <li>Параметры помещений: {counts(diff.wallRoomLabels)}</li>
-            <li>Требования: {counts(diff.requirements)}</li>
-            {(diff.before.roomMode !== diff.after.roomMode) && <li>Способ расчёта помещений отличается: площади несопоставимы.</li>}
-            {(!diff.before.roomsComputed || !diff.after.roomsComputed) && <li>Помещения одного из планов не удалось определить, площади не учтены.</li>}
+            <li>{tr`Стены: `}{counts(diff.walls)}</li>
+            <li>{tr`Объём работ по стенам: `}{formatLength(diff.changedWallLength)}{tr` м`}</li>
+            <li>{tr`Проёмы: `}{counts(diff.openings)}{tr`; перенесено на плане: `}{diff.movedOpenings.length}</li>
+            <li>{tr`Параметры помещений: `}{counts(diff.wallRoomLabels)}</li>
+            <li>{tr`Требования: `}{counts(diff.requirements)}</li>
+            {(diff.before.roomMode !== diff.after.roomMode) && <li>{tr`Способ расчёта помещений отличается: площади несопоставимы.`}</li>}
+            {(!diff.before.roomsComputed || !diff.after.roomsComputed) && <li>{tr`Помещения одного из планов не удалось определить, площади не учтены.`}</li>}
           </ul>
-          <p className="plan-compare-note">
-            Сравнение идёт по идентификаторам объектов, поэтому точно для вариантов, созданных из одного проекта. У независимо нарисованных планов все стены окажутся «добавленными» и «удалёнными». Площади и длины считает ядро приложения; это геометрия, а не оценка стоимости или строительная экспертиза.
-          </p>
+          <p className="plan-compare-note">{tr`Сравнение идёт по идентификаторам объектов, поэтому точно для вариантов, созданных из одного проекта. У независимо нарисованных планов все стены окажутся «добавленными» и «удалёнными». Площади и длины считает ядро приложения; это геометрия, а не оценка стоимости или строительная экспертиза.`}</p>
         </div>
       )}
     </dialog>

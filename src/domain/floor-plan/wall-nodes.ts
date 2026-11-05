@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { assertPoint, type Point } from "@/domain/geometry";
 import type { Opening, Wall } from "./types";
 
@@ -34,11 +35,11 @@ function equalPoint(a: Point, b: Point): boolean {
 
 function selectedWall(walls: readonly Wall[], wallId: string): Wall {
   if (wallId.length < 1 || wallId.length > 100)
-    throw new Error("Некорректный идентификатор стены.");
+    throw new Error(tr`Некорректный идентификатор стены.`);
   const matches = walls.filter((wall) => wall.id === wallId);
-  if (matches.length === 0) throw new Error("Стена не найдена.");
+  if (matches.length === 0) throw new Error(tr`Стена не найдена.`);
   if (matches.length !== 1)
-    throw new Error("Идентификаторы стен должны быть уникальными.");
+    throw new Error(tr`Идентификаторы стен должны быть уникальными.`);
   return matches[0];
 }
 
@@ -150,7 +151,7 @@ export function previewWallNode(
   connectEndpoints = true,
 ): readonly Wall[] {
   if (endpoint !== "start" && endpoint !== "end")
-    throw new Error("Некорректная вершина стены.");
+    throw new Error(tr`Некорректная вершина стены.`);
   const wall = selectedWall(walls, wallId);
   return previewWallUpdate(walls, { ...wall, [endpoint]: point }, connectEndpoints);
 }

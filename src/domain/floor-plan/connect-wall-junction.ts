@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { assertPoint, wallLength } from "@/domain/geometry";
 import { floorPlanSchema } from "./schema";
 import type { FloorPlan } from "./types";
@@ -9,7 +10,7 @@ import { rebaseOpenings, sameWallNode } from "./wall-nodes";
 
 const EPSILON = 1e-9;
 const STALE_CONNECTION =
-  "Соединение изменилось. Выберите свободный конец заново.";
+  tr`Соединение изменилось. Выберите свободный конец заново.`;
 
 /**
  * Commits an explicitly chosen T-junction as one transaction. The target keeps
@@ -27,7 +28,7 @@ export function connectWallJunction(
     !diagnostic.target ||
     diagnostic.target.endpoint !== undefined
   ) {
-    throw new Error("Т-соединение возможно только с серединой стены.");
+    throw new Error(tr`Т-соединение возможно только с серединой стены.`);
   }
   if (
     (diagnostic.endpoint !== "start" && diagnostic.endpoint !== "end") ||
@@ -36,18 +37,18 @@ export function connectWallJunction(
     diagnostic.distance < 0 ||
     diagnostic.distance > 0.3
   ) {
-    throw new Error("Некорректное Т-соединение стен.");
+    throw new Error(tr`Некорректное Т-соединение стен.`);
   }
   assertPoint(diagnostic.point);
   assertPoint(diagnostic.target.point);
   if (typeof newWallId !== "string" || newWallId.length < 1 || newWallId.length > 100) {
-    throw new Error("Идентификатор новой стены должен содержать от 1 до 100 символов.");
+    throw new Error(tr`Идентификатор новой стены должен содержать от 1 до 100 символов.`);
   }
   if ([...plan.rooms, ...plan.walls, ...plan.openings].some((item) => item.id === newWallId)) {
-    throw new Error("Идентификатор объекта уже существует.");
+    throw new Error(tr`Идентификатор объекта уже существует.`);
   }
   if (plan.walls.length >= 1000) {
-    throw new Error("Нельзя разделить стену: в плане уже 1000 стен.");
+    throw new Error(tr`Нельзя разделить стену: в плане уже 1000 стен.`);
   }
 
   const source = plan.walls.find((wall) => wall.id === diagnostic.wallId);
@@ -77,7 +78,7 @@ export function connectWallJunction(
     splitDistance <= EPSILON ||
     Math.hypot(target.end.x - point.x, target.end.y - point.y) <= EPSILON
   ) {
-    throw new Error("Точка соединения слишком близко к концу стены.");
+    throw new Error(tr`Точка соединения слишком близко к концу стены.`);
   }
   const other = source[diagnostic.endpoint === "start" ? "end" : "start"];
   const perpendicularDistance = Math.abs(
@@ -85,7 +86,7 @@ export function connectWallJunction(
     (target.end.y - target.start.y) * (other.x - point.x),
   ) / length;
   if (perpendicularDistance <= EPSILON) {
-    throw new Error("Т-соединение невозможно: стены лежат на одной прямой.");
+    throw new Error(tr`Т-соединение невозможно: стены лежат на одной прямой.`);
   }
 
   const openings = plan.openings.map((opening) => {
@@ -99,7 +100,7 @@ export function connectWallJunction(
         offset: Math.max(0, opening.offset - splitDistance),
       };
     }
-    throw new Error("Точка соединения попадает внутрь проёма. Переместите конец стены или проём.");
+    throw new Error(tr`Точка соединения попадает внутрь проёма. Переместите конец стены или проём.`);
   });
   const walls = plan.walls.map((wall) => {
     if (wall.id === source.id) return { ...wall, [diagnostic.endpoint]: { ...point } };
@@ -116,7 +117,7 @@ export function connectWallJunction(
   });
   if (!parsed.success) {
     const issue = parsed.error.issues.find((item) => item.code === "custom");
-    throw new Error(issue?.message ?? "Проверьте размеры, координаты и свойства стен.");
+    throw new Error(issue?.message ?? tr`Проверьте размеры, координаты и свойства стен.`);
   }
   return parsed.data;
 }

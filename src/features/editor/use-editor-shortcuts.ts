@@ -1,3 +1,4 @@
+import { tr, untranslated } from "@/lib/i18n";
 import { useEffect } from "react";
 import type { EditorAction } from "./editor-state";
 import type { EditorTool } from "./editor-tools";
@@ -54,19 +55,19 @@ export function useEditorShortcuts({
           event.preventDefault();
           if (wallRoomSelected)
             reportNotice(
-              "Помещение определяется стенами. Измените или удалите стену, чтобы изменить его контур.",
+              tr`Помещение определяется стенами. Измените или удалите стену, чтобы изменить его контур.`,
             );
           else dispatch({ type: "delete", id: selectedId });
         }
-        if (key === "v" || key === "м") setTool("select");
-        if (key === "r" || key === "к") {
+        if (key === "v" || key === untranslated("м")) setTool("select");
+        if (key === "r" || key === untranslated("к")) {
           if (wallMode) dispatch({ type: "roomMode:set", mode: "manual" });
           enter2D("room");
         }
-        if (key === "h" || key === "р") enter2D("pan");
-        if (key === "w" || key === "ц") enter2D("wall");
-        if (key === "d" || key === "в") enter2D("door");
-        if ((key === "f" || key === "а") && viewMode === "2d") fit();
+        if (key === "h" || key === untranslated("р")) enter2D("pan");
+        if (key === "w" || key === untranslated("ц")) enter2D("wall");
+        if (key === "d" || key === untranslated("в")) enter2D("door");
+        if ((key === "f" || key === untranslated("а")) && viewMode === "2d") fit();
         if (key === "escape") {
           setTool("select");
           dispatch({ type: "select", id: null });

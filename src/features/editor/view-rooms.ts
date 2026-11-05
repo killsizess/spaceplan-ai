@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import type { FloorPlan } from "@/domain/floor-plan/types";
 import type { RoomAdjacencyResult } from "@/domain/floor-plan/room-adjacency";
 import type { WallRoom } from "@/domain/floor-plan/wall-rooms";
@@ -35,7 +36,7 @@ export function detectViewRooms(plan: FloorPlan): ViewRoomDetection {
     };
   } catch (error) {
     const reason =
-      error instanceof Error ? error.message : "Не удалось определить помещения.";
+      error instanceof Error ? error.message : tr`Не удалось определить помещения.`;
     return {
       rooms: [],
       unassigned: plan.wallRoomLabels,

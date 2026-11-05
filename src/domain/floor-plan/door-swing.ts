@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { wallLength, type Point } from "@/domain/geometry";
 import type { DoorSwing, Opening, Wall } from "./types";
 
@@ -30,14 +31,14 @@ function checkedSwing(opening: Opening): DoorSwing {
     opening.height <= 0 ||
     opening.sillHeight < 0
   ) {
-    throw new Error("Некорректные размеры двери.");
+    throw new Error(tr`Некорректные размеры двери.`);
   }
   const swing = opening.door ?? DEFAULT_DOOR_SWING;
   if (
     (swing.hinge !== "start" && swing.hinge !== "end") ||
     (swing.side !== "left" && swing.side !== "right")
   ) {
-    throw new Error("Некорректное направление открывания двери.");
+    throw new Error(tr`Некорректное направление открывания двери.`);
   }
   return swing;
 }
@@ -53,7 +54,7 @@ function coordinateBounds(origin: number, a: number, b: number): [number, number
   if (a > 0 && b > 0) max = origin + Math.hypot(a, b);
   if (a < 0 && b < 0) min = origin - Math.hypot(a, b);
   if (!Number.isFinite(min) || !Number.isFinite(max)) {
-    throw new Error("Размер двери выходит за допустимые пределы.");
+    throw new Error(tr`Размер двери выходит за допустимые пределы.`);
   }
   return [min, max];
 }
@@ -111,7 +112,7 @@ export function doorSwingWorld(
     wall.height <= 0 ||
     opening.wallId !== wall.id
   ) {
-    throw new Error("Некорректная стена двери.");
+    throw new Error(tr`Некорректная стена двери.`);
   }
   const local = doorSwingLocal(opening);
   if (!local) return null;
@@ -119,7 +120,7 @@ export function doorSwingWorld(
     opening.offset + opening.width > length + EPSILON ||
     opening.sillHeight + opening.height > wall.height + EPSILON
   ) {
-    throw new Error("Дверь выходит за границы стены.");
+    throw new Error(tr`Дверь выходит за границы стены.`);
   }
   const ux = (wall.end.x - wall.start.x) / length;
   const uy = (wall.end.y - wall.start.y) / length;

@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { ListChecks, Plus, Trash2, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import type { PlanRequirement, RoomKind, Wall } from "@/domain/floor-plan/types";
@@ -61,7 +62,7 @@ export function RequirementsPanel({
   const violated = results.filter((result) => result.status === "violated").length;
   const wallName = (id: string) => {
     const index = walls.findIndex((wall) => wall.id === id);
-    return index >= 0 ? `Стена ${index + 1}` : "Удалённая стена";
+    return index >= 0 ? tr`Стена ${index + 1}` : tr`Удалённая стена`;
   };
   const chosenWall = walls.find((wall) => wall.id === wallId) ?? walls[0];
 
@@ -69,15 +70,15 @@ export function RequirementsPanel({
     <section className="requirements-panel" aria-labelledby="requirements-title">
       <div className="requirements-heading">
         <ListChecks size={15} />
-        <h3 id="requirements-title">Требования к планировке</h3>
+        <h3 id="requirements-title">{tr`Требования к планировке`}</h3>
         {requirements.length > 0 && (
           <span className={`requirements-count ${violated ? "bad" : "good"}`} data-testid="requirements-summary">
-            {violated ? `нарушено: ${violated}` : "всё выполнено"}
+            {violated ? tr`нарушено: ${violated}` : tr`всё выполнено`}
           </span>
         )}
       </div>
       {conflicts.length > 0 && (
-        <ul className="requirements-conflicts" aria-label="Противоречия между требованиями">
+        <ul className="requirements-conflicts" aria-label={tr`Противоречия между требованиями`}>
           {conflicts.map((conflict) => (
             <li key={conflict.ids.join("|")} data-conflict={conflict.reason}>
               <TriangleAlert size={13} />
@@ -87,7 +88,7 @@ export function RequirementsPanel({
         </ul>
       )}
       {requirements.length === 0 ? (
-        <p className="requirements-empty">Задайте свои требования, например минимальную площадь кухни, непроходную спальню или неизменную несущую стену. Приложение проверит их по плану.</p>
+        <p className="requirements-empty">{tr`Задайте свои требования, например минимальную площадь кухни, непроходную спальню или неизменную несущую стену. Приложение проверит их по плану.`}</p>
       ) : (
         <ul className="requirements-list">
           {requirements.map((requirement) => {
@@ -104,7 +105,7 @@ export function RequirementsPanel({
                 <button
                   type="button"
                   className="icon-button"
-                  aria-label={`Удалить требование: ${description}`}
+                  aria-label={tr`Удалить требование: ${description}`}
                   disabled={busy}
                   onClick={() => onRemove(requirement.id)}
                 >
@@ -124,7 +125,7 @@ export function RequirementsPanel({
           if (type === "room-min-area" || type === "room-max-area") {
             const value = parse(area);
             if (!Number.isFinite(value) || value <= 0) {
-              setLocalError("Введите площадь числом больше 0.");
+              setLocalError(tr`Введите площадь числом больше 0.`);
               return;
             }
             const scope = targetRoom ? { kind: targetRoom.kind, labelId: targetRoom.labelId } : { kind };
@@ -137,12 +138,12 @@ export function RequirementsPanel({
             try {
               onAdd(bearingWallsRequirement(walls, id));
             } catch (error) {
-              setLocalError(error instanceof Error ? error.message : "Не удалось добавить требование.");
+              setLocalError(error instanceof Error ? error.message : tr`Не удалось добавить требование.`);
               return;
             }
           } else {
             if (!chosenWall) {
-              setLocalError("В плане нет стен.");
+              setLocalError(tr`В плане нет стен.`);
               return;
             }
             onAdd(fixedWallRequirement(chosenWall, id));
@@ -150,38 +151,38 @@ export function RequirementsPanel({
           setLocalError(null);
         }}
       >
-        <label htmlFor="requirement-type">Новое требование</label>
+        <label htmlFor="requirement-type">{tr`Новое требование`}</label>
         <select id="requirement-type" value={type} onChange={(event) => { setType(event.target.value as RequirementType); setLocalError(null); }}>
-          <option value="room-min-area">Минимальная площадь</option>
-          <option value="room-max-area">Максимальная площадь</option>
-          <option value="room-not-walkthrough">Непроходное помещение</option>
-          <option value="rooms-connected">Помещения рядом</option>
-          <option value="wall-fixed">Стена не меняется</option>
-          <option value="bearing-walls-kept">Несущие стены не меняются</option>
+          <option value="room-min-area">{tr`Минимальная площадь`}</option>
+          <option value="room-max-area">{tr`Максимальная площадь`}</option>
+          <option value="room-not-walkthrough">{tr`Непроходное помещение`}</option>
+          <option value="rooms-connected">{tr`Помещения рядом`}</option>
+          <option value="wall-fixed">{tr`Стена не меняется`}</option>
+          <option value="bearing-walls-kept">{tr`Несущие стены не меняются`}</option>
         </select>
         {type === "wall-fixed" ? (
           <>
-            <label htmlFor="requirement-wall">Стена</label>
+            <label htmlFor="requirement-wall">{tr`Стена`}</label>
             <select id="requirement-wall" value={chosenWall?.id ?? ""} onChange={(event) => setWallId(event.target.value)}>
-              {walls.map((wall, index) => <option key={wall.id} value={wall.id}>Стена {index + 1}{wall.kind === "bearing" ? " · несущая" : ""}</option>)}
+              {walls.map((wall, index) => <option key={wall.id} value={wall.id}>{tr`Стена `}{index + 1}{wall.kind === "bearing" ? tr` · несущая` : ""}</option>)}
             </select>
           </>
         ) : type === "bearing-walls-kept" ? (
-          <p className="requirements-note">Запоминает ось, толщину и отметку всех стен, которые сейчас отмечены как несущие ({walls.filter((wall) => wall.kind === "bearing").length}).</p>
+          <p className="requirements-note">{tr`Запоминает ось, толщину и отметку всех стен, которые сейчас отмечены как несущие (`}{walls.filter((wall) => wall.kind === "bearing").length}).</p>
         ) : (
           <>
             {roomScoped && namedRooms.length > 0 && (
               <>
-                <label htmlFor="requirement-room">Помещение</label>
+                <label htmlFor="requirement-room">{tr`Помещение`}</label>
                 <select id="requirement-room" value={targetRoom?.labelId ?? ""} onChange={(event) => setLabelId(event.target.value)}>
-                  <option value="">Все с выбранным назначением</option>
+                  <option value="">{tr`Все с выбранным назначением`}</option>
                   {namedRooms.map((room) => <option key={room.labelId} value={room.labelId}>{room.name}</option>)}
                 </select>
               </>
             )}
             {!(roomScoped && targetRoom) && (
               <>
-                <label htmlFor="requirement-kind">Назначение</label>
+                <label htmlFor="requirement-kind">{tr`Назначение`}</label>
                 <select id="requirement-kind" value={kind} onChange={(event) => setKind(event.target.value as RoomKind)}>
                   {Object.entries(ROOM_KINDS).map(([value, entry]) => <option key={value} value={value}>{entry.label}</option>)}
                 </select>
@@ -191,27 +192,24 @@ export function RequirementsPanel({
         )}
         {(type === "room-min-area" || type === "room-max-area") && (
           <>
-            <label htmlFor="requirement-area">{type === "room-min-area" ? "Площадь не меньше, м²" : "Площадь не больше, м²"}</label>
+            <label htmlFor="requirement-area">{type === "room-min-area" ? tr`Площадь не меньше, м²` : tr`Площадь не больше, м²`}</label>
             <input id="requirement-area" inputMode="decimal" value={area} onChange={(event) => { setArea(event.target.value); setLocalError(null); }} />
           </>
         )}
         {type === "rooms-connected" && (
           <>
-            <label htmlFor="requirement-other-kind">Рядом с</label>
+            <label htmlFor="requirement-other-kind">{tr`Рядом с`}</label>
             <select id="requirement-other-kind" value={otherKind} onChange={(event) => setOtherKind(event.target.value as RoomKind)}>
               {Object.entries(ROOM_KINDS).map(([value, entry]) => <option key={value} value={value}>{entry.label}</option>)}
             </select>
             <label className="requirements-checkbox">
-              <input id="requirement-by-door" type="checkbox" checked={byDoor} onChange={(event) => setByDoor(event.target.checked)} />
-              Соединены дверью
-            </label>
+              <input id="requirement-by-door" type="checkbox" checked={byDoor} onChange={(event) => setByDoor(event.target.checked)} />{tr`Соединены дверью`}</label>
           </>
         )}
         {localError && <p className="construction-error" role="alert">{localError}</p>}
         <button className="secondary-button" type="submit" disabled={busy}>
-          <Plus size={14} /> Добавить требование
-        </button>
-        <p className="requirements-note">Это ваши требования к плану, а не строительные нормы. Назначение помещений берётся из их параметров; без них помещение считается «Комнатой». «Стена не меняется» запоминает ось и толщину стены в момент добавления.</p>
+          <Plus size={14} />{tr` Добавить требование`}</button>
+        <p className="requirements-note">{tr`Это ваши требования к плану, а не строительные нормы. Назначение помещений берётся из их параметров; без них помещение считается «Комнатой». «Стена не меняется» запоминает ось и толщину стены в момент добавления.`}</p>
       </form>
     </section>
   );

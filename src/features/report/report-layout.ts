@@ -1,3 +1,4 @@
+import { currentLocale, tr } from "@/lib/i18n";
 import { formatArea, formatLength } from "@/lib/format";
 import { REPORT_LEVEL_ORDER, REPORT_LEVELS, type PlanReport, type ReportFinding, type ReportLevel, type ReportState } from "./plan-report";
 
@@ -97,7 +98,7 @@ export class Flow {
 
 /** The moment in the reader's own time zone: a report is read by a person, not a server. */
 export function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat("ru-RU", { dateStyle: "short", timeStyle: "short" }).format(new Date(iso));
+  return new Intl.DateTimeFormat(currentLocale(), { dateStyle: "short", timeStyle: "short" }).format(new Date(iso));
 }
 
 function drawFinding(flow: Flow, finding: ReportFinding) {
@@ -133,7 +134,7 @@ export function layoutPlanReport(report: PlanReport, measure: MeasureText): Repo
   flow.text(left + 9, flow.y + 4.9, "SpacePlan AI", 4, 700, INK);
   flow.text(left + width, flow.y + 4.9, formatDate(report.generatedAt), 3, 400, MUTED, "right");
   flow.y += 12;
-  flow.text(left, flow.y + 3.4, "ОТЧЁТ ПО ПЛАНУ", 3, 650, MUTED);
+  flow.text(left, flow.y + 3.4, tr`ОТЧЁТ ПО ПЛАНУ`, 3, 650, MUTED);
   flow.y += 5.2;
   flow.y += flow.lines(left, width, report.planName, 7.4, 650, INK) + 3.5;
 
@@ -150,10 +151,10 @@ export function layoutPlanReport(report: PlanReport, measure: MeasureText): Repo
   // Figures.
   const { totals } = report;
   const figures: [string, string][] = [
-    ["Площадь", totals.area === null ? "не определена" : formatArea(totals.area)],
-    ["Помещений", String(totals.rooms)],
-    ["Стен", `${totals.walls}`],
-    ["Двери / окна", `${totals.doors} / ${totals.windows}`],
+    [tr`Площадь`, totals.area === null ? tr`не определена` : formatArea(totals.area)],
+    [tr`Помещений`, String(totals.rooms)],
+    [tr`Стен`, `${totals.walls}`],
+    [tr`Двери / окна`, `${totals.doors} / ${totals.windows}`],
   ];
   const cell = (width - 3 * 3) / 4;
   figures.forEach(([label, value], index) => {
@@ -163,16 +164,16 @@ export function layoutPlanReport(report: PlanReport, measure: MeasureText): Repo
     flow.text(x + 3.5, flow.y + 12.2, value, value.length > 10 ? 3.8 : 5, 700, INK);
   });
   flow.y += 19;
-  flow.text(left, flow.y + 3, `Типы стен: несущих ${totals.bearing}, перегородок ${totals.partition}, не указано ${totals.unknownWalls}.`, 3, 400, MUTED);
+  flow.text(left, flow.y + 3, tr`Типы стен: несущих ${totals.bearing}, перегородок ${totals.partition}, не указано ${totals.unknownWalls}.`, 3, 400, MUTED);
   flow.y += 7;
   if (report.origin) {
-    const was = report.origin.areaBefore === null ? "не определена" : formatArea(report.origin.areaBefore);
-    const now = report.origin.areaAfter === null ? "не определена" : formatArea(report.origin.areaAfter);
-    flow.y += flow.lines(left, width, `Вариант плана «${report.origin.planName}». Площадь: было ${was}, стало ${now}.`, 3, 400, MUTED) + 2;
+    const was = report.origin.areaBefore === null ? tr`не определена` : formatArea(report.origin.areaBefore);
+    const now = report.origin.areaAfter === null ? tr`не определена` : formatArea(report.origin.areaAfter);
+    flow.y += flow.lines(left, width, tr`Вариант плана «${report.origin.planName}». Площадь: было ${was}, стало ${now}.`, 3, 400, MUTED) + 2;
   }
 
   // Findings by level.
-  flow.heading("Выводы");
+  flow.heading(tr`Выводы`);
   for (const level of REPORT_LEVEL_ORDER) {
     const items = report.findings.filter((finding) => finding.level === level);
     if (!items.length) continue;
@@ -188,12 +189,12 @@ export function layoutPlanReport(report: PlanReport, measure: MeasureText): Repo
 
   // Rooms.
   if (report.rooms.length) {
-    flow.heading("Помещения");
+    flow.heading(tr`Помещения`);
     const nameWidth = width - 62;
     flow.need(8);
-    flow.text(left, flow.y + 3, "Название", 2.8, 600, MUTED);
-    flow.text(left + nameWidth + 2, flow.y + 3, "Назначение", 2.8, 600, MUTED);
-    flow.text(left + width, flow.y + 3, "Площадь", 2.8, 600, MUTED, "right");
+    flow.text(left, flow.y + 3, tr`Название`, 2.8, 600, MUTED);
+    flow.text(left + nameWidth + 2, flow.y + 3, tr`Назначение`, 2.8, 600, MUTED);
+    flow.text(left + width, flow.y + 3, tr`Площадь`, 2.8, 600, MUTED, "right");
     flow.y += 5;
     for (const room of report.rooms) {
       const height = flow.height(nameWidth, room.name, 3.3, 500);
@@ -202,7 +203,7 @@ export function layoutPlanReport(report: PlanReport, measure: MeasureText): Repo
       flow.y += 1.1;
       flow.lines(left, nameWidth, room.name, 3.3, 500, INK);
       flow.text(left + nameWidth + 2, flow.y + 3.3, room.kind, 3.1, 400, MUTED);
-      flow.text(left + width, flow.y + 3.3, `${formatLength(Math.round(room.area * 100) / 100)} м²`, 3.3, 600, INK, "right");
+      flow.text(left + width, flow.y + 3.3, tr`${formatLength(Math.round(room.area * 100) / 100)} м²`, 3.3, 600, INK, "right");
       flow.y += height + 1.2;
     }
     flow.y += 3;
@@ -210,8 +211,8 @@ export function layoutPlanReport(report: PlanReport, measure: MeasureText): Repo
 
   // The answers the rule findings were drawn from.
   if (report.facts.length) {
-    flow.heading("Ответы о доме");
-    flow.y += flow.lines(left, width, "Указаны владельцем плана и не проверялись. Выводы по нормам зависят от них.", 3, 400, MUTED) + 1.4;
+    flow.heading(tr`Ответы о доме`);
+    flow.y += flow.lines(left, width, tr`Указаны владельцем плана и не проверялись. Выводы по нормам зависят от них.`, 3, 400, MUTED) + 1.4;
     for (const fact of report.facts) {
       flow.need(5.2);
       flow.rect(left, flow.y, width, 0.2, LINE);
@@ -229,7 +230,7 @@ export function layoutPlanReport(report: PlanReport, measure: MeasureText): Repo
   flow.y += 3;
   flow.rect(left, flow.y, width, limitHeight, PAPER, 2.4);
   const top = flow.y;
-  flow.text(left + 5, flow.y + 6.6, "Границы этого отчёта", 3.6, 700, INK);
+  flow.text(left + 5, flow.y + 6.6, tr`Границы этого отчёта`, 3.6, 700, INK);
   flow.y += 9;
   for (const limit of report.limits) {
     flow.y += flow.lines(left + 5, width - 10, limit, 3, 400, INK) + 1.6;
@@ -247,7 +248,7 @@ export function addReportFooters(flow: Flow, appVersion: string) {
   flow.pages.forEach((page, index) => {
     const y = REPORT_PAGE.height - REPORT_PAGE.footer + 4;
     page.ops.push({ kind: "rect", x: left, y: y - 4.5, width, height: 0.2, fill: LINE });
-    page.ops.push({ kind: "text", x: left, y, text: `SpacePlan AI ${appVersion} · не заменяет проект и согласование`, size: 2.6, weight: 400, color: MUTED });
-    page.ops.push({ kind: "text", x: left + width, y, text: `Стр. ${index + 1} из ${total}`, size: 2.6, weight: 400, color: MUTED, align: "right" });
+    page.ops.push({ kind: "text", x: left, y, text: tr`SpacePlan AI ${appVersion} · не заменяет проект и согласование`, size: 2.6, weight: 400, color: MUTED });
+    page.ops.push({ kind: "text", x: left + width, y, text: tr`Стр. ${index + 1} из ${total}`, size: 2.6, weight: 400, color: MUTED, align: "right" });
   });
 }

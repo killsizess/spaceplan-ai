@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { z } from "zod";
 import {
   assertRectangle,
@@ -49,14 +50,14 @@ export const underlaySchema = z
       ctx.addIssue({
         code: "custom",
         message:
-          "Подложка выходит за пределы ±1000 м. Уменьшите масштаб или измените положение.",
+          tr`Подложка выходит за пределы ±1000 м. Уменьшите масштаб или измените положение.`,
       });
     }
     const prefixLength = underlay.dataUrl.indexOf(",") + 1;
     if ((underlay.dataUrl.length - prefixLength) % 4 !== 0) {
       ctx.addIssue({
         code: "custom",
-        message: "Повреждённые данные изображения подложки.",
+        message: tr`Повреждённые данные изображения подложки.`,
       });
     }
   });
@@ -67,8 +68,8 @@ export const roomSchema = z
     name: z
       .string()
       .trim()
-      .min(1, "Введите название комнаты.")
-      .max(60, "Название — не больше 60 символов."),
+      .min(1, tr`Введите название комнаты.`)
+      .max(60, tr`Название — не больше 60 символов.`),
     kind: z.enum(["living", "bedroom", "kitchen", "bathroom", "hall", "other", "balcony", "shaft"]),
     color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
     x: coordinate,
@@ -84,7 +85,7 @@ export const roomSchema = z
       ctx.addIssue({
         code: "custom",
         message:
-          error instanceof Error ? error.message : "Некорректная комната.",
+          error instanceof Error ? error.message : tr`Некорректная комната.`,
       });
     }
   });
@@ -104,13 +105,13 @@ export const wallSchema = z
       if (wallLength(wall.start, wall.end) > MAX_PLAN_DIMENSION) {
         ctx.addIssue({
           code: "custom",
-          message: "Длина стены не должна превышать 2000 м.",
+          message: tr`Длина стены не должна превышать 2000 м.`,
         });
       }
     } catch {
       ctx.addIssue({
         code: "custom",
-        message: "Стена должна иметь ненулевую длину и корректные координаты.",
+        message: tr`Стена должна иметь ненулевую длину и корректные координаты.`,
       });
     }
   });
@@ -135,25 +136,25 @@ export const openingSchema = z
       ctx.addIssue({
         code: "custom",
         path: ["doorless"],
-        message: "Проём без двери бывает только на месте двери.",
+        message: tr`Проём без двери бывает только на месте двери.`,
       });
     }
     if (opening.kind !== "door" && "door" in opening) {
       ctx.addIssue({
         code: "custom",
         path: ["door"],
-        message: "Направление открывания можно задать только для двери.",
+        message: tr`Направление открывания можно задать только для двери.`,
       });
     }
   });
 
 export const wallRoomLabelSchema = z.object({
   id,
-  name: z.string().trim().min(1, "Введите название помещения.").max(60, "Название — не больше 60 символов."),
+  name: z.string().trim().min(1, tr`Введите название помещения.`).max(60, tr`Название — не больше 60 символов.`),
   kind: z.enum(["living", "bedroom", "kitchen", "bathroom", "hall", "other", "balcony", "shaft"]),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   anchor: pointSchema,
-  boundaryWallIds: z.array(id).min(1).max(1000).refine((ids) => new Set(ids).size === ids.length, "Границы помещения не должны повторяться."),
+  boundaryWallIds: z.array(id).min(1).max(1000).refine((ids) => new Set(ids).size === ids.length, tr`Границы помещения не должны повторяться.`),
 }).strict();
 
 const roomKind = z.enum(["living", "bedroom", "kitchen", "bathroom", "hall", "other", "balcony", "shaft"]);
@@ -162,14 +163,14 @@ export const planRequirementSchema = z.discriminatedUnion("type", [
     id,
     type: z.literal("room-min-area"),
     kind: roomKind,
-    minArea: z.number().finite().positive("Площадь должна быть больше 0 м².").max(10000, "Площадь — не больше 10 000 м²."),
+    minArea: z.number().finite().positive(tr`Площадь должна быть больше 0 м².`).max(10000, tr`Площадь — не больше 10 000 м².`),
     labelId: id.optional(),
   }).strict(),
   z.object({
     id,
     type: z.literal("room-max-area"),
     kind: roomKind,
-    maxArea: z.number().finite().positive("Площадь должна быть больше 0 м².").max(10000, "Площадь — не больше 10 000 м²."),
+    maxArea: z.number().finite().positive(tr`Площадь должна быть больше 0 м².`).max(10000, tr`Площадь — не больше 10 000 м².`),
     labelId: id.optional(),
   }).strict(),
   z.object({
@@ -186,9 +187,9 @@ export const planRequirementSchema = z.discriminatedUnion("type", [
     id,
     type: z.literal("bearing-walls-kept"),
     walls: z.array(z.object({ wallId: id, start: pointSchema, end: pointSchema, thickness: positive }).strict())
-      .min(1, "Отметьте хотя бы одну несущую стену.")
+      .min(1, tr`Отметьте хотя бы одну несущую стену.`)
       .max(1000)
-      .refine((walls) => new Set(walls.map((wall) => wall.wallId)).size === walls.length, "Стены в требовании не должны повторяться."),
+      .refine((walls) => new Set(walls.map((wall) => wall.wallId)).size === walls.length, tr`Стены в требовании не должны повторяться.`),
   }).strict(),
 ]);
 
@@ -258,8 +259,8 @@ const floorPlanFields = z
     rooms: z.array(roomSchema).max(100),
     walls: z.array(wallSchema).max(1000),
     openings: z.array(openingSchema).max(1000),
-    wallRoomLabels: z.array(wallRoomLabelSchema).max(100, "В одном плане может быть не больше 100 подписей помещений."),
-    requirements: z.array(planRequirementSchema).max(50, "В одном плане может быть не больше 50 требований."),
+    wallRoomLabels: z.array(wallRoomLabelSchema).max(100, tr`В одном плане может быть не больше 100 подписей помещений.`),
+    requirements: z.array(planRequirementSchema).max(50, tr`В одном плане может быть не больше 50 требований.`),
     underlay: underlaySchema.optional(),
     origin: planOriginSchema.optional(),
     buildingFacts: buildingFactsSchema.optional(),

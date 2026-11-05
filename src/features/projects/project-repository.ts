@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { z } from "zod";
 import { floorPlanLoadSchema } from "@/domain/floor-plan/schema";
 import type { FloorPlan } from "@/domain/floor-plan/types";
@@ -161,8 +162,8 @@ const recordSchema = z.discriminatedUnion("storageVersion", [
 const projectNameSchema = z
   .string()
   .trim()
-  .min(1, "Введите название проекта.")
-  .max(100, "Название проекта — не больше 100 символов.");
+  .min(1, tr`Введите название проекта.`)
+  .max(100, tr`Название проекта — не больше 100 символов.`);
 export type SavedProject = z.infer<typeof activeRecordSchema>;
 export type TrashedProject = z.infer<typeof trashedRecordSchema>;
 type StoredProject = SavedProject | TrashedProject;
@@ -170,7 +171,7 @@ type StoredProject = SavedProject | TrashedProject;
 export class ProjectConflictError extends Error {
   constructor(
     message =
-      "Проект изменён в другой вкладке. Сохраните свою версию как копию или загрузите сохранённую.",
+      tr`Проект изменён в другой вкладке. Сохраните свою версию как копию или загрузите сохранённую.`,
   ) {
     super(message);
     this.name = "ProjectConflictError";
@@ -180,7 +181,7 @@ export class ProjectConflictError extends Error {
 export class ProjectTrashedError extends ProjectConflictError {
   constructor() {
     super(
-      "Проект находится в корзине. Восстановите его в библиотеке или сохраните открытую версию как копию.",
+      tr`Проект находится в корзине. Восстановите его в библиотеке или сохраните открытую версию как копию.`,
     );
     this.name = "ProjectTrashedError";
   }
@@ -191,7 +192,7 @@ function parseJson(text: string): unknown {
     return JSON.parse(text);
   } catch {
     throw new Error(
-      "Не удалось прочитать JSON. Проверьте файл и попробуйте снова.",
+      tr`Не удалось прочитать JSON. Проверьте файл и попробуйте снова.`,
     );
   }
 }
@@ -213,7 +214,7 @@ function validatePlan(value: unknown): FloorPlan {
     value.schemaVersion !== 10
   ) {
     throw new Error(
-      "Версия формата не поддерживается. Нужен план SpacePlan версии от 1 до 10.",
+      tr`Версия формата не поддерживается. Нужен план SpacePlan версии от 1 до 10.`,
     );
   }
   const result = persistedPlanSchema.safeParse(value);
@@ -221,7 +222,7 @@ function validatePlan(value: unknown): FloorPlan {
     const issue = result.error.issues.find((item) => item.code === "custom");
     throw new Error(
       issue?.message ??
-        "Некорректный план: проверьте поля, единицы измерения, размеры и координаты.",
+        tr`Некорректный план: проверьте поля, единицы измерения, размеры и координаты.`,
     );
   }
   return result.data;
@@ -229,7 +230,7 @@ function validatePlan(value: unknown): FloorPlan {
 
 export function parsePlanFile(text: string): FloorPlan {
   if (new TextEncoder().encode(text).byteLength > MAX_PLAN_FILE_BYTES)
-    throw new Error("Файл слишком большой. Максимальный размер — 4 МБ.");
+    throw new Error(tr`Файл слишком большой. Максимальный размер — 4 МБ.`);
   return validatePlan(parseJson(text.replace(/^\uFEFF/, "")));
 }
 
@@ -251,7 +252,7 @@ export function makeExportFilename(name: string): string {
     .slice(0, 80)
     .replace(/[. ]+$/g, "");
   const base = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(safe)
-    ? `Проект-${safe}`
+    ? tr`Проект-${safe}`
     : safe;
   return `${base || "SpacePlan"}.spaceplan.json`;
 }
@@ -265,7 +266,7 @@ function readStoredProject(
   const parsed = recordSchema.safeParse(parseJson(raw));
   if (!parsed.success || parsed.data.plan.id !== id)
     throw new Error(
-      "Сохранённый проект повреждён или имеет неподдерживаемый формат. Исходная запись оставлена без изменений.",
+      tr`Сохранённый проект повреждён или имеет неподдерживаемый формат. Исходная запись оставлена без изменений.`,
     );
   return parsed.data;
 }
@@ -431,7 +432,7 @@ export function restoreProject(
     existing.revision !== expectedRevision
   )
     throw new ProjectConflictError(
-      "Проект в корзине изменён или уже восстановлен. Обновите библиотеку и попробуйте снова.",
+      tr`Проект в корзине изменён или уже восстановлен. Обновите библиотеку и попробуйте снова.`,
     );
   const record = activeRecordSchema.parse({
     storageVersion: 1,

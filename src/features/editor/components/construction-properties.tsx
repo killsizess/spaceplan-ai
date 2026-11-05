@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import {
   Check,
@@ -59,7 +60,7 @@ function MeterField({
           value={value}
           onChange={(event) => onChange(event.target.value)}
         />
-        <span>м</span>
+        <span>{tr`м`}</span>
       </div>
     </div>
   );
@@ -91,24 +92,24 @@ function PropertiesHeader({ opening }: { opening?: Opening }) {
       <div className="properties-heading">
         <span>
           <SlidersHorizontal size={15} />
-          {opening ? "Свойства проёма" : "Свойства стены"}
+          {opening ? tr`Свойства проёма` : tr`Свойства стены`}
         </span>
-        <span className="small-tag">м</span>
+        <span className="small-tag">{tr`м`}</span>
       </div>
       <div className="construction-selected">
         <div className="construction-symbol">
           {opening ? <DoorOpen size={25} /> : <Ruler size={25} />}
         </div>
         <div>
-          <span className="eyebrow">ВЫБРАНО НА ПЛАНЕ</span>
+          <span className="eyebrow">{tr`ВЫБРАНО НА ПЛАНЕ`}</span>
           <h2>
             {opening
               ? opening.doorless
-                ? "Проём без двери"
+                ? tr`Проём без двери`
                 : opening.kind === "door"
-                  ? "Дверной проём"
-                  : "Оконный проём"
-              : "Стена"}
+                  ? tr`Дверной проём`
+                  : tr`Оконный проём`
+              : tr`Стена`}
           </h2>
         </div>
       </div>
@@ -127,11 +128,11 @@ function DeleteButton({
     <div className="properties-footer">
       <button
         className="danger-button"
-        aria-label={opening ? "Удалить проём" : "Удалить стену"}
+        aria-label={opening ? tr`Удалить проём` : tr`Удалить стену`}
         onClick={onDelete}
       >
         <Trash2 size={15} />
-        {opening ? "Удалить проём" : "Удалить стену"}
+        {opening ? tr`Удалить проём` : tr`Удалить стену`}
         <kbd>Del</kbd>
       </button>
     </div>
@@ -176,19 +177,19 @@ function WallMoveForm({
   return (
     <form
       className="properties-form construction-form wall-move-form"
-      aria-label="Перенос стены"
+      aria-label={tr`Перенос стены`}
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
         if (!Number.isFinite(x) || !Number.isFinite(y)) {
-          setLocalError("Введите сдвиг числами.");
+          setLocalError(tr`Введите сдвиг числами.`);
           return;
         }
         if (offsetMode && context) {
           const { normal } = context;
           // The axis is the normal turned back by 90°.
           if (Math.abs(x * normal.y - y * normal.x) > 1e-9) {
-            setLocalError("Когда соседние стены сохраняют направление, стена сдвигается только поперёк себя. Уберите сдвиг вдоль стены или снимите флажок.");
+            setLocalError(tr`Когда соседние стены сохраняют направление, стена сдвигается только поперёк себя. Уберите сдвиг вдоль стены или снимите флажок.`);
             return;
           }
           setLocalError(null);
@@ -199,10 +200,10 @@ function WallMoveForm({
         onMoveWall(wall.id, { x, y });
       }}
     >
-      <div className="section-label">ПЕРЕНОС СТЕНЫ</div>
+      <div className="section-label">{tr`ПЕРЕНОС СТЕНЫ`}</div>
       <div className="field-pair">
-        <MeterField id="wall-move-x" label="Сдвиг по X" value={draft.x} onChange={change("x")} />
-        <MeterField id="wall-move-y" label="Сдвиг по Y" value={draft.y} onChange={change("y")} />
+        <MeterField id="wall-move-x" label={tr`Сдвиг по X`} value={draft.x} onChange={change("x")} />
+        <MeterField id="wall-move-y" label={tr`Сдвиг по Y`} value={draft.y} onChange={change("y")} />
       </div>
       <label className="wall-connections-toggle">
         <input
@@ -213,15 +214,13 @@ function WallMoveForm({
             onKeepDirectionsChange(event.target.checked);
             setLocalError(null);
           }}
-        />
-        Соседние стены сохраняют направление
-      </label>
+        />{tr`Соседние стены сохраняют направление`}</label>
       <p className="wall-connections-note" data-testid="wall-move-mode-note">
         {!keepDirections
-          ? "Обычный перенос: всё, что примыкает к стене, сдвигается вместе с ней на тот же вектор; соседние стены могут повернуться."
+          ? tr`Обычный перенос: всё, что примыкает к стене, сдвигается вместе с ней на тот же вектор; соседние стены могут повернуться.`
           : context?.offsetBlocked
-            ? `${context.offsetBlocked} Ручка и поля выполнят обычный перенос.`
-            : "Стена сдвигается поперёк себя; стены в её углах и примыкающие к ней удлиняются или укорачиваются по своим линиям, не поворачиваясь."}
+            ? tr`${context.offsetBlocked} Ручка и поля выполнят обычный перенос.`
+            : tr`Стена сдвигается поперёк себя; стены в её углах и примыкающие к ней удлиняются или укорачиваются по своим линиям, не поворачиваясь.`}
       </p>
       {localError && (
         <p className="construction-error" role="alert">
@@ -229,15 +228,8 @@ function WallMoveForm({
         </p>
       )}
       <button className="secondary-button apply-button" type="submit" disabled={!ready}>
-        <Move size={15} />
-        Перенести стену
-      </button>
-      <p className="field-note">
-        Проёмы переносимой стены едут вместе с ней, проёмы соседних стен остаются
-        на месте плана. Перенос, который оторвал бы соединение, свернул соседнюю
-        стену или срезал проём, отклоняется. На плане то же делает круглая ручка
-        сбоку от стены.
-      </p>
+        <Move size={15} />{tr`Перенести стену`}</button>
+      <p className="field-note">{tr`Проёмы переносимой стены едут вместе с ней, проёмы соседних стен остаются на месте плана. Перенос, который оторвал бы соединение, свернул соседнюю стену или срезал проём, отклоняется. На плане то же делает круглая ручка сбоку от стены.`}</p>
     </form>
   );
 }
@@ -305,7 +297,7 @@ function WallProperties({
             !Number.isFinite(parse(length)) ||
             parse(length) <= 0
           ) {
-            setLocalError("Заполните все размеры и координаты числами.");
+            setLocalError(tr`Заполните все размеры и координаты числами.`);
             return;
           }
           setLocalError(null);
@@ -321,8 +313,8 @@ function WallProperties({
           );
         }}
       >
-        <div className="section-label">ТИП СТЕНЫ</div>
-        <label htmlFor="wall-kind">Тип стены</label>
+        <div className="section-label">{tr`ТИП СТЕНЫ`}</div>
+        <label htmlFor="wall-kind">{tr`Тип стены`}</label>
         <select
           id="wall-kind"
           value={wallKindOf(wall)}
@@ -334,45 +326,45 @@ function WallProperties({
         </select>
         <p className="wall-kind-note" data-testid="wall-kind-note">
           {wall.kind === "bearing"
-            ? "Несущая стена: перенос, удаление и снятие отметки потребуют подтверждения."
+            ? tr`Несущая стена: перенос, удаление и снятие отметки потребуют подтверждения.`
             : wall.kind === "partition"
-              ? "Перегородка."
-              : "Тип не указан: приложение его не угадывает. Укажите вручную."}
+              ? tr`Перегородка.`
+              : tr`Тип не указан: приложение его не угадывает. Укажите вручную.`}
         </p>
-        <div className="section-label">НАЧАЛО СТЕНЫ</div>
+        <div className="section-label">{tr`НАЧАЛО СТЕНЫ`}</div>
         <div className="field-pair">
           <MeterField
             id="wall-start-x"
-            label="Начало X"
+            label={tr`Начало X`}
             value={draft.startX}
             onChange={change("startX")}
           />
           <MeterField
             id="wall-start-y"
-            label="Начало Y"
+            label={tr`Начало Y`}
             value={draft.startY}
             onChange={change("startY")}
           />
         </div>
-        <div className="section-label">КОНЕЦ СТЕНЫ</div>
+        <div className="section-label">{tr`КОНЕЦ СТЕНЫ`}</div>
         <div className="field-pair">
           <MeterField
             id="wall-end-x"
-            label="Конец X"
+            label={tr`Конец X`}
             value={draft.endX}
             onChange={change("endX")}
           />
           <MeterField
             id="wall-end-y"
-            label="Конец Y"
+            label={tr`Конец Y`}
             value={draft.endY}
             onChange={change("endY")}
           />
         </div>
-        <div className="section-label">РАЗМЕРЫ</div>
+        <div className="section-label">{tr`РАЗМЕРЫ`}</div>
         <MeterField
           id="wall-length"
-          label="Длина стены"
+          label={tr`Длина стены`}
           value={length}
           onChange={(value) => {
             setLength(value);
@@ -398,13 +390,13 @@ function WallProperties({
         <div className="field-pair">
           <MeterField
             id="wall-thickness"
-            label="Толщина стены"
+            label={tr`Толщина стены`}
             value={draft.thickness}
             onChange={change("thickness")}
           />
           <MeterField
             id="wall-height"
-            label="Высота стены"
+            label={tr`Высота стены`}
             value={draft.height}
             onChange={change("height")}
           />
@@ -414,12 +406,9 @@ function WallProperties({
             type="checkbox"
             checked={connectEndpoints}
             onChange={(event) => setConnectEndpoints(event.target.checked)}
-          />
-          Сохранять соединения
-        </label>
-        <p className="wall-connections-note">
-          В начале: {linkedStart} соседних стен. В конце: {linkedEnd}.
-          {connectEndpoints ? " Общие углы двигаются вместе." : " Меняется только выбранная стена."}
+          />{tr`Сохранять соединения`}</label>
+        <p className="wall-connections-note">{tr`В начале: `}{linkedStart}{tr` соседних стен. В конце: `}{linkedEnd}.
+          {connectEndpoints ? tr` Общие углы двигаются вместе.` : tr` Меняется только выбранная стена.`}
         </p>
         {(localError || error) && (
           <p className="construction-error" role="alert">
@@ -431,14 +420,8 @@ function WallProperties({
           type="submit"
           disabled={!changed}
         >
-          <Check size={15} />
-          Применить свойства
-        </button>
-        <p className="field-note">
-          Размеры — в метрах, длина — по оси стены. Начало и направление
-          сохраняются при вводе длины. Если проём перестанет помещаться в стене,
-          изменение будет отклонено.
-        </p>
+          <Check size={15} />{tr`Применить свойства`}</button>
+        <p className="field-note">{tr`Размеры — в метрах, длина — по оси стены. Начало и направление сохраняются при вводе длины. Если проём перестанет помещаться в стене, изменение будет отклонено.`}</p>
       </form>
       <WallMoveForm
         wall={wall}
@@ -460,7 +443,7 @@ function DoorSwingPreview({ door }: { door: DoorSwing }) {
   });
   if (!geometry) return null;
   return <div className="door-swing-preview" data-testid="door-swing-preview" data-hinge={door.hinge} data-side={door.side}>
-    <svg viewBox="0 0 240 128" role="img" aria-label="Схема открывания двери">
+    <svg viewBox="0 0 240 128" role="img" aria-label={tr`Схема открывания двери`}>
       <g transform="translate(97 64) scale(46)">
         <path d="M-1.2 0 H0 M1 0 H2.2" stroke="#778570" strokeWidth="0.12" />
         <polyline points={geometry.arc.map((point) => `${point.x},${point.y}`).join(" ")} fill="none" stroke="#7c9670" strokeWidth="0.025" strokeDasharray="0.08 0.05" />
@@ -468,7 +451,7 @@ function DoorSwingPreview({ door }: { door: DoorSwing }) {
         <circle cx={geometry.hinge.x} cy={geometry.hinge.y} r="0.065" fill="#446d46" />
       </g>
     </svg>
-    <span>Начало стены <b aria-hidden="true">→</b> конец стены</span>
+    <span>{tr`Начало стены `}<b aria-hidden="true">→</b>{tr` конец стены`}</span>
   </div>;
 }
 
@@ -517,7 +500,7 @@ function OpeningProperties({
           if (
             Object.values(draft).some((value) => !Number.isFinite(parse(value)))
           ) {
-            setLocalError("Заполните размеры проёма числами.");
+            setLocalError(tr`Заполните размеры проёма числами.`);
             return;
           }
           setLocalError(null);
@@ -537,7 +520,7 @@ function OpeningProperties({
           onUpdateOpening(next);
         }}
       >
-        <label htmlFor="opening-kind">Тип проёма</label>
+        <label htmlFor="opening-kind">{tr`Тип проёма`}</label>
         <select
           id="opening-kind"
           value={kind}
@@ -551,10 +534,10 @@ function OpeningProperties({
             setLocalError(null);
           }}
         >
-          <option value="door">Дверь</option>
-          <option value="window">Окно</option>
+          <option value="door">{tr`Дверь`}</option>
+          <option value="window">{tr`Окно`}</option>
         </select>
-        <label htmlFor="opening-wall">Стена проёма</label>
+        <label htmlFor="opening-wall">{tr`Стена проёма`}</label>
         <select
           id="opening-wall"
           value={wallId}
@@ -564,35 +547,34 @@ function OpeningProperties({
           }}
         >
           {walls.map((wall, index) => (
-            <option key={wall.id} value={wall.id}>
-              Стена {index + 1}
+            <option key={wall.id} value={wall.id}>{tr`Стена `}{index + 1}
             </option>
           ))}
         </select>
-        <div className="section-label">РАЗМЕРЫ И ПОЛОЖЕНИЕ</div>
+        <div className="section-label">{tr`РАЗМЕРЫ И ПОЛОЖЕНИЕ`}</div>
         <MeterField
           id="opening-offset"
-          label="Отступ от начала стены"
+          label={tr`Отступ от начала стены`}
           value={draft.offset}
           onChange={change("offset")}
         />
         <div className="field-pair">
           <MeterField
             id="opening-width"
-            label="Ширина проёма"
+            label={tr`Ширина проёма`}
             value={draft.width}
             onChange={change("width")}
           />
           <MeterField
             id="opening-height"
-            label="Высота проёма"
+            label={tr`Высота проёма`}
             value={draft.height}
             onChange={change("height")}
           />
         </div>
         <MeterField
           id="opening-sill-height"
-          label="Высота от пола"
+          label={tr`Высота от пола`}
           value={draft.sillHeight}
           onChange={change("sillHeight")}
         />
@@ -605,32 +587,30 @@ function OpeningProperties({
                 setDoorless(event.target.checked);
                 setLocalError(null);
               }}
-            />
-            Проём без двери
-          </label>
+            />{tr`Проём без двери`}</label>
         )}
         {kind === "door" && !doorless && <fieldset className="door-swing-controls">
-          <legend>ОТКРЫВАНИЕ ДВЕРИ</legend>
-          <label htmlFor="door-hinge">Петли двери</label>
+          <legend>{tr`ОТКРЫВАНИЕ ДВЕРИ`}</legend>
+          <label htmlFor="door-hinge">{tr`Петли двери`}</label>
           <select id="door-hinge" value={door.hinge} onChange={(event) => {
             const hinge = event.target.value;
             if (hinge === "start" || hinge === "end") setDoor((previous) => ({ ...previous, hinge }));
             setLocalError(null);
           }}>
-            <option value="start">У начала проёма</option>
-            <option value="end">У конца проёма</option>
+            <option value="start">{tr`У начала проёма`}</option>
+            <option value="end">{tr`У конца проёма`}</option>
           </select>
-          <label htmlFor="door-side">Сторона открывания</label>
+          <label htmlFor="door-side">{tr`Сторона открывания`}</label>
           <select id="door-side" value={door.side} onChange={(event) => {
             const side = event.target.value;
             if (side === "left" || side === "right") setDoor((previous) => ({ ...previous, side }));
             setLocalError(null);
           }}>
-            <option value="left">Слева от направления стены</option>
-            <option value="right">Справа от направления стены</option>
+            <option value="left">{tr`Слева от направления стены`}</option>
+            <option value="right">{tr`Справа от направления стены`}</option>
           </select>
           <DoorSwingPreview door={door} />
-          <p className="field-note">Сторона определяется по направлению от начала стены к концу. Полотно показано открытым на 90°.</p>
+          <p className="field-note">{tr`Сторона определяется по направлению от начала стены к концу. Полотно показано открытым на 90°.`}</p>
         </fieldset>}
         {(localError || error) && (
           <p className="construction-error" role="alert">
@@ -642,13 +622,8 @@ function OpeningProperties({
           type="submit"
           disabled={!changed}
         >
-          <Check size={15} />
-          Применить свойства
-        </button>
-        <p className="field-note">
-          Отступ измеряется вдоль стены до ближнего края проёма. Проём должен
-          помещаться в стене и не пересекать другие проёмы.
-        </p>
+          <Check size={15} />{tr`Применить свойства`}</button>
+        <p className="field-note">{tr`Отступ измеряется вдоль стены до ближнего края проёма. Проём должен помещаться в стене и не пересекать другие проёмы.`}</p>
       </form>
       <DeleteButton opening onDelete={onDelete} />
     </>

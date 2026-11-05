@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { wallLength, type Point } from "@/domain/geometry";
 import { DEFAULT_DOOR_SWING, doorSwingWorld, type DoorSwingGeometry } from "./door-swing";
 import { openingSchema, wallSchema } from "./schema";
@@ -149,20 +150,20 @@ export function analyzeDoorPairCollisions(
   openings: readonly Opening[],
   limit = 100,
 ): { collisions: DoorPairCollision[]; truncated: boolean } {
-  if (!Number.isInteger(limit) || limit < 1 || limit > 1000) throw new Error("Лимит пересечений дверей должен быть целым числом от 1 до 1000.");
-  if (walls.length > 1000 || openings.length > 1000) throw new Error("Диагностика поддерживает не больше 1000 стен и 1000 проёмов.");
+  if (!Number.isInteger(limit) || limit < 1 || limit > 1000) throw new Error(tr`Лимит пересечений дверей должен быть целым числом от 1 до 1000.`);
+  if (walls.length > 1000 || openings.length > 1000) throw new Error(tr`Диагностика поддерживает не больше 1000 стен и 1000 проёмов.`);
   const ids = new Set<string>();
   for (const wall of walls) {
-    if (!wallSchema.safeParse(wall).success) throw new Error("Некорректная стена для проверки открывания.");
-    if (ids.has(wall.id)) throw new Error("Идентификаторы стен и проёмов должны быть уникальными.");
+    if (!wallSchema.safeParse(wall).success) throw new Error(tr`Некорректная стена для проверки открывания.`);
+    if (ids.has(wall.id)) throw new Error(tr`Идентификаторы стен и проёмов должны быть уникальными.`);
     ids.add(wall.id);
   }
   const byId = new Map(walls.map((wall) => [wall.id, wall]));
   for (const opening of openings) {
-    if (!openingSchema.safeParse(opening).success) throw new Error("Некорректный проём для проверки открывания.");
-    if (ids.has(opening.id)) throw new Error("Идентификаторы стен и проёмов должны быть уникальными.");
+    if (!openingSchema.safeParse(opening).success) throw new Error(tr`Некорректный проём для проверки открывания.`);
+    if (ids.has(opening.id)) throw new Error(tr`Идентификаторы стен и проёмов должны быть уникальными.`);
     ids.add(opening.id);
-    if (!byId.has(opening.wallId)) throw new Error("Стена проёма не найдена.");
+    if (!byId.has(opening.wallId)) throw new Error(tr`Стена проёма не найдена.`);
   }
   // Validate every relational opening constraint before any capped return.
   for (const wall of walls) buildWallSolids(wall, openings);

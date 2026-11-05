@@ -1,5 +1,6 @@
 "use client";
 
+import { currentLocale, tr } from "@/lib/i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Check, FolderOpen, GitBranch, Pencil, Plus, RotateCcw, Trash2, TriangleAlert, Upload, X } from "lucide-react";
 import { getTotalArea } from "@/domain/floor-plan/operations";
@@ -160,7 +161,7 @@ function planPreview(plan: FloorPlan) {
       wallRooms: [] as readonly WallRoom[],
       area: 0,
       count: 0,
-      problem: cause instanceof Error ? cause.message : "Не удалось определить помещения.",
+      problem: cause instanceof Error ? cause.message : tr`Не удалось определить помещения.`,
     };
   }
 }
@@ -176,29 +177,27 @@ function ProjectPreview({ saved }: { saved: SavedProject | TrashedProject }) {
       <h3 title={saved.plan.name}>{saved.plan.name}</h3>
       {preview.problem ? (
         <p className="saved-project-warning" data-testid="project-warning" title={preview.problem}>
-          <TriangleAlert size={12} aria-hidden="true" /> Помещения не определены: {preview.problem}
+          <TriangleAlert size={12} aria-hidden="true" />{tr` Помещения не определены: `}{preview.problem}
         </p>
       ) : (
-        <p>{pluralRu(preview.count, "помещение", "помещения", "помещений")} <span>·</span> {formatArea(preview.area)}</p>
+        <p>{pluralRu(preview.count, tr`помещение`, tr`помещения`, tr`помещений`)} <span>·</span> {formatArea(preview.area)}</p>
       )}
       {saved.plan.origin && (
         <p className="saved-project-origin" data-testid="project-origin">
-          <GitBranch size={12} aria-hidden="true" /> Вариант плана «{saved.plan.origin.planName}»
+          <GitBranch size={12} aria-hidden="true" />{tr` Вариант плана «`}{saved.plan.origin.planName}»
         </p>
       )}
       {procedure && (
-        <p className="saved-project-note" data-testid="project-procedure" data-procedure={procedure}>
-          По нормам: {PROCEDURES[procedure].label.toLowerCase()}
+        <p className="saved-project-note" data-testid="project-procedure" data-procedure={procedure}>{tr`По нормам: `}{PROCEDURES[procedure].label.toLowerCase()}
         </p>
       )}
       {unknownWalls > 0 && (
-        <p className="saved-project-note" data-testid="project-unknown-walls">
-          Без типа: {pluralRu(unknownWalls, "стена", "стены", "стен")} из {saved.plan.walls.length}
+        <p className="saved-project-note" data-testid="project-unknown-walls">{tr`Без типа: `}{pluralRu(unknownWalls, tr`стена`, tr`стены`, tr`стен`)}{tr` из `}{saved.plan.walls.length}
         </p>
       )}
       <time dateTime={date}>
-        {deleted ? "Удалён " : "Изменён "}
-        {new Intl.DateTimeFormat("ru-RU", {
+        {deleted ? tr`Удалён ` : tr`Изменён `}
+        {new Intl.DateTimeFormat(currentLocale(), {
           day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
         }).format(new Date(date))}
       </time>
@@ -233,7 +232,7 @@ export function ProjectsDialog({
   if (action && !action.pending && projects.find((saved) => saved.plan.id === action.id)?.revision !== action.revision) {
     setAction(null);
     setFormError("");
-    setActionNotice("Проект изменился. Проверьте актуальную запись и повторите действие.");
+    setActionNotice(tr`Проект изменился. Проверьте актуальную запись и повторите действие.`);
   }
   useEffect(() => {
     const dialog = ref.current;
@@ -268,51 +267,41 @@ export function ProjectsDialog({
     >
       <button
         className="icon-button modal-close"
-        aria-label="Закрыть мои проекты"
+        aria-label={tr`Закрыть мои проекты`}
         onClick={close}
       >
         <X size={18} />
       </button>
-      <span className="eyebrow">ВАША БИБЛИОТЕКА ПРОСТРАНСТВ</span>
-      <h2 id="projects-title">
-        Мои проекты <span>{projects.length}</span>
+      <span className="eyebrow">{tr`ВАША БИБЛИОТЕКА ПРОСТРАНСТВ`}</span>
+      <h2 id="projects-title">{tr`Мои проекты `}<span>{projects.length}</span>
       </h2>
-      <p className="projects-description">
-        Планы сохраняются в этом браузере. Экспортируйте JSON, чтобы сделать
-        резервную копию или перенести проект на другое устройство.
-      </p>
+      <p className="projects-description">{tr`Планы сохраняются в этом браузере. Экспортируйте JSON, чтобы сделать резервную копию или перенести проект на другое устройство.`}</p>
       <div className="library-toolbar">
-        <div className="library-switch" aria-label="Разделы библиотеки">
-          <button aria-label="Проекты" aria-pressed={view === "projects"} onClick={() => switchView("projects")}>
-            <FolderOpen size={15} /> Проекты <span>{projects.length}</span>
+        <div className="library-switch" aria-label={tr`Разделы библиотеки`}>
+          <button aria-label={tr`Проекты`} aria-pressed={view === "projects"} onClick={() => switchView("projects")}>
+            <FolderOpen size={15} />{tr` Проекты `}<span>{projects.length}</span>
           </button>
-          <button aria-label="Корзина" aria-pressed={view === "trash"} onClick={() => switchView("trash")}>
-            <Trash2 size={15} /> Корзина <span>{trash.length}</span>
+          <button aria-label={tr`Корзина`} aria-pressed={view === "trash"} onClick={() => switchView("trash")}>
+            <Trash2 size={15} />{tr` Корзина `}<span>{trash.length}</span>
           </button>
         </div>
         <div className="projects-actions">
           <button className="primary-button" disabled={busy} onClick={onNew}>
-            <Plus size={15} /> Новый проект
-          </button>
+            <Plus size={15} />{tr` Новый проект`}</button>
           <button className="secondary-button" disabled={busy} onClick={onImport}>
-            <Upload size={15} /> Импорт JSON
-          </button>
+            <Upload size={15} />{tr` Импорт JSON`}</button>
         </div>
       </div>
       {notice && <div className="projects-warning library-notice" data-testid="library-notice" role="alert">{notice}</div>}
       {actionNotice && <div className="projects-warning" role="status">{actionNotice}</div>}
       {unreadableCount > 0 && (
-        <div className="projects-warning" role="status">
-          Не удалось прочитать записей: {unreadableCount}. Они оставлены в
-          хранилище без изменений.{" "}
+        <div className="projects-warning" role="status">{tr`Не удалось прочитать записей: `}{unreadableCount}{tr`. Они оставлены в хранилище без изменений.`}{" "}
           {onSaveUnreadable && (
-            <button type="button" className="text-button" onClick={onSaveUnreadable}>
-              Скачать эти записи
-            </button>
+            <button type="button" className="text-button" onClick={onSaveUnreadable}>{tr`Скачать эти записи`}</button>
           )}
         </div>
       )}
-      {view === "trash" && <p className="library-trash-description">Здесь хранятся удалённые проекты. Восстановление вернёт план в библиотеку вместе с комнатами, стенами и подложкой.</p>}
+      {view === "trash" && <p className="library-trash-description">{tr`Здесь хранятся удалённые проекты. Восстановление вернёт план в библиотеку вместе с комнатами, стенами и подложкой.`}</p>}
       <div className="project-grid">
         {view === "projects" && projects.map((saved) => {
           const editing = action?.id === saved.plan.id ? action : null;
@@ -325,21 +314,20 @@ export function ProjectsDialog({
             >
               <ProjectPreview saved={saved} />
               <div className="saved-project-controls">
-                {saved.plan.id === currentId ? <span className="current-project-badge">Открыт сейчас</span> : (
-                  <button className="open-project-button" aria-label={`Открыть ${saved.plan.name}`} onClick={() => onOpen(saved.plan.id)} disabled={busy}>
-                    Открыть <ArrowUpRight size={15} />
+                {saved.plan.id === currentId ? <span className="current-project-badge">{tr`Открыт сейчас`}</span> : (
+                  <button className="open-project-button" aria-label={tr`Открыть ${saved.plan.name}`} onClick={() => onOpen(saved.plan.id)} disabled={busy}>{tr`Открыть `}<ArrowUpRight size={15} />
                   </button>
                 )}
                 <div className="saved-project-management">
-                  <button className="library-icon-button" title="Переименовать проект" aria-label={`Переименовать ${saved.plan.name}`} disabled={busy} onClick={() => begin("rename", saved)}><Pencil size={15} /></button>
-                  <button className="library-icon-button library-trash-button" title="Переместить в корзину" aria-label={`В корзину ${saved.plan.name}`} disabled={busy} onClick={() => begin("trash", saved)}><Trash2 size={15} /></button>
+                  <button className="library-icon-button" title={tr`Переименовать проект`} aria-label={tr`Переименовать ${saved.plan.name}`} disabled={busy} onClick={() => begin("rename", saved)}><Pencil size={15} /></button>
+                  <button className="library-icon-button library-trash-button" title={tr`Переместить в корзину`} aria-label={tr`В корзину ${saved.plan.name}`} disabled={busy} onClick={() => begin("trash", saved)}><Trash2 size={15} /></button>
                 </div>
               </div>
               {editing?.kind === "rename" && <form className="library-inline-form" noValidate onSubmit={(event) => {
                 event.preventDefault();
                 const name = draft.trim();
                 if (!name || name.length > 100) {
-                  setFormError(!name ? "Введите название проекта." : "Название — не больше 100 символов.");
+                  setFormError(!name ? tr`Введите название проекта.` : tr`Название — не больше 100 символов.`);
                   return;
                 }
                 setFormError("");
@@ -349,26 +337,26 @@ export function ProjectsDialog({
                     ? success ? null : { ...current, pending: false } : current);
                 });
               }}>
-                <label htmlFor="library-project-name">Новое название проекта</label>
+                <label htmlFor="library-project-name">{tr`Новое название проекта`}</label>
                 <input id="library-project-name" value={draft} disabled={busy} autoFocus aria-invalid={Boolean(formError)} aria-describedby={formError ? "library-name-error" : undefined} onChange={(event) => { setDraft(event.target.value); setFormError(""); }} />
                 {formError && <p id="library-name-error" role="alert" className="library-form-error">{formError}</p>}
                 <div className="library-form-actions">
-                  <button type="button" className="library-cancel" aria-label="Отменить переименование" disabled={busy} onClick={() => setAction(null)}>Отмена</button>
-                  <button type="submit" className="library-submit" disabled={busy}><Check size={14} /> Сохранить название</button>
+                  <button type="button" className="library-cancel" aria-label={tr`Отменить переименование`} disabled={busy} onClick={() => setAction(null)}>{tr`Отмена`}</button>
+                  <button type="submit" className="library-submit" disabled={busy}><Check size={14} />{tr` Сохранить название`}</button>
                 </div>
               </form>}
-              {editing?.kind === "trash" && <div className="library-trash-confirm" role="group" aria-label="Подтверждение удаления проекта">
-                <p>Переместить «{editing.name}» в корзину?</p>
-                <span>Вы сможете восстановить его из раздела «Корзина».{saved.plan.id === currentId ? " Редактор откроет другой проект или новый пустой план." : ""}</span>
+              {editing?.kind === "trash" && <div className="library-trash-confirm" role="group" aria-label={tr`Подтверждение удаления проекта`}>
+                <p>{tr`Переместить «`}{editing.name}{tr`» в корзину?`}</p>
+                <span>{tr`Вы сможете восстановить его из раздела «Корзина».`}{saved.plan.id === currentId ? tr` Редактор откроет другой проект или новый пустой план.` : ""}</span>
                 <div className="library-form-actions">
-                  <button className="library-cancel" aria-label="Отмена удаления" disabled={busy} onClick={() => setAction(null)}>Отмена</button>
+                  <button className="library-cancel" aria-label={tr`Отмена удаления`} disabled={busy} onClick={() => setAction(null)}>{tr`Отмена`}</button>
                   <button className="library-delete-submit" disabled={busy} onClick={() => {
                     setAction({ ...editing, pending: true });
                     void onTrash(editing.id, editing.revision).then((success) => {
                       setAction((current) => current?.id === editing.id && current.revision === editing.revision
                         ? success ? null : { ...current, pending: false } : current);
                     });
-                  }}><Trash2 size={14} /> Переместить в корзину</button>
+                  }}><Trash2 size={14} />{tr` Переместить в корзину`}</button>
                 </div>
               </div>}
             </article>
@@ -376,22 +364,21 @@ export function ProjectsDialog({
         })}
         {view === "trash" && trash.map((saved) => <article key={saved.plan.id} className="saved-project trashed-project" data-testid="trashed-project" data-project-id={saved.plan.id}>
           <ProjectPreview saved={saved} />
-          <button className="library-restore" aria-label={`Восстановить ${saved.plan.name}`} disabled={busy} onClick={() => { void onRestore(saved.plan.id, saved.revision); }}>
-            <RotateCcw size={15} /> Восстановить
-          </button>
+          <button className="library-restore" aria-label={tr`Восстановить ${saved.plan.name}`} disabled={busy} onClick={() => { void onRestore(saved.plan.id, saved.revision); }}>
+            <RotateCcw size={15} />{tr` Восстановить`}</button>
         </article>)}
       </div>
       {view === "projects" && !projects.length && (
         <div className="projects-empty">
           <FolderOpen size={30} strokeWidth={1} />
-          <h3>Место для ваших идей</h3>
-          <p>Создайте первый проект или импортируйте план из JSON.</p>
+          <h3>{tr`Место для ваших идей`}</h3>
+          <p>{tr`Создайте первый проект или импортируйте план из JSON.`}</p>
         </div>
       )}
       {view === "trash" && !trash.length && <div className="projects-empty">
         <Trash2 size={30} strokeWidth={1} />
-        <h3>Корзина пуста</h3>
-        <p>Удалённые проекты появятся здесь.</p>
+        <h3>{tr`Корзина пуста`}</h3>
+        <p>{tr`Удалённые проекты появятся здесь.`}</p>
       </div>}
     </dialog>
   );

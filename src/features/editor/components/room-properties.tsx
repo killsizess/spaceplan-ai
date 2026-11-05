@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useState } from "react";
 import { ArrowDownRight, Check, SlidersHorizontal, Trash2 } from "lucide-react";
 import type { Room, RoomKind } from "@/domain/floor-plan/types";
@@ -37,16 +38,15 @@ export function RoomProperties({
     <>
       <div className="properties-heading">
         <span>
-          <SlidersHorizontal size={15} /> Свойства комнаты
-        </span>
-        <span className="small-tag">м</span>
+          <SlidersHorizontal size={15} />{tr` Свойства комнаты`}</span>
+        <span className="small-tag">{tr`м`}</span>
       </div>
       <div className="selected-preview">
         <div className="room-preview" style={{ backgroundColor: color }}>
           <ArrowDownRight size={27} strokeWidth={1} />
         </div>
         <div>
-          <span className="eyebrow">ВЫБРАНО ПОМЕЩЕНИЕ</span>
+          <span className="eyebrow">{tr`ВЫБРАНО ПОМЕЩЕНИЕ`}</span>
           <h2>{room.name}</h2>
         </div>
       </div>
@@ -67,14 +67,14 @@ export function RoomProperties({
           });
         }}
       >
-        <label htmlFor="room-name">Название</label>
+        <label htmlFor="room-name">{tr`Название`}</label>
         <input
           id="room-name"
           value={name}
           maxLength={60}
           onChange={(event) => setName(event.target.value)}
         />
-        <label htmlFor="room-kind">Назначение</label>
+        <label htmlFor="room-kind">{tr`Назначение`}</label>
         <select
           id="room-kind"
           value={kind}
@@ -86,10 +86,10 @@ export function RoomProperties({
             </option>
           ))}
         </select>
-        <div className="section-label">РАЗМЕРЫ</div>
+        <div className="section-label">{tr`РАЗМЕРЫ`}</div>
         <div className="field-pair">
           <div>
-            <label htmlFor="room-width">Ширина</label>
+            <label htmlFor="room-width">{tr`Ширина`}</label>
             <div className="unit-input">
               <input
                 id="room-width"
@@ -97,11 +97,11 @@ export function RoomProperties({
                 value={width}
                 onChange={(event) => setWidth(event.target.value)}
               />
-              <span>м</span>
+              <span>{tr`м`}</span>
             </div>
           </div>
           <div>
-            <label htmlFor="room-height">Длина</label>
+            <label htmlFor="room-height">{tr`Длина`}</label>
             <div className="unit-input">
               <input
                 id="room-height"
@@ -109,20 +109,20 @@ export function RoomProperties({
                 value={height}
                 onChange={(event) => setHeight(event.target.value)}
               />
-              <span>м</span>
+              <span>{tr`м`}</span>
             </div>
           </div>
         </div>
         <div className="room-area">
-          <span>Площадь комнаты</span>
+          <span>{tr`Площадь комнаты`}</span>
           <strong data-testid="room-area">
             {formatArea(rectangleArea(room.width, room.height))}
           </strong>
         </div>
-        <div className="section-label">ПОЛОЖЕНИЕ НА ПЛАНЕ</div>
+        <div className="section-label">{tr`ПОЛОЖЕНИЕ НА ПЛАНЕ`}</div>
         <div className="field-pair">
           <div>
-            <label htmlFor="room-x">Координата X</label>
+            <label htmlFor="room-x">{tr`Координата X`}</label>
             <div className="unit-input">
               <input
                 id="room-x"
@@ -130,11 +130,11 @@ export function RoomProperties({
                 value={x}
                 onChange={(event) => setX(event.target.value)}
               />
-              <span>м</span>
+              <span>{tr`м`}</span>
             </div>
           </div>
           <div>
-            <label htmlFor="room-y">Координата Y</label>
+            <label htmlFor="room-y">{tr`Координата Y`}</label>
             <div className="unit-input">
               <input
                 id="room-y"
@@ -142,11 +142,11 @@ export function RoomProperties({
                 value={y}
                 onChange={(event) => setY(event.target.value)}
               />
-              <span>м</span>
+              <span>{tr`м`}</span>
             </div>
           </div>
         </div>
-        <div className="section-label">ЦВЕТ НА ПЛАНЕ</div>
+        <div className="section-label">{tr`ЦВЕТ НА ПЛАНЕ`}</div>
         <div className="color-options">
           {ROOM_COLORS.map((value, index) => (
             <button
@@ -154,7 +154,7 @@ export function RoomProperties({
               type="button"
               style={{ backgroundColor: value }}
               className={color === value ? "chosen" : ""}
-              aria-label={`Цвет ${index + 1}`}
+              aria-label={tr`Цвет ${index + 1}`}
               aria-pressed={color === value}
               onClick={() => setColor(value)}
             >
@@ -167,15 +167,12 @@ export function RoomProperties({
           className="primary-button apply-button"
           disabled={!changed}
         >
-          <Check size={15} /> Применить изменения
-        </button>
-        <p className="field-note">
-          Размеры: от 0,5 до 100 м. Площадь обновится после применения.
-        </p>
+          <Check size={15} />{tr` Применить изменения`}</button>
+        <p className="field-note">{tr`Размеры: от 0,5 до 100 м. Площадь обновится после применения.`}</p>
       </form>
       <div className="properties-footer">
         <button className="danger-button" onClick={onDelete}>
-          <Trash2 size={15} /> Удалить комнату <kbd>Del</kbd>
+          <Trash2 size={15} />{tr` Удалить комнату `}<kbd>Del</kbd>
         </button>
       </div>
     </>

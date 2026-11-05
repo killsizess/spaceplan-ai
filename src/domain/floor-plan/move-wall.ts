@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import type { Point } from "@/domain/geometry";
 import { floorPlanSchema } from "./schema";
 import type { FloorPlan, Wall } from "./types";
@@ -12,12 +13,12 @@ import {
 /** Supports whose unit directions differ by less than this sine are parallel. */
 const PARALLEL_TOLERANCE = 1e-9;
 
-export const WALL_MOVE_STALE = "Стена изменилась во время переноса. Повторите действие.";
-const INVALID_DELTA = "Сдвиг стены должен быть числом.";
+export const WALL_MOVE_STALE = tr`Стена изменилась во время переноса. Повторите действие.`;
+const INVALID_DELTA = tr`Сдвиг стены должен быть числом.`;
 const SUPPORT_LOST =
-  "Стена опирается концом на середину другой стены и оторвалась бы от неё. Переносите её вдоль той стены.";
+  tr`Стена опирается концом на середину другой стены и оторвалась бы от неё. Переносите её вдоль той стены.`;
 const JUNCTION_LOST =
-  "Перенос оторвал бы примыкание соседней стены. Уменьшите сдвиг или сначала измените соседние стены.";
+  tr`Перенос оторвал бы примыкание соседней стены. Уменьшите сдвиг или сначала измените соседние стены.`;
 
 export interface WallMoveContext {
   readonly wallId: string;
@@ -58,12 +59,12 @@ export interface OffsetJoint {
 }
 
 export const OFFSET_CONTINUATION =
-  "Стена продолжается за узлом другой стеной на той же прямой. Сохранить направления нельзя: используйте обычный перенос.";
+  tr`Стена продолжается за узлом другой стеной на той же прямой. Сохранить направления нельзя: используйте обычный перенос.`;
 export const OFFSET_MIXED_NODE =
-  "В узле этой стены сходятся стены разных направлений. Сохранить направления всех стен нельзя: используйте обычный перенос.";
+  tr`В узле этой стены сходятся стены разных направлений. Сохранить направления всех стен нельзя: используйте обычный перенос.`;
 const OFFSET_COLLAPSE =
-  "Соседняя стена сократилась бы до нуля или развернулась бы. Уменьшите сдвиг.";
-const INVALID_DISTANCE = "Сдвиг стены должен быть числом.";
+  tr`Соседняя стена сократилась бы до нуля или развернулась бы. Уменьшите сдвиг.`;
+const INVALID_DISTANCE = tr`Сдвиг стены должен быть числом.`;
 
 const cleanZero = (value: number) => (Object.is(value, -0) ? 0 : value);
 const endKey = (end: WallEnd) => JSON.stringify([end.wallId, end.endpoint]);
@@ -98,7 +99,7 @@ function assertDelta(delta: Point): void {
 export function wallMoveContext(walls: readonly Wall[], wallId: string): WallMoveContext {
   const topology = buildWallTopology(walls);
   const wall = walls.find((item) => item.id === wallId);
-  if (!wall) throw new Error("Стена не найдена.");
+  if (!wall) throw new Error(tr`Стена не найдена.`);
   const byEnd = nodesByEnd(topology);
   const byKey = new Map(topology.nodes.map((node) => [node.key, node]));
   const own = (["start", "end"] as const).map((endpoint) => byEnd.get(endKey({ wallId, endpoint }))!);
@@ -214,7 +215,7 @@ export function previewWallOffset(
   if (context.offsetBlocked) throw new Error(context.offsetBlocked);
   if (distance === 0) return walls;
   const wall = walls.find((item) => item.id === context.wallId);
-  if (!wall) throw new Error("Стена не найдена.");
+  if (!wall) throw new Error(tr`Стена не найдена.`);
   const { normal } = context;
   const axis = { x: normal.y, y: -normal.x };
   const origin = { x: wall.start.x + normal.x * distance, y: wall.start.y + normal.y * distance };
@@ -257,7 +258,7 @@ export function offsetWall(
 ): FloorPlan {
   if (!Number.isFinite(distance)) throw new Error(INVALID_DISTANCE);
   const wall = plan.walls.find((item) => item.id === wallId);
-  if (!wall) throw new Error("Стена не найдена.");
+  if (!wall) throw new Error(tr`Стена не найдена.`);
   if (expected && !(sameWallNode(wall.start, expected.start) && sameWallNode(wall.end, expected.end))) {
     throw new Error(WALL_MOVE_STALE);
   }
@@ -281,7 +282,7 @@ export function offsetWall(
   });
   if (!parsed.success) {
     const issue = parsed.error.issues.find((item) => item.code === "custom");
-    throw new Error(issue?.message ?? "Проверьте размеры, координаты и свойства стен.");
+    throw new Error(issue?.message ?? tr`Проверьте размеры, координаты и свойства стен.`);
   }
   return parsed.data;
 }
@@ -336,7 +337,7 @@ export function moveWall(
 ): FloorPlan {
   assertDelta(delta);
   const wall = plan.walls.find((item) => item.id === wallId);
-  if (!wall) throw new Error("Стена не найдена.");
+  if (!wall) throw new Error(tr`Стена не найдена.`);
   if (expected && !(sameWallNode(wall.start, expected.start) && sameWallNode(wall.end, expected.end))) {
     throw new Error(WALL_MOVE_STALE);
   }
@@ -352,7 +353,7 @@ export function moveWall(
   });
   if (!parsed.success) {
     const issue = parsed.error.issues.find((item) => item.code === "custom");
-    throw new Error(issue?.message ?? "Проверьте размеры, координаты и свойства стен.");
+    throw new Error(issue?.message ?? tr`Проверьте размеры, координаты и свойства стен.`);
   }
   return parsed.data;
 }

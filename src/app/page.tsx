@@ -1,5 +1,5 @@
-import Editor from "@/features/editor/editor";
+import AppShell from "@/features/editor/app-shell";
 
 export default function Home() {
-  return <Editor />;
+  return <AppShell />;
 }

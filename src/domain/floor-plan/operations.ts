@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import {
   assertRectangle,
   rectangleArea,
@@ -12,7 +13,7 @@ export function createEmptyPlan(id: string): FloorPlan {
     schemaVersion: 10,
     unit: "m",
     id,
-    name: "Новый проект",
+    name: tr`Новый проект`,
     roomMode: "manual",
     rooms: [],
     walls: [],
@@ -22,7 +23,7 @@ export function createEmptyPlan(id: string): FloorPlan {
   };
 }
 
-const EXAMPLE_PLAN_NAME = "Квартира на Садовой";
+const EXAMPLE_PLAN_NAME = tr`Квартира на Садовой`;
 
 /** The built-in plan a new visitor starts on, before it has become their own. */
 export function isExamplePlan(plan: Pick<FloorPlan, "name" | "walls">): boolean {
@@ -36,7 +37,7 @@ export function createExamplePlan(): FloorPlan {
     rooms: [
       {
         id: "living",
-        name: "Гостиная",
+        name: tr`Гостиная`,
         kind: "living",
         color: "#f1e3c6",
         x: 0,
@@ -46,7 +47,7 @@ export function createExamplePlan(): FloorPlan {
       },
       {
         id: "kitchen",
-        name: "Кухня",
+        name: tr`Кухня`,
         kind: "kitchen",
         color: "#f8dcc6",
         x: 5,
@@ -56,7 +57,7 @@ export function createExamplePlan(): FloorPlan {
       },
       {
         id: "bedroom",
-        name: "Спальня",
+        name: tr`Спальня`,
         kind: "bedroom",
         color: "#d3ebd8",
         x: 0,
@@ -66,7 +67,7 @@ export function createExamplePlan(): FloorPlan {
       },
       {
         id: "study",
-        name: "Кабинет",
+        name: tr`Кабинет`,
         kind: "other",
         color: "#e0d9f2",
         x: 4,
@@ -76,7 +77,7 @@ export function createExamplePlan(): FloorPlan {
       },
       {
         id: "hall",
-        name: "Прихожая",
+        name: tr`Прихожая`,
         kind: "hall",
         color: "#ece7da",
         x: 8,
@@ -86,7 +87,7 @@ export function createExamplePlan(): FloorPlan {
       },
       {
         id: "bathroom",
-        name: "Ванная",
+        name: tr`Ванная`,
         kind: "bathroom",
         color: "#cfe7f3",
         x: 8,
@@ -120,28 +121,28 @@ export function validateRoomUpdate(plan: FloorPlan, room: Room): string | null {
   } catch (error) {
     return error instanceof Error
       ? error.message
-      : "Проверьте размеры и координаты.";
+      : tr`Проверьте размеры и координаты.`;
   }
   const parsed = roomSchema.safeParse(room);
   if (!parsed.success)
-    return "Введите название до 60 символов и корректные свойства комнаты.";
+    return tr`Введите название до 60 символов и корректные свойства комнаты.`;
   const overlap = plan.rooms.find(
     (other) => other.id !== room.id && rectanglesOverlap(room, other),
   );
   return overlap
-    ? `Комната пересекается с «${overlap.name}». Измените размеры или положение.`
+    ? tr`Комната пересекается с «${overlap.name}». Измените размеры или положение.`
     : null;
 }
 
 export function addRoom(plan: FloorPlan, room: Room): FloorPlan {
   if (plan.rooms.length >= 100)
-    throw new Error("В одном плане может быть не больше 100 комнат.");
+    throw new Error(tr`В одном плане может быть не больше 100 комнат.`);
   if (
     [...plan.rooms, ...plan.walls, ...plan.openings, ...plan.wallRoomLabels].some(
       (item) => item.id === room.id,
     )
   )
-    throw new Error("Идентификатор комнаты уже существует.");
+    throw new Error(tr`Идентификатор комнаты уже существует.`);
   const error = validateRoomUpdate(plan, room);
   if (error) throw new Error(error);
   return { ...plan, rooms: [...plan.rooms, roomSchema.parse(room)] };
@@ -149,7 +150,7 @@ export function addRoom(plan: FloorPlan, room: Room): FloorPlan {
 
 export function updateRoom(plan: FloorPlan, room: Room): FloorPlan {
   if (!plan.rooms.some((item) => item.id === room.id))
-    throw new Error("Комната не найдена.");
+    throw new Error(tr`Комната не найдена.`);
   const error = validateRoomUpdate(plan, room);
   if (error) throw new Error(error);
   const validated = roomSchema.parse(room);
@@ -169,7 +170,7 @@ export function createDefaultRoom(plan: FloorPlan, id: string): Room {
     : 0;
   return {
     id,
-    name: `Комната ${plan.rooms.length + 1}`,
+    name: tr`Комната ${plan.rooms.length + 1}`,
     kind: "other",
     color: "#d3ebd8",
     x,

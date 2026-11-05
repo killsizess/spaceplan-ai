@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { assertPoint, wallLength, type Point } from "@/domain/geometry";
 import type { Wall } from "./types";
 
@@ -53,15 +54,15 @@ export function analyzeWallIntersections(
   limit = 100,
 ): { intersections: WallIntersectionDiagnostic[]; truncated: boolean } {
   if (!Number.isInteger(limit) || limit < 1 || limit > 1000) {
-    throw new Error("Лимит пересечений должен быть целым числом от 1 до 1000.");
+    throw new Error(tr`Лимит пересечений должен быть целым числом от 1 до 1000.`);
   }
-  if (walls.length > 1000) throw new Error("Диагностика поддерживает не больше 1000 стен.");
+  if (walls.length > 1000) throw new Error(tr`Диагностика поддерживает не больше 1000 стен.`);
   const ids = new Set<string>();
   for (const wall of walls) {
     if (typeof wall.id !== "string" || wall.id.length < 1 || wall.id.length > 100) {
-      throw new Error("Некорректный идентификатор стены.");
+      throw new Error(tr`Некорректный идентификатор стены.`);
     }
-    if (ids.has(wall.id)) throw new Error("Идентификаторы стен должны быть уникальными.");
+    if (ids.has(wall.id)) throw new Error(tr`Идентификаторы стен должны быть уникальными.`);
     ids.add(wall.id);
     assertPoint(wall.start);
     assertPoint(wall.end);

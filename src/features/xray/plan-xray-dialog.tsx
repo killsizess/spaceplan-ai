@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ScanSearch, TriangleAlert, X } from "lucide-react";
 import type { BuildingFacts, FloorPlan, NeighbourFloor, RuleProfile } from "@/domain/floor-plan/types";
@@ -27,8 +28,8 @@ import "./plan-xray.css";
 
 const YES_NO: readonly { value: string; label: string }[] = [
   { value: "", label: UNKNOWN_ANSWER },
-  { value: "yes", label: "Да" },
-  { value: "no", label: "Нет" },
+  { value: "yes", label: tr`Да` },
+  { value: "no", label: tr`Нет` },
 ];
 const NEIGHBOURS = Object.entries(NEIGHBOUR_ANSWERS) as [NeighbourFloor, string][];
 
@@ -46,14 +47,14 @@ function sourcesText(rules: Pick<RuleReport, "documents">, sources: readonly Rul
 function Facts({ facts, onFacts }: { facts: BuildingFacts; onFacts: (facts: BuildingFacts) => void }) {
   const moscow = facts.region === "moscow";
   return (
-    <section className="xray-facts" aria-label="О квартире и доме">
+    <section className="xray-facts" aria-label={tr`О квартире и доме`}>
       <label>
         <span>{REGION_LABEL}</span>
         <select
           value={facts.region ?? ""}
           onChange={(event) => onFacts({ ...facts, region: (event.target.value || undefined) as BuildingFacts["region"] })}
         >
-          <option value="">Не указано</option>
+          <option value="">{tr`Не указано`}</option>
           <option value="moscow">{REGION_ANSWERS.moscow}</option>
           <option value="other">{REGION_ANSWERS.other}</option>
         </select>
@@ -117,18 +118,18 @@ function ProfileEditor({ profile, onProfile }: { profile: RuleProfile | undefine
   const [text, setText] = useState(() => profile?.prompt ?? readLastPrompt());
   return (
     <section className="xray-profile" data-testid="xray-profile" aria-labelledby="xray-profile-title">
-      <h3 id="xray-profile-title">Правила застройщика</h3>
-      <p>
-        Опишите своими словами, что важно в вашей стране или на вашем объекте. Приложение проверит план по этим правилам,
-        но не будет сверять их с законами страны.
-      </p>
+      <h3 id="xray-profile-title">{tr`Правила застройщика`}</h3>
+      <p>{tr`Опишите своими словами, что важно в вашей стране или на вашем объекте. Приложение проверит план по этим правилам, но не будет сверять их с законами страны.`}</p>
       <label>
-        <span>Правила своими словами</span>
+        <span>{tr`Правила своими словами`}</span>
         <textarea
           rows={5}
           maxLength={5000}
           value={text}
-          placeholder={"Кухня не меньше 9 м². Спальня не меньше 10 м².\nПотолки не ниже 2,6 м. В каждой комнате окно.\nНесущие стены не трогать. Санузлы не переносить.\nKitchen at least 9 m2. Do not merge the kitchen with the living room."}
+          placeholder={tr`Кухня не меньше 9 м². Спальня не меньше 10 м².
+Потолки не ниже 2,6 м. В каждой комнате окно.
+Несущие стены не трогать. Санузлы не переносить.
+Kitchen at least 9 m2. Do not merge the kitchen with the living room.`}
           onChange={(event) => setText(event.target.value)}
         />
       </label>
@@ -141,17 +142,13 @@ function ProfileEditor({ profile, onProfile }: { profile: RuleProfile | undefine
             rememberPrompt(text);
             onProfile(interpretPrompt(text));
           }}
-        >
-          Применить правила
-        </button>
-        {profile && <button type="button" className="secondary-button" onClick={() => onProfile(null)}>Убрать правила</button>}
+        >{tr`Применить правила`}</button>
+        {profile && <button type="button" className="secondary-button" onClick={() => onProfile(null)}>{tr`Убрать правила`}</button>}
       </div>
-      <p className="xray-note">
-        Текст разбирается по шаблонам, без нейросети: понимает русский и английский и не угадывает. Проверьте, как приложение его поняло.
-      </p>
+      <p className="xray-note">{tr`Текст разбирается по шаблонам, без нейросети: понимает русский и английский и не угадывает. Проверьте, как приложение его поняло.`}</p>
       {profile && (
         <>
-          <h4>Как приложение это поняло: {profile.rules.length}</h4>
+          <h4>{tr`Как приложение это поняло: `}{profile.rules.length}</h4>
           <ul data-testid="xray-profile-rules">
             {profile.rules.map((rule) => (
               <li key={rule.id} data-rule-type={rule.type}>
@@ -161,7 +158,7 @@ function ProfileEditor({ profile, onProfile }: { profile: RuleProfile | undefine
           </ul>
           {profile.notUnderstood.length > 0 && (
             <>
-              <h4>Не понято и не проверяется: {profile.notUnderstood.length}</h4>
+              <h4>{tr`Не понято и не проверяется: `}{profile.notUnderstood.length}</h4>
               <ul data-testid="xray-profile-not-understood">
                 {profile.notUnderstood.map((phrase) => <li key={phrase}>«{phrase}»</li>)}
               </ul>
@@ -185,7 +182,7 @@ function WallAnswer({ label, answer, rules }: { label: string; answer: WorkAnswe
 }
 
 function ShowButton({ id, onShow }: { id: string; onShow: (id: string) => void }) {
-  return <button type="button" className="xray-show" onClick={() => onShow(id)}>Показать на плане</button>;
+  return <button type="button" className="xray-show" onClick={() => onShow(id)}>{tr`Показать на плане`}</button>;
 }
 
 function WallCard({ wall, rules, onShow, onProof }: {
@@ -196,14 +193,13 @@ function WallCard({ wall, rules, onShow, onProof }: {
 }) {
   return (
     <li className="xray-wall" data-testid="xray-wall" data-wall={wall.wallId} data-procedure={wall.removal.procedure}>
-      <strong>
-        Стена {wall.number} <span>{WALL_KIND_LABELS[wall.kind]}{wall.rooms.length ? ` · ${wall.rooms.join(", ")}` : ""}</span>
+      <strong>{tr`Стена `}{wall.number} <span>{WALL_KIND_LABELS[wall.kind]}{wall.rooms.length ? ` · ${wall.rooms.join(", ")}` : ""}</span>
       </strong>
-      <WallAnswer label="Снос или перенос" answer={wall.removal} rules={rules} />
-      <WallAnswer label="Новый проём" answer={wall.opening} rules={rules} />
+      <WallAnswer label={tr`Снос или перенос`} answer={wall.removal} rules={rules} />
+      <WallAnswer label={tr`Новый проём`} answer={wall.opening} rules={rules} />
       <span className="xray-wall-actions">
         <ShowButton id={wall.wallId} onShow={onShow} />
-        <button type="button" className="xray-show" onClick={() => onProof(wall.wallId)}>Что, если убрать</button>
+        <button type="button" className="xray-show" onClick={() => onProof(wall.wallId)}>{tr`Что, если убрать`}</button>
       </span>
     </li>
   );
@@ -218,11 +214,10 @@ function Potential({ xray, rules, onShow, onProofWall, onOpenExample }: {
 }) {
   return (
     <section className="xray-potential" aria-labelledby="xray-potential-title">
-      <h3 id="xray-potential-title">Что в этой квартире можно изменить</h3>
+      <h3 id="xray-potential-title">{tr`Что в этой квартире можно изменить`}</h3>
       {xray.walls.length === 0 && (
-        <p className="xray-empty" data-testid="xray-no-walls">
-          На плане нет стен. Нарисуйте их или загрузите чертёж, и здесь появится ответ по каждой стене.{" "}
-          <button type="button" className="xray-show" onClick={onOpenExample}>Открыть пример со стенами</button>
+        <p className="xray-empty" data-testid="xray-no-walls">{tr`На плане нет стен. Нарисуйте их или загрузите чертёж, и здесь появится ответ по каждой стене.`}{" "}
+          <button type="button" className="xray-show" onClick={onOpenExample}>{tr`Открыть пример со стенами`}</button>
         </p>
       )}
       {xray.walls.length > 0 && (
@@ -240,14 +235,14 @@ function Potential({ xray, rules, onShow, onProofWall, onOpenExample }: {
         if (!walls.length) return null;
         return (
           <details key={procedure} open={xray.walls.length <= 12} className="xray-group">
-            <summary>{rules.procedures[procedure].label}: стен {walls.length}. <small>{rules.procedures[procedure].meaning}</small></summary>
+            <summary>{rules.procedures[procedure].label}{tr`: стен `}{walls.length}. <small>{rules.procedures[procedure].meaning}</small></summary>
             <ul>{walls.map((wall) => <WallCard key={wall.wallId} wall={wall} rules={rules} onShow={onShow} onProof={onProofWall} />)}</ul>
           </details>
         );
       })}
       {xray.rooms.length > 0 && (
         <>
-          <h4>Санузлы, кухни, балконы и шахты</h4>
+          <h4>{tr`Санузлы, кухни, балконы и шахты`}</h4>
           <ul className="xray-rooms">
             {xray.rooms.map((room) => (
               <li key={room.roomId} data-testid="xray-room">
@@ -269,7 +264,7 @@ function Findings({ rules, targetOf, onShow }: {
 }) {
   return (
     <section className="xray-findings" aria-labelledby="xray-findings-title">
-      <h3 id="xray-findings-title">Выводы по правилам</h3>
+      <h3 id="xray-findings-title">{tr`Выводы по правилам`}</h3>
       {REPORT_LEVEL_ORDER.map((level: ConfidenceLevel) => {
         const items = rules.findings.filter((finding) => finding.level === level);
         if (!items.length) return null;
@@ -357,13 +352,13 @@ export default function PlanXrayDialog({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <button type="button" className="icon-button modal-close" aria-label="Закрыть X-Ray" onClick={onClose}>
+      <button type="button" className="icon-button modal-close" aria-label={tr`Закрыть X-Ray`} onClick={onClose}>
         <X size={18} aria-hidden="true" />
       </button>
       <header className="plan-report-header">
         <span className="plan-report-symbol"><ScanSearch size={22} aria-hidden="true" /></span>
         <div>
-          <span className="eyebrow">X-RAY КВАРТИРЫ</span>
+          <span className="eyebrow">{tr`X-RAY КВАРТИРЫ`}</span>
           <h2 id="plan-xray-title">{plan.name}</h2>
         </div>
       </header>
@@ -375,8 +370,8 @@ export default function PlanXrayDialog({
         {!rules && (
           <p className="xray-no-rules" data-testid="xray-no-rules">
             {facts.region === "other"
-              ? "Правила ещё не заданы, поэтому план не проверяется. Готовая база пока есть только для Москвы."
-              : "Укажите, где находится квартира. Для другой страны или региона можно задать правила своими словами."}
+              ? tr`Правила ещё не заданы, поэтому план не проверяется. Готовая база пока есть только для Москвы.`
+              : tr`Укажите, где находится квартира. Для другой страны или региона можно задать правила своими словами.`}
           </p>
         )}
 
@@ -386,38 +381,33 @@ export default function PlanXrayDialog({
               <p className="xray-draft" data-testid="xray-draft">
                 <TriangleAlert size={16} aria-hidden="true" />
                 <span>
-                  <strong>Черновик базы правил.</strong> Правила прочитаны в документах, но специалист их ещё не сверил.
-                  Это подсказка, а не заключение: окончательно решают проект и Мосжилинспекция.
-                </span>
+                  <strong>{tr`Черновик базы правил.`}</strong>{tr` Правила прочитаны в документах, но специалист их ещё не сверил. Это подсказка, а не заключение: окончательно решают проект и Мосжилинспекция.`}</span>
               </p>
             )}
             {rules.missingFacts.length > 0 && (
-              <p className="xray-missing" data-testid="xray-missing">
-                Без ответов выше часть выводов остаётся без данных. Осталось вопросов: {rules.missingFacts.length}.
+              <p className="xray-missing" data-testid="xray-missing">{tr`Без ответов выше часть выводов остаётся без данных. Осталось вопросов: `}{rules.missingFacts.length}.
               </p>
             )}
             {!rules.checkedChanges && (
-              <p className="xray-hint" data-testid="xray-variant-hint">
-                Чтобы проверить изменения, нажмите «Вариант», измените план и откройте X-Ray снова: он сравнит вариант с исходным планом.
-                Или{" "}
-                <button type="button" className="xray-show" onClick={onGenerate}>подберите варианты автоматически</button>.
+              <p className="xray-hint" data-testid="xray-variant-hint">{tr`Чтобы проверить изменения, нажмите «Вариант», измените план и откройте X-Ray снова: он сравнит вариант с исходным планом. Или`}{" "}
+                <button type="button" className="xray-show" onClick={onGenerate}>{tr`подберите варианты автоматически`}</button>.
               </p>
             )}
             {rules.checkedChanges && rules.overall && (
               <section className="xray-overall" data-testid="xray-overall" data-procedure={rules.overall}>
-                <h3>Что понадобится для этого варианта</h3>
+                <h3>{tr`Что понадобится для этого варианта`}</h3>
                 <ProcedureChip procedure={rules.overall} />
                 <p>{rules.procedures[rules.overall].meaning}</p>
                 {rules.procedures[rules.overall].sources.length > 0 && (
                   <small>{sourcesText(rules, rules.procedures[rules.overall].sources)}</small>
                 )}
-                <button type="button" className="xray-show" onClick={onProofPlan}>Почему такой вывод</button>
+                <button type="button" className="xray-show" onClick={onProofPlan}>{tr`Почему такой вывод`}</button>
               </section>
             )}
             <Findings rules={rules} targetOf={targetOf} onShow={onShow} />
             <Potential xray={xray} rules={rules} onShow={onShow} onProofWall={onProofWall} onOpenExample={onOpenExample} />
             <section className="xray-documents" data-testid="xray-documents" aria-labelledby="xray-documents-title">
-              <h3 id="xray-documents-title">Документы и редакции</h3>
+              <h3 id="xray-documents-title">{tr`Документы и редакции`}</h3>
               <ul>
                 {rules.documents.map((document) => (
                   <li key={document.id}>
@@ -431,7 +421,7 @@ export default function PlanXrayDialog({
               </ul>
             </section>
             <section className="xray-not-checked" data-testid="xray-not-checked" aria-labelledby="xray-not-checked-title">
-              <h3 id="xray-not-checked-title">Что база не проверяет</h3>
+              <h3 id="xray-not-checked-title">{tr`Что база не проверяет`}</h3>
               <ul>{rules.notChecked.map((item) => <li key={item}>{item}</li>)}</ul>
             </section>
           </>

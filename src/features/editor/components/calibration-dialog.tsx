@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { Ruler, X } from "lucide-react";
 import type { Point } from "@/domain/geometry";
@@ -39,7 +40,7 @@ export function CalibrationDialog({
     >
       <button
         className="icon-button modal-close"
-        aria-label="Закрыть настройку масштаба"
+        aria-label={tr`Закрыть настройку масштаба`}
         onClick={onClose}
       >
         <X size={18} />
@@ -47,13 +48,9 @@ export function CalibrationDialog({
       <div className="dialog-symbol">
         <Ruler size={25} />
       </div>
-      <span className="eyebrow">ТОЧНЫЙ МАСШТАБ</span>
-      <h2 id="calibration-title">Укажите известный размер</h2>
-      <p>
-        Введите реальную длину отрезка между двумя отмеченными точками, например
-        4 м для стены. Изменится масштаб подложки; существующие комнаты и стены
-        сохранят свои размеры.
-      </p>
+      <span className="eyebrow">{tr`ТОЧНЫЙ МАСШТАБ`}</span>
+      <h2 id="calibration-title">{tr`Укажите известный размер`}</h2>
+      <p>{tr`Введите реальную длину отрезка между двумя отмеченными точками, например 4 м для стены. Изменится масштаб подложки; существующие комнаты и стены сохранят свои размеры.`}</p>
       <p className="calibration-source" title={underlay.name}>
         {underlay.name}
       </p>
@@ -63,12 +60,12 @@ export function CalibrationDialog({
           event.preventDefault();
           const meters = value.trim() ? Number(value.replace(",", ".")) : NaN;
           if (!Number.isFinite(meters) || meters < 0.1 || meters > 100) {
-            setValidationError("Укажите длину от 0,1 до 100 м.");
+            setValidationError(tr`Укажите длину от 0,1 до 100 м.`);
             return;
           }
           if (start.x === end.x && start.y === end.y) {
             setValidationError(
-              "Точки совпадают. Закройте окно и отметьте другой отрезок.",
+              tr`Точки совпадают. Закройте окно и отметьте другой отрезок.`,
             );
             return;
           }
@@ -76,7 +73,7 @@ export function CalibrationDialog({
           onApply(meters);
         }}
       >
-        <label htmlFor="calibration-length">Известная длина, м</label>
+        <label htmlFor="calibration-length">{tr`Известная длина, м`}</label>
         <input
           id="calibration-length"
           inputMode="decimal"
@@ -85,7 +82,7 @@ export function CalibrationDialog({
             setValue(event.target.value);
             setValidationError(null);
           }}
-          placeholder="Например, 4"
+          placeholder={tr`Например, 4`}
           autoFocus
         />
         {(validationError || error) && (
@@ -94,9 +91,7 @@ export function CalibrationDialog({
           </p>
         )}
         <button className="primary-button" type="submit">
-          <Ruler size={16} />
-          Применить масштаб
-        </button>
+          <Ruler size={16} />{tr`Применить масштаб`}</button>
       </form>
     </dialog>
   );

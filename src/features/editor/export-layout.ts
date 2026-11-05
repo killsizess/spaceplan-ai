@@ -1,3 +1,4 @@
+import { currentLocale, tr } from "@/lib/i18n";
 import type { Point } from "@/domain/geometry";
 import { floorPlanSchema } from "@/domain/floor-plan/schema";
 import type { FloorPlan, Opening, Room, Wall } from "@/domain/floor-plan/types";
@@ -40,7 +41,7 @@ const CSS_PIXELS_PER_MM = 96 / 25.4;
 const INK = "#243336";
 const NICE_STEPS = [1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 7.5, 10];
 const n = (value: number) => String(Number(value.toFixed(6)));
-const preciseNumber = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 8, useGrouping: false });
+const preciseNumber = new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 8, useGrouping: false });
 
 /** Text is never inserted as markup or used as an SVG attribute name. */
 function xml(value: string): string {
@@ -340,9 +341,9 @@ export function createPlanExportLayout(plan: FloorPlan, options: PlanExportOptio
   if ((options.orientation !== "landscape" && options.orientation !== "portrait") ||
     typeof options.dimensions !== "boolean" ||
     (options.scale !== "auto" && (!Number.isFinite(options.scale) || options.scale < 1 || options.scale > 1_000_000))) {
-    throw new Error("Проверьте ориентацию и масштаб экспорта: знаменатель масштаба — от 1 до 1 000 000.");
+    throw new Error(tr`Проверьте ориентацию и масштаб экспорта: знаменатель масштаба — от 1 до 1 000 000.`);
   }
-  if (!floorPlanSchema.safeParse(plan).success) throw new Error("План содержит некорректные данные. Исправьте их перед экспортом.");
+  if (!floorPlanSchema.safeParse(plan).success) throw new Error(tr`План содержит некорректные данные. Исправьте их перед экспортом.`);
   const resolution = resolveWallRoomLabels(plan);
   const rooms = plan.roomMode === "walls" ? resolution.rooms : plan.rooms.map(manualContour);
   const footprints = plan.walls.map((wall) => wallFootprint(wall)[0].map(([x, y]) => ({ x, y })));
@@ -362,7 +363,7 @@ export function createPlanExportLayout(plan: FloorPlan, options: PlanExportOptio
       );
     }
   }
-  if (!points.length) throw new Error("План пуст. Добавьте комнату или стену перед экспортом.");
+  if (!points.length) throw new Error(tr`План пуст. Добавьте комнату или стену перед экспортом.`);
   const bounds: Bounds = points.reduce((result, point) => ({ minX: Math.min(result.minX, point.x), minY: Math.min(result.minY, point.y), maxX: Math.max(result.maxX, point.x), maxY: Math.max(result.maxY, point.y) }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
   const widthMm = options.orientation === "landscape" ? 297 : 210;
   const heightMm = options.orientation === "landscape" ? 210 : 297;
@@ -373,13 +374,13 @@ export function createPlanExportLayout(plan: FloorPlan, options: PlanExportOptio
   const scaleDenominator = options.scale === "auto" ? nextNiceScale(minimum) : options.scale;
   const mmPerMeter = 1000 / scaleDenominator;
   if (worldWidth * mmPerMeter > drawing.width + EPSILON || worldHeight * mmPerMeter > drawing.height + EPSILON) {
-    throw new Error(`План не помещается на A4 в масштабе 1:${preciseNumber.format(scaleDenominator)}. Выберите «Подобрать под лист» или уменьшите масштаб.`);
+    throw new Error(tr`План не помещается на A4 в масштабе 1:${preciseNumber.format(scaleDenominator)}. Выберите «Подобрать под лист» или уменьшите масштаб.`);
   }
   const map: MapPoint = (point) => ({ x: drawing.x + (drawing.width - worldWidth * mmPerMeter) / 2 + (point.x - bounds.minX) * mmPerMeter, y: drawing.y + (drawing.height - worldHeight * mmPerMeter) / 2 + (point.y - bounds.minY) * mmPerMeter });
   const warnings = [...resolution.warnings];
-  if (plan.underlay) warnings.push("Подложка не включается в экспорт: на листе показана редактируемая геометрия.");
-  if (plan.roomMode === "walls" && !rooms.length) warnings.push("Замкнутые помещения не найдены. На листе показаны стены и проёмы; площадь равна нулю.");
-  if (plan.roomMode === "walls" && resolution.unassigned.length) warnings.push("Непривязанные названия помещений не включены в лист.");
+  if (plan.underlay) warnings.push(tr`Подложка не включается в экспорт: на листе показана редактируемая геометрия.`);
+  if (plan.roomMode === "walls" && !rooms.length) warnings.push(tr`Замкнутые помещения не найдены. На листе показаны стены и проёмы; площадь равна нулю.`);
+  if (plan.roomMode === "walls" && resolution.unassigned.length) warnings.push(tr`Непривязанные названия помещений не включены в лист.`);
   const fills = rooms.map((room) => `<path data-room="true" d="${[room.outer, ...room.holes].map((ring) => ringPath(ring, map)).join(" ")}" fill="${room.color}" fill-rule="evenodd" stroke="#83918e" stroke-width="0.2"/>`).join("");
   const walls = plan.walls.flatMap((wall) => solidWallFootprints(wall, plan.openings)
     .map((ring) => `<path data-wall="true" d="${ringPath(ring, map)}" data-wall-id="${xml(wall.id)}" fill="${INK}"/>`)).join("");
@@ -394,33 +395,33 @@ export function createPlanExportLayout(plan: FloorPlan, options: PlanExportOptio
     if (label.shortened) shortenedNames++;
     return dimensionsSvg(dimension, map, mmPerMeter, readableRoomInk(room.color, INK)) + label.svg;
   }).join("");
-  if (hiddenLabels) warnings.push(`Подписи ${hiddenLabels} помещений скрыты: при выбранном масштабе внутри контура недостаточно места.`);
-  if (shortenedNames) warnings.push(`Названия ${shortenedNames} помещений сокращены на листе. Полные названия сохраняются в проекте и JSON.`);
-  if (options.dimensions && visibleDimensions < rooms.length) warnings.push("Внутренние размеры показаны только у прямоугольных помещений, где для них достаточно места.");
+  if (hiddenLabels) warnings.push(tr`Подписи ${hiddenLabels} помещений скрыты: при выбранном масштабе внутри контура недостаточно места.`);
+  if (shortenedNames) warnings.push(tr`Названия ${shortenedNames} помещений сокращены на листе. Полные названия сохраняются в проекте и JSON.`);
+  if (options.dimensions && visibleDimensions < rooms.length) warnings.push(tr`Внутренние размеры показаны только у прямоугольных помещений, где для них достаточно места.`);
   const title = fitText(plan.name, widthMm - 24, 5);
-  if (title !== plan.name) warnings.push("Название проекта сокращено в заголовке листа.");
+  if (title !== plan.name) warnings.push(tr`Название проекта сокращено в заголовке листа.`);
   const totalArea = rooms.reduce((sum, room) => sum + room.area, 0);
-  const mode = plan.roomMode === "walls" ? "Помещения по стенам" : "Ручные комнаты";
+  const mode = plan.roomMode === "walls" ? tr`Помещения по стенам` : tr`Ручные комнаты`;
   const scaleTarget = 38 / mmPerMeter;
   const scalePower = 10 ** Math.floor(Math.log10(scaleTarget));
   const scaleMeters = [1, 2, 2.5, 5, 10].filter((step) => step * scalePower <= scaleTarget + EPSILON).at(-1)! * scalePower;
   const barWidth = scaleMeters * mmPerMeter;
   const barX = widthMm - 78, barY = heightMm - 20;
   const footerLeftWidth = widthMm - 104;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${widthMm}mm" height="${heightMm}mm" viewBox="0 0 ${widthMm} ${heightMm}" role="img" aria-label="План помещений на листе A4">` +
+  const svg = tr`<svg xmlns="http://www.w3.org/2000/svg" width="${widthMm}mm" height="${heightMm}mm" viewBox="0 0 ${widthMm} ${heightMm}" role="img" aria-label="План помещений на листе A4">` +
     `<rect width="${widthMm}" height="${heightMm}" fill="#ffffff"/><g font-family="Arial, Helvetica, sans-serif" fill="${INK}">` +
     text(12, 18, title, 5, 'font-weight="700"') +
-    text(12, 25, `SpacePlan AI · ${mode} · ${rooms.length} помещ. · метры`, 3) +
+    text(12, 25, tr`SpacePlan AI · ${mode} · ${rooms.length} помещ. · метры`, 3) +
     `<path d="M12 30 H${widthMm - 12} M12 ${heightMm - 32} H${widthMm - 12}" stroke="#c6d1cd" stroke-width="0.25"/>` +
     `<g data-plan="true" data-mm-per-meter="${n(mmPerMeter)}">${fills}${openings}${walls}${annotations}</g>` +
-    text(12, heightMm - 25, fitText(`Общая площадь: ${formatArea(totalArea)}`, footerLeftWidth, 3.5), 3.5, 'font-weight="600"') +
+    text(12, heightMm - 25, fitText(tr`Общая площадь: ${formatArea(totalArea)}`, footerLeftWidth, 3.5), 3.5, 'font-weight="600"') +
     text(12, heightMm - 19, fitText(mode, footerLeftWidth, 2.7), 2.7) +
-    text(12, heightMm - 13, options.dimensions ? "Размеры внутри помещений, м" : "Размеры скрыты", 2.7) +
-    `<path d="M12 ${heightMm - 7} v-3 M12 ${heightMm - 10} A3 3 0 0 1 15 ${heightMm - 7}" fill="none" stroke="#8f6748" stroke-width="0.3"/>` + text(19, heightMm - 6, "дверь", 2.5) +
-    `<path d="M35 ${heightMm - 7.5} h5 M35 ${heightMm - 6.5} h5" stroke="#377a93" stroke-width="0.3"/>` + text(42, heightMm - 6, "окно", 2.5) +
-    text(barX, heightMm - 26, `Масштаб 1:${preciseNumber.format(scaleDenominator)}`, 3, 'font-weight="600"') +
+    text(12, heightMm - 13, options.dimensions ? tr`Размеры внутри помещений, м` : tr`Размеры скрыты`, 2.7) +
+    `<path d="M12 ${heightMm - 7} v-3 M12 ${heightMm - 10} A3 3 0 0 1 15 ${heightMm - 7}" fill="none" stroke="#8f6748" stroke-width="0.3"/>` + text(19, heightMm - 6, tr`дверь`, 2.5) +
+    `<path d="M35 ${heightMm - 7.5} h5 M35 ${heightMm - 6.5} h5" stroke="#377a93" stroke-width="0.3"/>` + text(42, heightMm - 6, tr`окно`, 2.5) +
+    text(barX, heightMm - 26, tr`Масштаб 1:${preciseNumber.format(scaleDenominator)}`, 3, 'font-weight="600"') +
     `<path data-scale-bar="true" d="M${n(barX)} ${n(barY - 1.5)} V${n(barY + 1.5)} M${n(barX)} ${n(barY)} H${n(barX + barWidth)} M${n(barX + barWidth)} ${n(barY - 1.5)} V${n(barY + 1.5)}" stroke="${INK}" stroke-width="0.35"/>` +
-    text(barX, barY + 5, "0", 2.5) + text(barX + barWidth, barY + 5, `${preciseNumber.format(scaleMeters)} м`, 2.5, 'text-anchor="end"') +
-    text(barX, heightMm - 8, "Печатать A4, масштаб 100%", 2.5) + "</g></svg>";
+    text(barX, barY + 5, "0", 2.5) + text(barX + barWidth, barY + 5, tr`${preciseNumber.format(scaleMeters)} м`, 2.5, 'text-anchor="end"') +
+    text(barX, heightMm - 8, tr`Печатать A4, масштаб 100%`, 2.5) + "</g></svg>";
   return { svg, widthMm, heightMm, scaleDenominator, roomCount: rooms.length, totalArea, warnings: [...new Set(warnings)] };
 }

@@ -1,3 +1,4 @@
+import { currentLocale, tr } from "@/lib/i18n";
 import type { Point } from "@/domain/geometry";
 import type { DoorSwing, Opening, Wall } from "./types";
 import type { LineSegment } from "./wall-candidates";
@@ -297,39 +298,39 @@ interface Classified {
   reasons: string[];
 }
 
-const widthText = (width: number) => `${(Math.round(width * 100) / 100).toLocaleString("ru-RU")} м`;
+const widthText = (width: number) => tr`${(Math.round(width * 100) / 100).toLocaleString(currentLocale())} м`;
 
 function classify(evidence: Evidence, width: number, structure: string): Classified {
   const reasons = [structure];
   const jambs = Number(evidence.jambStart) + Number(evidence.jambEnd);
-  if (jambs === 2) reasons.push("Проём закрыт линиями с обоих концов.");
-  else if (jambs === 1) reasons.push("Проём закрыт линией только с одного конца.");
+  if (jambs === 2) reasons.push(tr`Проём закрыт линиями с обоих концов.`);
+  else if (jambs === 1) reasons.push(tr`Проём закрыт линией только с одного конца.`);
   if (evidence.arc) {
     const swing: DoorSwing = { hinge: evidence.arc.hinge, side: evidence.arc.side };
-    reasons.push(`Есть дуга открывания двери радиусом ${widthText(evidence.arc.r)}.`);
+    reasons.push(tr`Есть дуга открывания двери радиусом ${widthText(evidence.arc.r)}.`);
     if (evidence.leaf && evidence.leaf.hinge === evidence.arc.hinge && evidence.leaf.side === evidence.arc.side) {
-      reasons.push("Есть линия полотна двери.");
+      reasons.push(tr`Есть линия полотна двери.`);
       return { kind: "door", door: swing, confidence: "high", reasons };
     }
     if (jambs > 0) return { kind: "door", door: swing, confidence: "high", reasons };
-    reasons.push("Нет ни линии полотна, ни линий по краям проёма: вывод только по дуге.");
+    reasons.push(tr`Нет ни линии полотна, ни линий по краям проёма: вывод только по дуге.`);
     return { kind: "door", door: swing, confidence: "low", reasons };
   }
   if (evidence.leaf) {
-    reasons.push("Есть линия полотна двери, но нет дуги открывания.");
+    reasons.push(tr`Есть линия полотна двери, но нет дуги открывания.`);
     return { kind: "door", door: { hinge: evidence.leaf.hinge, side: evidence.leaf.side }, confidence: "low", reasons };
   }
   if (evidence.glazing >= 2) {
-    reasons.push(`Между гранями стены ${evidence.glazing} тонкие линии остекления.`);
+    reasons.push(tr`Между гранями стены ${evidence.glazing} тонкие линии остекления.`);
     return { kind: "window", confidence: "high", reasons };
   }
   if (evidence.glazing === 1) {
-    reasons.push("Между гранями стены одна линия: возможно, подоконник или остекление.");
+    reasons.push(tr`Между гранями стены одна линия: возможно, подоконник или остекление.`);
     return { kind: "window", confidence: "low", reasons };
   }
   // No evidence about the kind: say so, and fall back to the likelier one by size.
   const kind = width <= 1.3 ? "door" : "window";
-  reasons.push(`Нет ни створки, ни остекления: тип не определён, предположительно ${kind === "door" ? "дверь" : "окно"} по ширине. Проверьте и при необходимости смените тип.`);
+  reasons.push(tr`Нет ни створки, ни остекления: тип не определён, предположительно ${kind === "door" ? tr`дверь` : tr`окно`} по ширине. Проверьте и при необходимости смените тип.`);
   return { kind, confidence: "low", reasons };
 }
 
@@ -403,7 +404,7 @@ export function findOpeningCandidates(
         if (taken(wall, x0, x1)) continue;
         gaps.push([x0, x1]);
         const evidence = inspect(frame, x0, x1, segmentGrid, curveGrid);
-        const result = classify(evidence, width, "Обе линии граней стены прерываются на этом участке.");
+        const result = classify(evidence, width, tr`Обе линии граней стены прерываются на этом участке.`);
         found.push(candidate(result, "face-gap", wall.id, null, frame, x0, width, t));
       }
     }
@@ -420,7 +421,7 @@ export function findOpeningCandidates(
       if (gaps.some(([a, b]) => x0 < b - 0.05 && x0 + width > a + 0.05) || taken(wall, x0, x0 + width)) continue;
       if (found.some((item) => item.wallId === wall.id && item.offset < x0 + width - 0.05 && item.offset + item.width > x0 + 0.05)) continue;
       const evidence = inspect(frame, Math.max(0, x0), Math.min(frame.length, x0 + width), segmentGrid, curveGrid);
-      const result = classify(evidence, width, "Линии граней стены идут сквозь проём: границы проёма определены только по дуге двери.");
+      const result = classify(evidence, width, tr`Линии граней стены идут сквозь проём: границы проёма определены только по дуге двери.`);
       // Without a gap in the faces the opening itself is not drawn; never "high".
       found.push(candidate({ ...result, confidence: "low" }, "arc", wall.id, null, frame, Math.max(0, x0), Math.min(width, frame.length - Math.max(0, x0)), t));
     }
@@ -466,7 +467,7 @@ export function findOpeningCandidates(
       const fillFrame = frameOf(fill.start, fill.end, fill.thickness);
       if (!fillFrame) continue;
       const evidence = inspect(fillFrame, 0, fillFrame.length, segmentGrid, curveGrid);
-      const result = classify(evidence, width, `Две стены лежат на одной оси, между ними ${widthText(width)} без стены.`);
+      const result = classify(evidence, width, tr`Две стены лежат на одной оси, между ними ${widthText(width)} без стены.`);
       found.push({ ...candidate(result, "wall-gap", null, fill, fillFrame, 0, fillFrame.length, fill.thickness) });
     }
   }

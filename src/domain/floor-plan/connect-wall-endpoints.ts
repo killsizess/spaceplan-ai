@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { assertPoint } from "@/domain/geometry";
 import { moveWallNode } from "./construction";
 import type { FloorPlan } from "./types";
@@ -8,7 +9,7 @@ import {
 import { sameWallNode } from "./wall-nodes";
 
 const STALE_CONNECTION =
-  "Соединение изменилось. Выберите свободный конец заново.";
+  tr`Соединение изменилось. Выберите свободный конец заново.`;
 
 /**
  * Joins one free endpoint to the nearest endpoint from an explicit diagnostic
@@ -24,7 +25,7 @@ export function connectWallEndpoints(
     !diagnostic.target ||
     (diagnostic.target.endpoint !== "start" && diagnostic.target.endpoint !== "end")
   ) {
-    throw new Error("Можно соединить только два близких конца стен.");
+    throw new Error(tr`Можно соединить только два близких конца стен.`);
   }
   if (
     (diagnostic.endpoint !== "start" && diagnostic.endpoint !== "end") ||
@@ -33,7 +34,7 @@ export function connectWallEndpoints(
     diagnostic.distance < 0 ||
     diagnostic.distance > 0.3
   ) {
-    throw new Error("Некорректное соединение концов стен.");
+    throw new Error(tr`Некорректное соединение концов стен.`);
   }
   assertPoint(diagnostic.point);
   assertPoint(diagnostic.target.point);

@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { createEmptyPlan } from "@/domain/floor-plan/operations";
 import type { FloorPlan } from "@/domain/floor-plan/types";
 import { door, labelled, wall, window_ } from "@/domain/rules/rules.fixtures";
@@ -9,7 +10,7 @@ import { door, labelled, wall, window_ } from "@/domain/rules/rules.fixtures";
 export function createVariantsExamplePlan(): FloorPlan {
   let plan: FloorPlan = {
     ...createEmptyPlan("variants-example"),
-    name: "Пример для подбора вариантов",
+    name: tr`Пример для подбора вариантов`,
     roomMode: "walls",
     walls: [
       wall("top", 0, 0, 12, 0, "bearing"),
@@ -44,10 +45,10 @@ export function createVariantsExamplePlan(): FloorPlan {
       above: "no-dwelling",
     },
   };
-  plan = labelled(plan, { x: 3.5, y: 2.5 }, "Гостиная", "living");
-  plan = labelled(plan, { x: 9.5, y: 2.5 }, "Спальня", "bedroom");
-  plan = labelled(plan, { x: 2.25, y: 6.25 }, "Кухня", "kitchen");
-  plan = labelled(plan, { x: 6.75, y: 6.25 }, "Прихожая", "hall");
-  plan = labelled(plan, { x: 10.5, y: 6.25 }, "Санузел", "bathroom");
+  plan = labelled(plan, { x: 3.5, y: 2.5 }, tr`Гостиная`, "living");
+  plan = labelled(plan, { x: 9.5, y: 2.5 }, tr`Спальня`, "bedroom");
+  plan = labelled(plan, { x: 2.25, y: 6.25 }, tr`Кухня`, "kitchen");
+  plan = labelled(plan, { x: 6.75, y: 6.25 }, tr`Прихожая`, "hall");
+  plan = labelled(plan, { x: 10.5, y: 6.25 }, tr`Санузел`, "bathroom");
   return plan;
 }

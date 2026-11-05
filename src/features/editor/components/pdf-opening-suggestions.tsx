@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { Check, DoorOpen, X } from "lucide-react";
 import { formatLength } from "@/lib/format";
 
@@ -46,55 +47,45 @@ export function PdfOpeningSuggestions({
   const selected = items.filter((item) => item.selected).length;
   const doubtful = items.filter((item) => item.confidence === "low").length;
   return (
-    <section className="pdf-wall-suggestions pdf-opening-suggestions" aria-label="Двери и окна из чертежа" data-testid="pdf-opening-suggestions">
+    <section className="pdf-wall-suggestions pdf-opening-suggestions" aria-label={tr`Двери и окна из чертежа`} data-testid="pdf-opening-suggestions">
       <h3>
-        <DoorOpen size={13} /> Двери и окна из чертежа
-      </h3>
+        <DoorOpen size={13} />{tr` Двери и окна из чертежа`}</h3>
       {suggestion ? (
         items.length > 0 ? (
           <>
-            <p role="status">
-              Найдено проёмов: <strong data-testid="opening-suggestion-count">{items.length}</strong>, выбрано{" "}
+            <p role="status">{tr`Найдено проёмов: `}<strong data-testid="opening-suggestion-count">{items.length}</strong>{tr`, выбрано`}{" "}
               <strong data-testid="opening-suggestion-selected">{selected}</strong>
               {doubtful > 0 && (
-                <>
-                  , неуверенно: <strong data-testid="opening-suggestion-doubtful">{doubtful}</strong>
+                <>{tr`, неуверенно: `}<strong data-testid="opening-suggestion-doubtful">{doubtful}</strong>
                 </>
-              )}
-              . Они показаны на плане пунктиром; щелчок по проёму на плане или галочка ниже включает и исключает его.
-              Сомнительные («неуверенно») выключены: прочтите, на чём основан вывод, и включите их сами.
-              {suggestion.truncated && " Чертёж очень подробный: показана только часть."}
+              )}{tr`. Они показаны на плане пунктиром; щелчок по проёму на плане или галочка ниже включает и исключает его. Сомнительные («неуверенно») выключены: прочтите, на чём основан вывод, и включите их сами.`}{suggestion.truncated && tr` Чертёж очень подробный: показана только часть.`}
             </p>
             <div className="pdf-wall-suggestions-bulk">
-              <button type="button" disabled={busy || selected === items.length} onClick={() => onSelectAll(true)}>
-                Выбрать все
-              </button>
-              <button type="button" disabled={busy || selected === 0} onClick={() => onSelectAll(false)}>
-                Снять все
-              </button>
+              <button type="button" disabled={busy || selected === items.length} onClick={() => onSelectAll(true)}>{tr`Выбрать все`}</button>
+              <button type="button" disabled={busy || selected === 0} onClick={() => onSelectAll(false)}>{tr`Снять все`}</button>
             </div>
-            <ul className="pdf-wall-suggestions-list pdf-opening-suggestions-list" aria-label="Предложенные проёмы">
+            <ul className="pdf-wall-suggestions-list pdf-opening-suggestions-list" aria-label={tr`Предложенные проёмы`}>
               {items.map((item, index) => (
                 <li key={index} data-confidence={item.confidence} data-kind={item.kind}>
                   <label>
                     <input type="checkbox" checked={item.selected} disabled={busy} onChange={() => onToggle(index)} />
-                    {item.kind === "door" ? "Дверь" : "Окно"} {index + 1}
+                    {item.kind === "door" ? tr`Дверь` : tr`Окно`} {index + 1}
                     <small>
-                      {formatLength(item.width)} м · {item.place}
+                      {formatLength(item.width)}{tr` м · `}{item.place}
                     </small>
-                    {item.confidence === "low" && <span className="opening-doubt">неуверенно</span>}
+                    {item.confidence === "low" && <span className="opening-doubt">{tr`неуверенно`}</span>}
                   </label>
                   <select
-                    aria-label={`Тип проёма ${index + 1}`}
+                    aria-label={tr`Тип проёма ${index + 1}`}
                     value={item.kind}
                     disabled={busy}
                     onChange={(event) => onKind(index, event.target.value as "door" | "window")}
                   >
-                    <option value="door">Дверь</option>
-                    <option value="window">Окно</option>
+                    <option value="door">{tr`Дверь`}</option>
+                    <option value="window">{tr`Окно`}</option>
                   </select>
                   <details>
-                    <summary>Почему</summary>
+                    <summary>{tr`Почему`}</summary>
                     <ul>
                       {item.reasons.map((reason, at) => (
                         <li key={at}>{reason}</li>
@@ -106,38 +97,30 @@ export function PdfOpeningSuggestions({
             </ul>
             <div className="underlay-action-pair">
               <button disabled={busy || selected === 0} onClick={onAccept}>
-                <Check size={14} /> Добавить проёмы ({selected})
+                <Check size={14} />{tr` Добавить проёмы (`}{selected})
               </button>
               <button disabled={busy} onClick={onDismiss}>
-                <X size={14} /> Отклонить
-              </button>
+                <X size={14} />{tr` Отклонить`}</button>
             </div>
           </>
         ) : (
           <>
-            <p role="status">
-              Проёмы не найдены. Они ищутся там, где в линиях чертежа прерываются обе грани стены или две стены на одной оси
-              не доходят друг до друга на 0,4–3,2 м. Если на чертеже проём нарисован иначе, добавьте его вручную
-              инструментами «Дверь» и «Окно».
-            </p>
+            <p role="status">{tr`Проёмы не найдены. Они ищутся там, где в линиях чертежа прерываются обе грани стены или две стены на одной оси не доходят друг до друга на 0,4–3,2 м. Если на чертеже проём нарисован иначе, добавьте его вручную инструментами «Дверь» и «Окно».`}</p>
             <div className="underlay-action-pair">
-              <button onClick={onDismiss}>Понятно</button>
+              <button onClick={onDismiss}>{tr`Понятно`}</button>
             </div>
           </>
         )
       ) : (
         <>
-          <p>
-            Ищутся проёмы в стенах плана: разрыв граней стены, створка с дугой открывания у двери, тонкие линии остекления у окна.
-          </p>
-          {!calibrated && <p className="pdf-wall-suggestions-hint">Сначала задайте масштаб: ширина проёма определяется в метрах.</p>}
+          <p>{tr`Ищутся проёмы в стенах плана: разрыв граней стены, створка с дугой открывания у двери, тонкие линии остекления у окна.`}</p>
+          {!calibrated && <p className="pdf-wall-suggestions-hint">{tr`Сначала задайте масштаб: ширина проёма определяется в метрах.`}</p>}
           {calibrated && wallCount === 0 && (
-            <p className="pdf-wall-suggestions-hint">В плане пока нет стен. Сначала добавьте стены: проём всегда сидит в стене.</p>
+            <p className="pdf-wall-suggestions-hint">{tr`В плане пока нет стен. Сначала добавьте стены: проём всегда сидит в стене.`}</p>
           )}
           <div className="underlay-action-pair">
             <button disabled={busy || !calibrated || wallCount === 0} onClick={onSuggest}>
-              <DoorOpen size={14} /> Предложить двери и окна
-            </button>
+              <DoorOpen size={14} />{tr` Предложить двери и окна`}</button>
           </div>
         </>
       )}

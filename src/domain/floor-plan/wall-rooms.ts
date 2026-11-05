@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import polygonClipping, {
   type MultiPolygon,
   type Polygon,
@@ -77,10 +78,10 @@ function canonicalRing(ring: Ring, counterClockwise: boolean): Point[] {
       (point) => !Number.isFinite(point.x) || !Number.isFinite(point.y),
     )
   ) {
-    throw new Error("Не удалось построить корректный контур помещения.");
+    throw new Error(tr`Не удалось построить корректный контур помещения.`);
   }
   const area = signedArea(points);
-  if (area === 0) throw new Error("Контур помещения имеет нулевую площадь.");
+  if (area === 0) throw new Error(tr`Контур помещения имеет нулевую площадь.`);
   if (area > 0 !== counterClockwise) points.reverse();
   let start = 0;
   for (let index = 1; index < points.length; index++) {
@@ -121,7 +122,7 @@ export function wallFootprint(wall: Wall): Polygon {
 
 function validateWalls(walls: readonly Wall[]): void {
   if (walls.length > MAX_WALLS)
-    throw new Error("Для определения помещений допустимо не больше 1000 стен.");
+    throw new Error(tr`Для определения помещений допустимо не больше 1000 стен.`);
   const ids = new Set<string>();
   for (const wall of walls) {
     if (
@@ -131,14 +132,14 @@ function validateWalls(walls: readonly Wall[]): void {
       ids.has(wall.id)
     ) {
       throw new Error(
-        "У каждой стены должен быть уникальный непустой идентификатор.",
+        tr`У каждой стены должен быть уникальный непустой идентификатор.`,
       );
     }
     ids.add(wall.id);
     assertPoint(wall.start);
     assertPoint(wall.end);
     if (wallLength(wall.start, wall.end) > 2000)
-      throw new Error("Длина стены не должна превышать 2000 м.");
+      throw new Error(tr`Длина стены не должна превышать 2000 м.`);
     if (
       ![wall.thickness, wall.height].every(
         (value) =>
@@ -146,7 +147,7 @@ function validateWalls(walls: readonly Wall[]): void {
       )
     ) {
       throw new Error(
-        "Толщина и высота стены должны быть положительными числами не больше 100 м.",
+        tr`Толщина и высота стены должны быть положительными числами не больше 100 м.`,
       );
     }
   }
@@ -158,7 +159,7 @@ function assertClipComplexity(polygons: MultiPolygon): void {
     for (const ring of polygon) vertices += ring.length;
   if (vertices > MAX_CLIPPING_VERTICES) {
     throw new Error(
-      "Слишком сложный контур стен. Упростите план для определения помещений.",
+      tr`Слишком сложный контур стен. Упростите план для определения помещений.`,
     );
   }
 }
@@ -346,7 +347,7 @@ function interiorLabel(
     spans.sort((a, b) => b.width - a.width || a.point.x - b.point.x);
     if (spans.length) return spans[0].point;
   }
-  throw new Error("Не удалось выбрать внутреннюю точку помещения.");
+  throw new Error(tr`Не удалось выбрать внутреннюю точку помещения.`);
 }
 
 /**
@@ -443,7 +444,7 @@ function computeWallRooms(walls: readonly Wall[]): WallRoomDetection {
     return {
       rooms: [],
       warnings: [
-        "Добавьте стены и замкните контур, чтобы определить помещения.",
+        tr`Добавьте стены и замкните контур, чтобы определить помещения.`,
       ],
     };
   const footprints = walls.map(wallFootprint).sort((a, b) => {
@@ -460,11 +461,11 @@ function computeWallRooms(walls: readonly Wall[]): WallRoomDetection {
       return {
         rooms: [],
         warnings: [
-          "Замкнутые помещения не найдены. Проверьте соединения стен.",
+          tr`Замкнутые помещения не найдены. Проверьте соединения стен.`,
         ],
       };
     if (cavities.length > 1000)
-      throw new Error("Слишком много замкнутых контуров стен.");
+      throw new Error(tr`Слишком много замкнутых контуров стен.`);
     // Nested cavities must be merged first, otherwise inner rooms are counted twice.
     const bounded = union(cavities[0], ...cavities.slice(1));
     spaces = difference(bounded, solids);
@@ -473,8 +474,8 @@ function computeWallRooms(walls: readonly Wall[]): WallRoomDetection {
     const detail =
       error instanceof Error && /Слишком/.test(error.message)
         ? error.message
-        : "Проверьте геометрию и упростите пересечения стен.";
-    throw new Error(`Не удалось определить помещения. ${detail}`);
+        : tr`Проверьте геометрию и упростите пересечения стен.`;
+    throw new Error(tr`Не удалось определить помещения. ${detail}`);
   }
 
   const faces = wallFaces(walls);
@@ -512,7 +513,7 @@ function computeWallRooms(walls: readonly Wall[]): WallRoomDetection {
   }
   if (rooms.length > MAX_ROOMS)
     throw new Error(
-      "Найдено больше 100 помещений. Разделите план на несколько проектов.",
+      tr`Найдено больше 100 помещений. Разделите план на несколько проектов.`,
     );
   rooms.sort(
     (a, b) =>
@@ -527,16 +528,16 @@ function computeWallRooms(walls: readonly Wall[]): WallRoomDetection {
     let suffix = 1;
     while (usedIds.has(room.id)) room.id = `${originalId}-${suffix++}`;
     usedIds.add(room.id);
-    room.name = `Помещение ${index + 1}`;
+    room.name = tr`Помещение ${index + 1}`;
     room.color = COLORS[index % COLORS.length];
   });
   const warnings =
     excluded > 0
-      ? [`Не учтено контуров площадью менее 0,25 м²: ${excluded}.`]
+      ? [tr`Не учтено контуров площадью менее 0,25 м²: ${excluded}.`]
       : [];
   if (rooms.length === 0)
     warnings.push(
-      "Помещения достаточной площади не найдены. Проверьте размеры и соединения стен.",
+      tr`Помещения достаточной площади не найдены. Проверьте размеры и соединения стен.`,
     );
   return { rooms, warnings };
 }

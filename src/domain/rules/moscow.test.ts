@@ -453,3 +453,16 @@ function tooManyRooms() {
   }
   return walls;
 }
+
+describe("the neighbours' floor in words", () => {
+  it("reads as a word of the sentence, not as an internal value", () => {
+    const source = apartment({ region: "moscow", below: "same-layout", above: "same-layout" });
+    const plan = variantOf(source, (next) => ({
+      ...next,
+      wallRoomLabels: next.wallRoomLabels.map((label) => (label.name === "Гостиная" ? { ...label, kind: "kitchen" as const } : label)),
+    }));
+    const text = rulesForPlan(plan)?.findings.filter((finding) => finding.ruleId === "moscow.stack").map((finding) => finding.detail).join() ?? "";
+    expect(text).toMatch(/этажом (ниже|выше) такая же планировка/);
+    expect(text).not.toMatch(/below|above/);
+  });
+});

@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KonvaEventObject, Node as KonvaNode } from "konva/lib/Node";
 import {
@@ -666,7 +667,7 @@ export default function PlanCanvas({
       }}
       onPointerCancelCapture={cancel}
       onTouchCancelCapture={cancel}
-      aria-label="Интерактивный план. Комнаты, стены и проёмы также доступны в списке слева."
+      aria-label={tr`Интерактивный план. Комнаты, стены и проёмы также доступны в списке слева.`}
     >
       {size.width > 0 && (
         <Stage
@@ -892,14 +893,11 @@ export default function PlanCanvas({
       )}
       {internalDimensions.length > 0 && (
         <>
-          <p className="plan-dimensions-key">
-            Внутри — по граням; снаружи — по осям стен
-          </p>
-          <ul className="plan-dimensions-accessible" aria-label="Внутренние размеры помещений">
+          <p className="plan-dimensions-key">{tr`Внутри — по граням; снаружи — по осям стен`}</p>
+          <ul className="plan-dimensions-accessible" aria-label={tr`Внутренние размеры помещений`}>
             {internalDimensions.map(({ room, layout }) => (
               <li key={room.id}>
-                {room.name}: {formatLength(layout.width)} × {formatLength(layout.depth)} м внутри
-              </li>
+                {room.name}: {formatLength(layout.width)} × {formatLength(layout.depth)}{tr` м внутри`}</li>
             ))}
           </ul>
         </>

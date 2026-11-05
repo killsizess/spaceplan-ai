@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -38,7 +39,7 @@ type RenderedPage = {
 function errorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
-    : "Не удалось открыть страницу PDF. Попробуйте другой файл.";
+    : tr`Не удалось открыть страницу PDF. Попробуйте другой файл.`;
 }
 
 function PdfPreview({
@@ -51,7 +52,7 @@ function PdfPreview({
   const host = useRef<HTMLDivElement>(null);
   useEffect(() => {
     canvas.setAttribute("role", "img");
-    canvas.setAttribute("aria-label", `Предпросмотр страницы PDF ${page}`);
+    canvas.setAttribute("aria-label", tr`Предпросмотр страницы PDF ${page}`);
     host.current?.replaceChildren(canvas);
     return () => canvas.remove();
   }, [canvas, page]);
@@ -221,7 +222,7 @@ export default function PdfImportDialog({
       <button
         type="button"
         className="icon-button modal-close"
-        aria-label="Закрыть импорт PDF"
+        aria-label={tr`Закрыть импорт PDF`}
         onClick={onClose}
       >
         <X size={18} />
@@ -231,8 +232,8 @@ export default function PdfImportDialog({
           <FileText size={23} />
         </span>
         <div>
-          <span className="eyebrow">ПОДЛОЖКА ИЗ ДОКУМЕНТА</span>
-          <h2 id="pdf-import-title">Выберите страницу PDF</h2>
+          <span className="eyebrow">{tr`ПОДЛОЖКА ИЗ ДОКУМЕНТА`}</span>
+          <h2 id="pdf-import-title">{tr`Выберите страницу PDF`}</h2>
           <p className="pdf-import-filename" title={file.name}>
             {file.name}
           </p>
@@ -244,19 +245,17 @@ export default function PdfImportDialog({
           <button
             type="button"
             className="pdf-control-button pdf-page-arrow"
-            aria-label="Предыдущая страница"
+            aria-label={tr`Предыдущая страница`}
             disabled={!pdf || pageNumber <= 1}
             onClick={() => changePage(pageNumber - 1)}
           >
             <ArrowLeft size={17} />
           </button>
-          <label className="pdf-page-label" htmlFor="pdf-page-number">
-            Страница
-          </label>
+          <label className="pdf-page-label" htmlFor="pdf-page-number">{tr`Страница`}</label>
           <input
             id="pdf-page-number"
             className="pdf-page-input"
-            aria-label="Страница PDF"
+            aria-label={tr`Страница PDF`}
             aria-invalid={currentSelection.error ? true : undefined}
             aria-describedby={
               currentSelection.error ? "pdf-page-error" : undefined
@@ -288,7 +287,7 @@ export default function PdfImportDialog({
               if (!isValidPage) {
                 setSelection({
                   ...currentSelection,
-                  error: `Введите номер от 1 до ${pdf?.numPages ?? 1}.`,
+                  error: tr`Введите номер от 1 до ${pdf?.numPages ?? 1}.`,
                 });
               }
             }}
@@ -299,11 +298,11 @@ export default function PdfImportDialog({
               }
             }}
           />
-          <span className="pdf-page-total">из {pdf?.numPages ?? "…"}</span>
+          <span className="pdf-page-total">{tr`из `}{pdf?.numPages ?? "…"}</span>
           <button
             type="button"
             className="pdf-control-button pdf-page-arrow"
-            aria-label="Следующая страница"
+            aria-label={tr`Следующая страница`}
             disabled={!pdf || pageNumber >= pdf.numPages}
             onClick={() => changePage(pageNumber + 1)}
           >
@@ -313,7 +312,7 @@ export default function PdfImportDialog({
         <button
           type="button"
           className="pdf-control-button pdf-rotate-button"
-          aria-label="Повернуть страницу"
+          aria-label={tr`Повернуть страницу`}
           disabled={!pdf}
           onClick={() => {
             setSelection({
@@ -323,9 +322,7 @@ export default function PdfImportDialog({
             setApplyError(null);
           }}
         >
-          <RotateCw size={16} />
-          Повернуть
-          <span>{rotation}°</span>
+          <RotateCw size={16} />{tr`Повернуть`}<span>{rotation}°</span>
         </button>
         {currentSelection.error && (
           <span id="pdf-page-error" className="pdf-page-error" role="alert">
@@ -358,9 +355,7 @@ export default function PdfImportDialog({
                 else setLoadAttempt((attempt) => attempt + 1);
                 setApplyError(null);
               }}
-            >
-              Попробовать ещё раз
-            </button>
+            >{tr`Попробовать ещё раз`}</button>
           </div>
         ) : (
           <div className="pdf-preview-message" role="status">
@@ -369,25 +364,20 @@ export default function PdfImportDialog({
               size={26}
               aria-hidden="true"
             />
-            <p>{pdf ? `Готовим страницу ${pageNumber}…` : "Открываем PDF…"}</p>
+            <p>{pdf ? tr`Готовим страницу ${pageNumber}…` : tr`Открываем PDF…`}</p>
           </div>
         )}
       </div>
 
       <footer className="pdf-import-footer">
-        <p id="pdf-import-description">
-          Страница станет изображением для обводки. PDF обрабатывается на вашем
-          устройстве. После добавления задайте масштаб по двум точкам.
-        </p>
+        <p id="pdf-import-description">{tr`Страница станет изображением для обводки. PDF обрабатывается на вашем устройстве. После добавления задайте масштаб по двум точкам.`}</p>
         {applyError?.file === file && (
           <p className="pdf-apply-error" role="alert">
             {applyError.message}
           </p>
         )}
         <div className="pdf-import-actions">
-          <button type="button" className="pdf-cancel-button" onClick={onClose}>
-            Отмена
-          </button>
+          <button type="button" className="pdf-cancel-button" onClick={onClose}>{tr`Отмена`}</button>
           <button
             type="button"
             className="primary-button"
@@ -396,17 +386,15 @@ export default function PdfImportDialog({
               if (!canvas || !isValidPage || Number(draft) !== pageNumber)
                 return;
               try {
-                const suffix = ` · стр. ${pageNumber}`;
-                const name = `${(file.name || "План PDF").slice(0, 160 - suffix.length)}${suffix}`;
+                const suffix = tr` · стр. ${pageNumber}`;
+                const name = `${(file.name || tr`План PDF`).slice(0, 160 - suffix.length)}${suffix}`;
                 onApply(underlayFromCanvas(canvas, name), currentRender?.lines ?? null);
               } catch (cause: unknown) {
                 setApplyError({ file, message: errorMessage(cause) });
               }
             }}
           >
-            <Check size={16} />
-            Использовать страницу
-          </button>
+            <Check size={16} />{tr`Использовать страницу`}</button>
         </div>
       </footer>
     </dialog>

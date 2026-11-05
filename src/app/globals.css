@@ -1646,3 +1646,20 @@ h3 {
   align-items: center;
   gap: 8px;
 }
+
+.app-loading {
+  display: grid;
+  place-items: center;
+  height: 100dvh;
+  font-weight: 600;
+  color: var(--text-3);
+}
+.language-switch {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

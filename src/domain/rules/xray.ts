@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import type { FloorPlan, ProfileRule, RoomKind, RuleProfile, WallKind } from "@/domain/floor-plan/types";
 import { wallKindOf } from "@/domain/floor-plan/wall-kind";
 import { PROCEDURE_ORDER } from "./moscow";
@@ -43,110 +44,110 @@ export interface PlanXray {
   unresolved?: string;
 }
 
-const clause = (point: string): RuleSource => ({ document: "moscow-508", point: `прил. 1, п. ${point}` });
+const clause = (point: string): RuleSource => ({ document: "moscow-508", point: tr`прил. 1, п. ${point}` });
 const LIVING: readonly RoomKind[] = ["living", "bedroom"];
 
 function removalOf(plan: FloorPlan, kind: WallKind, perimeter: boolean, beside: readonly RuleRoom[]): WorkAnswer {
   const facts = plan.buildingFacts ?? {};
-  if (facts.emergency) return { procedure: "forbidden", reason: "Дом признан аварийным.", sources: [clause("9.15")] };
+  if (facts.emergency) return { procedure: "forbidden", reason: tr`Дом признан аварийным.`, sources: [clause("9.15")] };
   if (beside.some((room) => room.kind === "shaft")) {
-    return { procedure: "forbidden", reason: "Стена вентшахты или короба: их нельзя убирать и менять их сечение.", sources: [clause("9.5")] };
+    return { procedure: "forbidden", reason: tr`Стена вентшахты или короба: их нельзя убирать и менять их сечение.`, sources: [clause("9.5")] };
   }
   if (beside.length >= 2 && beside.some((room) => room.kind === "balcony")) {
-    return { procedure: "forbidden", reason: "Снос объединит балкон или лоджию с помещением.", sources: [clause("9.18")] };
+    return { procedure: "forbidden", reason: tr`Снос объединит балкон или лоджию с помещением.`, sources: [clause("9.18")] };
   }
-  if (kind === "unknown") return { procedure: "unknown", reason: "Тип стены не указан: это может быть несущая стена.", sources: [] };
+  if (kind === "unknown") return { procedure: "unknown", reason: tr`Тип стены не указан: это может быть несущая стена.`, sources: [] };
   if (kind === "bearing") {
     return {
       procedure: "specialist",
-      reason: "Несущая стена: нельзя нарушать прочность и устойчивость конструкций, оценит это только специалист.",
+      reason: tr`Несущая стена: нельзя нарушать прочность и устойчивость конструкций, оценит это только специалист.`,
       sources: [clause("9.3"), clause("9.6")],
     };
   }
   if (perimeter) {
     return {
       procedure: "specialist",
-      reason: "Стена на границе квартиры: снос меняет границы помещения, нужен проект; соседство и общее имущество оценит специалист.",
+      reason: tr`Стена на границе квартиры: снос меняет границы помещения, нужен проект; соседство и общее имущество оценит специалист.`,
       sources: [clause("2.2.5")],
     };
   }
   const has = (kinds: readonly RoomKind[]) => beside.some((room) => kinds.includes(room.kind));
   if (has(["kitchen"]) && has(LIVING)) {
     if (facts.gasified) {
-      return { procedure: "forbidden", reason: "Снос объединит газифицированную кухню с жилой комнатой.", sources: [clause("9.16")] };
+      return { procedure: "forbidden", reason: tr`Снос объединит газифицированную кухню с жилой комнатой.`, sources: [clause("9.16")] };
     }
     if (facts.gasified === undefined) {
-      return { procedure: "unknown", reason: "Снос объединит кухню с жилой комнатой; при газе это запрещено, а о газе ответа нет.", sources: [clause("9.16")] };
+      return { procedure: "unknown", reason: tr`Снос объединит кухню с жилой комнатой; при газе это запрещено, а о газе ответа нет.`, sources: [clause("9.16")] };
     }
   }
   if (has(["bathroom"])) {
-    return { procedure: "project", reason: "Снос меняет границы санузла.", sources: [clause("2.2.1")] };
+    return { procedure: "project", reason: tr`Снос меняет границы санузла.`, sources: [clause("2.2.1")] };
   }
-  if (facts.heritage) return { procedure: "project", reason: "Объект культурного наследия.", sources: [clause("2.2.13"), clause("12")] };
-  if (facts.woodenFloors) return { procedure: "project", reason: "Перегородка в доме с деревянными перекрытиями.", sources: [clause("2.2.10")] };
+  if (facts.heritage) return { procedure: "project", reason: tr`Объект культурного наследия.`, sources: [clause("2.2.13"), clause("12")] };
+  if (facts.woodenFloors) return { procedure: "project", reason: tr`Перегородка в доме с деревянными перекрытиями.`, sources: [clause("2.2.10")] };
   const caveats = [
-    facts.woodenFloors === undefined ? "если перекрытия деревянные, нужен проект (п. 2.2.10)" : "",
-    has(["kitchen"]) ? "если это меняет место кухни, нужен проект (п. 2.2.11)" : "",
+    facts.woodenFloors === undefined ? tr`если перекрытия деревянные, нужен проект (п. 2.2.10)` : "",
+    has(["kitchen"]) ? tr`если это меняет место кухни, нужен проект (п. 2.2.11)` : "",
   ].filter(Boolean);
   return {
     procedure: "simplified",
-    reason: caveats.length ? `Перегородка; ${caveats.join("; ")}.` : "Перегородка.",
+    reason: caveats.length ? tr`Перегородка; ${caveats.join("; ")}.` : tr`Перегородка.`,
     sources: [clause("19.6.1"), clause("19.1")],
   };
 }
 
 function openingOf(plan: FloorPlan, kind: WallKind, perimeter: boolean, beside: readonly RuleRoom[]): WorkAnswer {
   const facts = plan.buildingFacts ?? {};
-  if (facts.emergency) return { procedure: "forbidden", reason: "Дом признан аварийным.", sources: [clause("9.15")] };
+  if (facts.emergency) return { procedure: "forbidden", reason: tr`Дом признан аварийным.`, sources: [clause("9.15")] };
   if (beside.some((room) => room.kind === "shaft")) {
-    return { procedure: "forbidden", reason: "Стена вентшахты или короба.", sources: [clause("9.5")] };
+    return { procedure: "forbidden", reason: tr`Стена вентшахты или короба.`, sources: [clause("9.5")] };
   }
   if (beside.length >= 2 && beside.some((room) => room.kind === "balcony")) {
-    return { procedure: "project", reason: "Проём к балкону или лоджии, если работа не затрагивает облик дома.", sources: [clause("2.2.14"), clause("3.9")] };
+    return { procedure: "project", reason: tr`Проём к балкону или лоджии, если работа не затрагивает облик дома.`, sources: [clause("2.2.14"), clause("3.9")] };
   }
-  if (kind === "unknown") return { procedure: "unknown", reason: "Тип стены не указан.", sources: [] };
+  if (kind === "unknown") return { procedure: "unknown", reason: tr`Тип стены не указан.`, sources: [] };
   if (perimeter) {
     return {
       procedure: "project",
-      reason: "Проём на границе квартиры: в наружной стене это работа по проекту, она может затрагивать общее имущество.",
+      reason: tr`Проём на границе квартиры: в наружной стене это работа по проекту, она может затрагивать общее имущество.`,
       sources: [clause("3.1")],
     };
   }
   if (kind === "bearing") {
     return {
       procedure: "project",
-      reason: "Проём в несущей стене; в пилонах, диафрагмах и колоннах он не допускается вовсе (п. 9.10).",
+      reason: tr`Проём в несущей стене; в пилонах, диафрагмах и колоннах он не допускается вовсе (п. 9.10).`,
       sources: [clause("2.2.4"), clause("9.10")],
     };
   }
-  if (facts.heritage) return { procedure: "project", reason: "Объект культурного наследия.", sources: [clause("2.2.13"), clause("12")] };
-  return { procedure: "simplified", reason: "Проём в перегородке.", sources: [clause("19.6.2"), clause("19.1")] };
+  if (facts.heritage) return { procedure: "project", reason: tr`Объект культурного наследия.`, sources: [clause("2.2.13"), clause("12")] };
+  return { procedure: "simplified", reason: tr`Проём в перегородке.`, sources: [clause("19.6.2"), clause("19.1")] };
 }
 
 function moveOf(plan: FloorPlan, room: RuleRoom): WorkAnswer | null {
   if (room.kind === "shaft") {
-    return { procedure: "forbidden", reason: "Вентшахту и короб нельзя убирать, нельзя менять их сечение.", sources: [clause("9.5")] };
+    return { procedure: "forbidden", reason: tr`Вентшахту и короб нельзя убирать, нельзя менять их сечение.`, sources: [clause("9.5")] };
   }
   if (room.kind === "balcony") {
     const level = plan.buildingFacts?.floorLevel;
-    if (level === "upper") return { procedure: "forbidden", reason: "Второй и выше этаж.", sources: [clause("9.13")] };
-    if (level === "first") return { procedure: "project", reason: "Первый этаж: без фундаментов, помещений под ним и отопления.", sources: [clause("3.5"), clause("9.26")] };
-    return { procedure: "unknown", reason: "Зависит от этажа: на втором и выше запрещено, на первом по проекту.", sources: [clause("9.13"), clause("3.5")] };
+    if (level === "upper") return { procedure: "forbidden", reason: tr`Второй и выше этаж.`, sources: [clause("9.13")] };
+    if (level === "first") return { procedure: "project", reason: tr`Первый этаж: без фундаментов, помещений под ним и отопления.`, sources: [clause("3.5"), clause("9.26")] };
+    return { procedure: "unknown", reason: tr`Зависит от этажа: на втором и выше запрещено, на первом по проекту.`, sources: [clause("9.13"), clause("3.5")] };
   }
-  const stacking = "Над жилыми комнатами размещать нельзя.";
-  const stackSources: RuleSource[] = [{ document: "rf-pp-47", point: "п. 24" }];
+  const stacking = tr`Над жилыми комнатами размещать нельзя.`;
+  const stackSources: RuleSource[] = [{ document: "rf-pp-47", point: tr`п. 24` }];
   if (room.kind === "bathroom") {
     return {
       procedure: "project",
-      reason: `Устройство, перенос и изменение границ санузла. ${stacking}`,
-      sources: [clause("2.2.1"), ...stackSources, { document: "sp-54", point: "п. 7.20" }],
+      reason: tr`Устройство, перенос и изменение границ санузла. ${stacking}`,
+      sources: [clause("2.2.1"), ...stackSources, { document: "sp-54", point: tr`п. 7.20` }],
     };
   }
   if (room.kind === "kitchen") {
     return {
       procedure: "project",
-      reason: `Устройство и перенос кухни. ${stacking}`,
-      sources: [clause("2.2.11"), ...stackSources, { document: "sp-54", point: "п. 7.21" }],
+      reason: tr`Устройство и перенос кухни. ${stacking}`,
+      sources: [clause("2.2.11"), ...stackSources, { document: "sp-54", point: tr`п. 7.21` }],
     };
   }
   return null;
@@ -162,9 +163,9 @@ function buildProfileXray(plan: FloorPlan, profile: RuleProfile): PlanXray {
   const { rooms, unresolved } = roomsOfPlan(plan);
   const source = (rule: ProfileRule): RuleSource => ({ document: OWNER_DOCUMENT, point: `«${rule.phrase}»` });
   const project = profile.rules.find((rule) => rule.type === "project-required");
-  const noAnswer: WorkAnswer = { procedure: "unknown", reason: "В правилах застройщика нет ответа об этой работе.", sources: [] };
+  const noAnswer: WorkAnswer = { procedure: "unknown", reason: tr`В правилах застройщика нет ответа об этой работе.`, sources: [] };
   const asked: WorkAnswer = project
-    ? { procedure: "project", reason: "Застройщик указал, что изменения делаются по проекту.", sources: [source(project)] }
+    ? { procedure: "project", reason: tr`Застройщик указал, что изменения делаются по проекту.`, sources: [source(project)] }
     : noAnswer;
   const keepBearing = profile.rules.find((rule) => rule.type === "keep-bearing");
   const walls = plan.walls.map((wall, index): WallPotential => {
@@ -172,13 +173,13 @@ function buildProfileXray(plan: FloorPlan, profile: RuleProfile): PlanXray {
     const beside = rooms.filter((room) => room.boundaryWallIds.includes(wall.id));
     const base = { wallId: wall.id, number: index + 1, kind, rooms: beside.map((room) => room.name) };
     if (kind === "unknown") {
-      const unknown: WorkAnswer = { procedure: "unknown", reason: "Тип стены не указан: это может быть несущая стена.", sources: [] };
+      const unknown: WorkAnswer = { procedure: "unknown", reason: tr`Тип стены не указан: это может быть несущая стена.`, sources: [] };
       return { ...base, removal: unknown, opening: unknown };
     }
     if (kind === "bearing") {
       const answer: WorkAnswer = keepBearing
-        ? { procedure: "forbidden", reason: "Застройщик запретил менять несущие стены.", sources: [source(keepBearing)] }
-        : { procedure: "specialist", reason: "Несущая стена: оценит только специалист.", sources: [] };
+        ? { procedure: "forbidden", reason: tr`Застройщик запретил менять несущие стены.`, sources: [source(keepBearing)] }
+        : { procedure: "specialist", reason: tr`Несущая стена: оценит только специалист.`, sources: [] };
       return { ...base, removal: answer, opening: answer };
     }
     const merge = profile.rules.find((rule) => rule.type === "no-merge" &&
@@ -188,7 +189,7 @@ function buildProfileXray(plan: FloorPlan, profile: RuleProfile): PlanXray {
     return {
       ...base,
       removal: blocking
-        ? { procedure: "forbidden", reason: merge ? "Снос объединит помещения, которые объединять нельзя." : "Снос изменит помещение, которое должно остаться на месте.", sources: [source(blocking)] }
+        ? { procedure: "forbidden", reason: merge ? tr`Снос объединит помещения, которые объединять нельзя.` : tr`Снос изменит помещение, которое должно остаться на месте.`, sources: [source(blocking)] }
         : asked,
       opening: asked,
     };
@@ -197,9 +198,9 @@ function buildProfileXray(plan: FloorPlan, profile: RuleProfile): PlanXray {
     if (room.kind !== "kitchen" && room.kind !== "bathroom") return [];
     const stay = profile.rules.find((rule) => rule.type === "keep-room" && matchesTarget(room.kind, rule.target));
     const move: WorkAnswer = stay
-      ? { procedure: "forbidden", reason: "Застройщик указал, что это помещение остаётся на месте.", sources: [source(stay)] }
+      ? { procedure: "forbidden", reason: tr`Застройщик указал, что это помещение остаётся на месте.`, sources: [source(stay)] }
       : asked;
-    return [{ roomId: room.id, name: room.name, kind: room.kind, action: "Перенос", move }];
+    return [{ roomId: room.id, name: room.name, kind: room.kind, action: tr`Перенос`, move }];
   });
   return { walls, rooms: movable, counts: countByRemoval(walls), unresolved };
 }
@@ -223,7 +224,7 @@ export function buildXray(plan: FloorPlan): PlanXray {
   const counts = countByRemoval(walls);
   const movable = rooms.flatMap((room): RoomPotential[] => {
     const move = moveOf(plan, room);
-    const action = room.kind === "balcony" ? "Новый или больший" : room.kind === "shaft" ? "Изменение" : "Перенос";
+    const action = room.kind === "balcony" ? tr`Новый или больший` : room.kind === "shaft" ? tr`Изменение` : tr`Перенос`;
     return move ? [{ roomId: room.id, name: room.name, kind: room.kind, action, move }] : [];
   });
   return { walls, rooms: movable, counts, unresolved };

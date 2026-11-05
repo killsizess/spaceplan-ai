@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { analyzeDoorWallCollisions } from "@/domain/floor-plan/door-collisions";
 import { analyzeDoorPairCollisions } from "@/domain/floor-plan/door-pair-collisions";
 import { summarizePlanDiagnostics, type PlanDiagnosticKind } from "@/domain/floor-plan/plan-diagnostics";
@@ -31,10 +32,10 @@ export type ReportState = "problem" | "ok" | "note";
 export const REPORT_LEVEL_ORDER: readonly ReportLevel[] = ["specialist", "undetermined", "assumption", "verified"];
 
 export const REPORT_LEVELS: Readonly<Record<ReportLevel, { label: string; meaning: string }>> = {
-  specialist: { label: "Требует специалиста", meaning: "Решение зависит от конструктива или нормативов вне базы." },
-  undetermined: { label: "Не определено", meaning: "Данных недостаточно, вывода нет." },
-  assumption: { label: "Предположение", meaning: "Вывод опирается на неподтверждённые данные." },
-  verified: { label: "Проверено правилом", meaning: "Следует из геометрии и данных, подтверждённых пользователем." },
+  specialist: { label: tr`Требует специалиста`, meaning: tr`Решение зависит от конструктива или нормативов вне базы.` },
+  undetermined: { label: tr`Не определено`, meaning: tr`Данных недостаточно, вывода нет.` },
+  assumption: { label: tr`Предположение`, meaning: tr`Вывод опирается на неподтверждённые данные.` },
+  verified: { label: tr`Проверено правилом`, meaning: tr`Следует из геометрии и данных, подтверждённых пользователем.` },
 };
 
 export interface ReportFinding {
@@ -79,23 +80,23 @@ export interface PlanReport {
 }
 
 export const REPORT_DISCLAIMER =
-  "Отчёт построен по геометрии плана и данным, которые ввёл пользователь. Он не заменяет проект перепланировки и её согласование и не является разрешением на работы. Решения о несущих конструкциях принимает специалист.";
+  tr`Отчёт построен по геометрии плана и данным, которые ввёл пользователь. Он не заменяет проект перепланировки и её согласование и не является разрешением на работы. Решения о несущих конструкциях принимает специалист.`;
 export const REPORT_RULES_NOTE =
-  "Строительные нормы и правила региона в этой версии не проверяются: база правил ещё не подключена.";
+  tr`Строительные нормы и правила региона в этой версии не проверяются: база правил ещё не подключена.`;
 
 /** The limits of a report built on a rule base: which editions, and how far they can be trusted. */
 function regulationLimits(rules: RuleReport): string[] {
   if (rules.kind === "owner") {
     return [
-      "Нормы: правила заданы застройщиком своими словами. Приложение проверило план по ним, но не сверяло их с нормами страны или региона.",
-      ...(rules.notUnderstood.length ? [`Не понято и не проверяется: ${rules.notUnderstood.map((phrase) => `«${phrase}»`).join(", ")}.`] : []),
+      tr`Нормы: правила заданы застройщиком своими словами. Приложение проверило план по ним, но не сверяло их с нормами страны или региона.`,
+      ...(rules.notUnderstood.length ? [tr`Не понято и не проверяется: ${rules.notUnderstood.map((phrase) => `«${phrase}»`).join(", ")}.`] : []),
     ];
   }
   const version = rules.version.split("-").reverse().join(".");
   return [
-    `Нормы: ${rules.region}, база правил от ${version}. ${rules.reviewed ? "База сверена со специалистом." : "База не сверена со специалистом, поэтому выводы по ней остаются предположениями."}`,
+    tr`Нормы: ${rules.region}, база правил от ${version}. ${rules.reviewed ? tr`База сверена со специалистом.` : tr`База не сверена со специалистом, поэтому выводы по ней остаются предположениями.`}`,
     ...rules.documents.map((item) => `${item.short}: ${item.edition}. ${item.gaps}`),
-    `База не проверяет: ${rules.notChecked.join(" ")}`,
+    tr`База не проверяет: ${rules.notChecked.join(" ")}`,
   ];
 }
 
@@ -103,18 +104,18 @@ const WET_ROOMS: readonly RoomKind[] = ["kitchen", "bathroom"];
 const AREA_TOLERANCE = 0.01;
 
 const BEARING_TEXT: Record<BearingChange, string> = {
-  deleted: "удалена",
-  moved: "перенесена или изменена её длина",
-  thickness: "изменена толщина",
-  unmarked: "снята отметка «несущая»",
+  deleted: tr`удалена`,
+  moved: tr`перенесена или изменена её длина`,
+  thickness: tr`изменена толщина`,
+  unmarked: tr`снята отметка «несущая»`,
 };
 
 const GEOMETRY_TEXT: Record<PlanDiagnosticKind, { title: string; detail: string }> = {
-  connections: { title: "Свободные концы стен", detail: "Контур может быть незамкнут. Соедините концы во вкладке «Стены»." },
-  intersections: { title: "Стены пересекаются без общего узла", detail: "Помещения считаются по замкнутым контурам, такое пересечение стоит разрешить." },
-  overlaps: { title: "Стены накладываются на одной оси", detail: "Одна стена может закрывать проёмы другой." },
-  "door-wall": { title: "Дверь задевает стену при открывании", detail: "Полотно на всём размахе 0–90° проходит через стену." },
-  "door-pair": { title: "Зоны открывания двух дверей пересекаются", detail: "Двери могут столкнуться при одновременном открывании." },
+  connections: { title: tr`Свободные концы стен`, detail: tr`Контур может быть незамкнут. Соедините концы во вкладке «Стены».` },
+  intersections: { title: tr`Стены пересекаются без общего узла`, detail: tr`Помещения считаются по замкнутым контурам, такое пересечение стоит разрешить.` },
+  overlaps: { title: tr`Стены накладываются на одной оси`, detail: tr`Одна стена может закрывать проёмы другой.` },
+  "door-wall": { title: tr`Дверь задевает стену при открывании`, detail: tr`Полотно на всём размахе 0–90° проходит через стену.` },
+  "door-pair": { title: tr`Зоны открывания двух дверей пересекаются`, detail: tr`Двери могут столкнуться при одновременном открывании.` },
 };
 
 const sameGeometry = (a: Wall, b: Wall) =>
@@ -134,7 +135,7 @@ function changeFindings(plan: FloorPlan, findings: ReportFinding[], rules: RuleR
     areaAfter: area(diff.after.roomsComputed, diff.after.totalArea),
   };
   if (diff.identical) {
-    findings.push({ level: "verified", state: "ok", title: "Вариант совпадает с исходным планом" });
+    findings.push({ level: "verified", state: "ok", title: tr`Вариант совпадает с исходным планом` });
   }
   // A rule base says the same about these changes, and names the document behind it.
   if (rules) return summary;
@@ -145,8 +146,8 @@ function changeFindings(plan: FloorPlan, findings: ReportFinding[], rules: RuleR
     findings.push({
       level: "specialist",
       state: "problem",
-      title: `Затронута несущая стена: стена ${change.number} исходного плана ${BEARING_TEXT[change.change]}`,
-      detail: "Изменение несущих конструкций может решать только специалист по проекту.",
+      title: tr`Затронута несущая стена: стена ${change.number} исходного плана ${BEARING_TEXT[change.change]}`,
+      detail: tr`Изменение несущих конструкций может решать только специалист по проекту.`,
     });
   }
   const changedWalls = [...diff.walls.changed, ...diff.walls.removed].filter((id) => {
@@ -159,20 +160,20 @@ function changeFindings(plan: FloorPlan, findings: ReportFinding[], rules: RuleR
     findings.push({
       level: "assumption",
       state: "problem",
-      title: `Изменено стен без указанного типа: ${unknown.length}`,
-      detail: "Пока тип не указан, вывод о допустимости этих изменений не делается: стена может оказаться несущей.",
+      title: tr`Изменено стен без указанного типа: ${unknown.length}`,
+      detail: tr`Пока тип не указан, вывод о допустимости этих изменений не делается: стена может оказаться несущей.`,
     });
   }
   if (partitions.length) {
     findings.push({
       level: "assumption",
       state: "note",
-      title: `Изменено перегородок: ${partitions.length}`,
-      detail: "По отметке пользователя конструктив не затронут. Требования к перепланировке не проверялись.",
+      title: tr`Изменено перегородок: ${partitions.length}`,
+      detail: tr`По отметке пользователя конструктив не затронут. Требования к перепланировке не проверялись.`,
     });
   }
   if (diff.walls.added.length) {
-    findings.push({ level: "assumption", state: "note", title: `Добавлено стен: ${diff.walls.added.length}` });
+    findings.push({ level: "assumption", state: "note", title: tr`Добавлено стен: ${diff.walls.added.length}` });
   }
 
   const hostKind = (opening: Opening | undefined, walls: ReadonlyMap<string, Wall>) => {
@@ -193,20 +194,20 @@ function changeFindings(plan: FloorPlan, findings: ReportFinding[], rules: RuleR
     findings.push({
       level: "specialist",
       state: "problem",
-      title: `Изменён проём в несущей стене: ${inBearing}`,
-      detail: "Устройство или перенос проёма в несущей стене требует расчёта и проекта.",
+      title: tr`Изменён проём в несущей стене: ${inBearing}`,
+      detail: tr`Устройство или перенос проёма в несущей стене требует расчёта и проекта.`,
     });
   }
   if (inUnknown) {
     findings.push({
       level: "assumption",
       state: "problem",
-      title: `Изменён проём в стене без указанного типа: ${inUnknown}`,
-      detail: "Пока тип стены не указан, вывод о допустимости не делается.",
+      title: tr`Изменён проём в стене без указанного типа: ${inUnknown}`,
+      detail: tr`Пока тип стены не указан, вывод о допустимости не делается.`,
     });
   }
   if (inPartition) {
-    findings.push({ level: "assumption", state: "note", title: `Изменён проём в перегородке: ${inPartition}` });
+    findings.push({ level: "assumption", state: "note", title: tr`Изменён проём в перегородке: ${inPartition}` });
   }
 
   for (const kind of WET_ROOMS) {
@@ -215,8 +216,8 @@ function changeFindings(plan: FloorPlan, findings: ReportFinding[], rules: RuleR
       findings.push({
         level: "specialist",
         state: "problem",
-        title: `Затронута мокрая зона: ${ROOM_KINDS[kind].label.toLowerCase()}, ${formatArea(was)} → ${formatArea(now)}`,
-        detail: "Перенос и расширение мокрых зон зависят от нормативов и инженерных систем вне этой проверки.",
+        title: tr`Затронута мокрая зона: ${ROOM_KINDS[kind].label.toLowerCase()}, ${formatArea(was)} → ${formatArea(now)}`,
+        detail: tr`Перенос и расширение мокрых зон зависят от нормативов и инженерных систем вне этой проверки.`,
       });
     }
   }
@@ -227,7 +228,7 @@ export function buildPlanReport(plan: FloorPlan, meta: { generatedAt: string; ap
   const findings: ReportFinding[] = [];
   const wallName = (id: string) => {
     const index = plan.walls.findIndex((wall) => wall.id === id);
-    return index >= 0 ? `Стена ${index + 1}` : "Удалённая стена";
+    return index >= 0 ? tr`Стена ${index + 1}` : tr`Удалённая стена`;
   };
 
   // Rooms and areas.
@@ -241,33 +242,33 @@ export function buildPlanReport(plan: FloorPlan, meta: { generatedAt: string; ap
     : plan.rooms.filter((room) => countsInTotal(room.kind)).map((room) => room.width * room.height);
   const area = detection.unresolved ? null : counted.reduce((sum, value) => sum + value, 0);
   if (detection.unresolved) {
-    findings.push({ level: "undetermined", state: "problem", title: "Помещения по стенам не определены", detail: detection.unresolved });
+    findings.push({ level: "undetermined", state: "problem", title: tr`Помещения по стенам не определены`, detail: detection.unresolved });
   } else if (!rooms.length) {
     findings.push(wallMode
-      ? { level: "undetermined", state: "problem", title: "План не образует замкнутый контур", detail: "Без замкнутых помещений площади и требования к комнатам не считаются." }
-      : { level: "undetermined", state: "problem", title: "В плане нет помещений" });
+      ? { level: "undetermined", state: "problem", title: tr`План не образует замкнутый контур`, detail: tr`Без замкнутых помещений площади и требования к комнатам не считаются.` }
+      : { level: "undetermined", state: "problem", title: tr`В плане нет помещений` });
   } else if (wallMode) {
     findings.push({
       level: "verified",
       state: "ok",
-      title: `Площадь посчитана по стенам: ${pluralRu(rooms.length, "помещение", "помещения", "помещений")}, ${formatArea(area ?? 0)}`,
-      detail: "Внутри стен, с учётом их толщины.",
+      title: tr`Площадь посчитана по стенам: ${pluralRu(rooms.length, tr`помещение`, tr`помещения`, tr`помещений`)}, ${formatArea(area ?? 0)}`,
+      detail: tr`Внутри стен, с учётом их толщины.`,
     });
     for (const warning of detection.warnings) findings.push({ level: "assumption", state: "note", title: warning });
   } else {
     findings.push({
       level: "assumption",
       state: "note",
-      title: `Помещения заданы вручную: ${formatArea(area ?? 0)}`,
-      detail: "Площадь считается по прямоугольникам, которые ввёл пользователь, а не по стенам.",
+      title: tr`Помещения заданы вручную: ${formatArea(area ?? 0)}`,
+      detail: tr`Площадь считается по прямоугольникам, которые ввёл пользователь, а не по стенам.`,
     });
   }
   if (plan.underlay && !plan.underlay.calibrated) {
     findings.push({
       level: "assumption",
       state: "problem",
-      title: "Масштаб подложки не подтверждён",
-      detail: "Размеры, снятые с такой подложки, могут не совпадать с чертежом. Задайте масштаб по двум точкам.",
+      title: tr`Масштаб подложки не подтверждён`,
+      detail: tr`Размеры, снятые с такой подложки, могут не совпадать с чертежом. Задайте масштаб по двум точкам.`,
     });
   }
 
@@ -279,33 +280,33 @@ export function buildPlanReport(plan: FloorPlan, meta: { generatedAt: string; ap
     findings.push({
       level: "assumption",
       state: "problem",
-      title: `Тип не указан у стен: ${unknownWalls} из ${plan.walls.length}`,
-      detail: "Вывод о допустимости изменений этих стен не делается. Укажите тип по документам или у специалиста; приложение его не определяет.",
+      title: tr`Тип не указан у стен: ${unknownWalls} из ${plan.walls.length}`,
+      detail: tr`Вывод о допустимости изменений этих стен не делается. Укажите тип по документам или у специалиста; приложение его не определяет.`,
     });
   } else if (plan.walls.length) {
     findings.push({
       level: "verified",
       state: "ok",
-      title: `Тип указан у всех стен: несущих ${bearing}, перегородок ${partition}`,
-      detail: "Тип отмечен пользователем.",
+      title: tr`Тип указан у всех стен: несущих ${bearing}, перегородок ${partition}`,
+      detail: tr`Тип отмечен пользователем.`,
     });
   }
 
   // Requirements.
   const adjacency = wallMode && !detection.unresolved ? findRoomAdjacency(detection.rooms, plan.walls, plan.openings) : null;
   const results = evaluateRequirements(plan, detection.rooms, adjacency);
-  const roomName = (id: string) => detection.rooms.find((room) => room.id === id)?.name ?? "Помещение";
+  const roomName = (id: string) => detection.rooms.find((room) => room.id === id)?.name ?? tr`Помещение`;
   const labelName = (id: string) => plan.wallRoomLabels.find((label) => label.id === id)?.name;
   plan.requirements.forEach((requirement, index) => {
     const result = results[index];
     const title = describeRequirement(requirement, wallName, labelName);
     const detail = requirementDetail(requirement, result, roomName, wallName);
-    if (result.status === "met") findings.push({ level: "verified", state: "ok", title: `Выполнено: ${title}`, detail });
-    else if (result.status === "violated") findings.push({ level: "verified", state: "problem", title: `Нарушено: ${title}`, detail });
-    else findings.push({ level: "undetermined", state: "note", title: `Не проверено: ${title}`, detail });
+    if (result.status === "met") findings.push({ level: "verified", state: "ok", title: tr`Выполнено: ${title}`, detail });
+    else if (result.status === "violated") findings.push({ level: "verified", state: "problem", title: tr`Нарушено: ${title}`, detail });
+    else findings.push({ level: "undetermined", state: "note", title: tr`Не проверено: ${title}`, detail });
   });
   for (const conflict of findRequirementConflicts(plan.requirements)) {
-    findings.push({ level: conflict.certain ? "verified" : "assumption", state: "problem", title: "Требования противоречат друг другу", detail: conflictText(conflict) });
+    findings.push({ level: conflict.certain ? "verified" : "assumption", state: "problem", title: tr`Требования противоречат друг другу`, detail: conflictText(conflict) });
   }
 
   // Geometry.
@@ -322,11 +323,11 @@ export function buildPlanReport(plan: FloorPlan, meta: { generatedAt: string; ap
     for (const kind of kinds) {
       const count = diagnostics.counts[kind];
       if (!count) continue;
-      const more = diagnostics.truncated[kind] ? " (показана часть)" : "";
+      const more = diagnostics.truncated[kind] ? tr` (показана часть)` : "";
       findings.push({ level: "verified", state: "problem", title: `${GEOMETRY_TEXT[kind].title}: ${count}${more}`, detail: GEOMETRY_TEXT[kind].detail });
     }
     if (!diagnostics.total) {
-      findings.push({ level: "verified", state: "ok", title: "Геометрия без замечаний", detail: "Концы стен соединены, стены не пересекаются и не накладываются, двери открываются свободно." });
+      findings.push({ level: "verified", state: "ok", title: tr`Геометрия без замечаний`, detail: tr`Концы стен соединены, стены не пересекаются и не накладываются, двери открываются свободно.` });
     }
   }
 
@@ -383,16 +384,16 @@ export function buildPlanReport(plan: FloorPlan, meta: { generatedAt: string; ap
 
 function verdictOf(counts: Readonly<Record<ReportLevel, number>>, problems: number): PlanReport["verdict"] {
   if (counts.specialist) {
-    return { level: "specialist", title: "Нужен специалист", text: "Есть изменения, допустимость которых нельзя определить без специалиста: они перечислены первыми." };
+    return { level: "specialist", title: tr`Нужен специалист`, text: tr`Есть изменения, допустимость которых нельзя определить без специалиста: они перечислены первыми.` };
   }
   if (counts.undetermined && problems) {
-    return { level: "undetermined", title: "Данных недостаточно", text: "По части вопросов вывода нет: без замкнутых помещений или нужных данных проверка не работает." };
+    return { level: "undetermined", title: tr`Данных недостаточно`, text: tr`По части вопросов вывода нет: без замкнутых помещений или нужных данных проверка не работает.` };
   }
   if (problems) {
-    return { level: "assumption", title: "Есть что проверить", text: "Найдены замечания и неподтверждённые данные. Они не означают запрет, но до их разбора вывод о плане неполный." };
+    return { level: "assumption", title: tr`Есть что проверить`, text: tr`Найдены замечания и неподтверждённые данные. Они не означают запрет, но до их разбора вывод о плане неполный.` };
   }
   if (counts.assumption || counts.undetermined) {
-    return { level: "assumption", title: "Замечаний нет, но есть предположения", text: "Нарушений не найдено. Часть выводов опирается на данные, которые никто не подтвердил." };
+    return { level: "assumption", title: tr`Замечаний нет, но есть предположения`, text: tr`Нарушений не найдено. Часть выводов опирается на данные, которые никто не подтвердил.` };
   }
-  return { level: "clear", title: "Замечаний нет", text: "По геометрии плана и заданным требованиям нарушений нет. Нормы региона этот отчёт не проверяет." };
+  return { level: "clear", title: tr`Замечаний нет`, text: tr`По геометрии плана и заданным требованиям нарушений нет. Нормы региона этот отчёт не проверяет.` };
 }

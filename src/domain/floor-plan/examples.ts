@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { createExamplePlan } from "./operations";
 import type { FloorPlan, Opening, Wall } from "./types";
 
@@ -54,7 +55,7 @@ export function createSpatialExamplePlan(): FloorPlan {
   return {
     ...createExamplePlan(),
     id: "spatial-example",
-    name: "Квартира · 3D-пример",
+    name: tr`Квартира · 3D-пример`,
     walls,
     openings: [
       door("door-bedroom", "partition-h4", 1.6),

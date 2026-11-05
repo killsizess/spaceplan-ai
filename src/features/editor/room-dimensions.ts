@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import type { Point } from "@/domain/geometry";
 import type { WallRoom } from "@/domain/floor-plan/wall-rooms";
 import { formatLength } from "@/lib/format";
@@ -107,10 +108,10 @@ export function getRoomDimensionLayout(
   const centerX = minX + width / 2;
   const centerY = minY + depth / 2;
   const px = (value: number) => value / scale;
-  const widthText = `${formatLength(width)} м`;
-  const depthText = `${formatLength(depth)} м`;
+  const widthText = tr`${formatLength(width)} м`;
+  const depthText = tr`${formatLength(depth)} м`;
   if (screenWidth < 160 || screenDepth < 120) {
-    const text = `${formatLength(width)} × ${formatLength(depth)} м внутри`;
+    const text = tr`${formatLength(width)} × ${formatLength(depth)} м внутри`;
     // A conservative text width avoids wrapping/cutting a dimension at small zoom.
     if (text.length * 6 > screenWidth - 12) return null;
     return {
@@ -175,7 +176,7 @@ export function getRoomDimensionLayout(
       y: minY + px(5),
       width: px(46),
       height: px(11),
-      text: "Внутри",
+      text: tr`Внутри`,
       fontSize: px(9),
       rotation: 0,
     },

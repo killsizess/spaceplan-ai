@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import type { Underlay } from "@/domain/floor-plan/types";
 
 export const MAX_UNDERLAY_FILE_BYTES = 12 * 1024 * 1024;
@@ -13,12 +14,12 @@ function checkedDimensions(width: number, height: number) {
     height < 1
   ) {
     throw new Error(
-      "Не удалось прочитать размеры изображения. Выберите другой JPG или PNG.",
+      tr`Не удалось прочитать размеры изображения. Выберите другой JPG или PNG.`,
     );
   }
   if (width * height > MAX_PIXELS || width > 40_000 || height > 40_000) {
     throw new Error(
-      "Изображение слишком большое: допустимо до 40 мегапикселей.",
+      tr`Изображение слишком большое: допустимо до 40 мегапикселей.`,
     );
   }
   return { width, height };
@@ -36,10 +37,10 @@ export function inspectUnderlayImage(bytes: Uint8Array, mime: string) {
       bytes[14] !== 68 ||
       bytes[15] !== 82
     ) {
-      throw new Error("Содержимое файла не соответствует PNG.");
+      throw new Error(tr`Содержимое файла не соответствует PNG.`);
     }
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    if (view.getUint32(8) !== 13) throw new Error("Повреждён заголовок PNG.");
+    if (view.getUint32(8) !== 13) throw new Error(tr`Повреждён заголовок PNG.`);
     return checkedDimensions(view.getUint32(16), view.getUint32(20));
   }
   if (mime === "image/jpeg") {
@@ -49,7 +50,7 @@ export function inspectUnderlayImage(bytes: Uint8Array, mime: string) {
       bytes[1] !== 216 ||
       bytes[2] !== 255
     ) {
-      throw new Error("Содержимое файла не соответствует JPG.");
+      throw new Error(tr`Содержимое файла не соответствует JPG.`);
     }
     let position = 2;
     while (position < bytes.length) {
@@ -73,11 +74,11 @@ export function inspectUnderlayImage(bytes: Uint8Array, mime: string) {
       position += length;
     }
     throw new Error(
-      "Не удалось прочитать размеры JPG: файл повреждён или имеет неподдерживаемый формат.",
+      tr`Не удалось прочитать размеры JPG: файл повреждён или имеет неподдерживаемый формат.`,
     );
   }
   throw new Error(
-    "Выберите изображение JPG или PNG. Другие форматы пока не поддерживаются.",
+    tr`Выберите изображение JPG или PNG. Другие форматы пока не поддерживаются.`,
   );
 }
 
@@ -88,7 +89,7 @@ function loadImage(url: string): Promise<HTMLImageElement> {
     image.onerror = () =>
       reject(
         new Error(
-          "Браузер не смог открыть изображение. Проверьте файл JPG или PNG.",
+          tr`Браузер не смог открыть изображение. Проверьте файл JPG или PNG.`,
         ),
       );
     image.src = url;
@@ -109,7 +110,7 @@ function optimizeUnderlay(
   try {
     const context = canvas.getContext("2d");
     if (!context)
-      throw new Error("Не удалось подготовить изображение в этом браузере.");
+      throw new Error(tr`Не удалось подготовить изображение в этом браузере.`);
     let dataUrl = "";
     for (let attempt = 0; attempt < 5; attempt += 1) {
       canvas.width = width;
@@ -130,11 +131,11 @@ function optimizeUnderlay(
       dataUrl.length > MAX_DATA_URL_LENGTH
     ) {
       throw new Error(
-        "Не удалось уменьшить изображение для хранения. Попробуйте более простой или меньший файл.",
+        tr`Не удалось уменьшить изображение для хранения. Попробуйте более простой или меньший файл.`,
       );
     }
     return {
-      name: name.slice(0, 160) || "План помещения",
+      name: name.slice(0, 160) || tr`План помещения`,
       dataUrl,
       pixelWidth: canvas.width,
       pixelHeight: canvas.height,
@@ -163,11 +164,11 @@ export function underlayFromCanvas(
 export async function readUnderlayImage(file: File): Promise<Underlay> {
   if (!["image/jpeg", "image/png"].includes(file.type)) {
     throw new Error(
-      "Выберите изображение JPG или PNG. Другие форматы пока не поддерживаются.",
+      tr`Выберите изображение JPG или PNG. Другие форматы пока не поддерживаются.`,
     );
   }
   if (!file.size || file.size > MAX_UNDERLAY_FILE_BYTES) {
-    throw new Error("Выберите непустое изображение размером до 12 МБ.");
+    throw new Error(tr`Выберите непустое изображение размером до 12 МБ.`);
   }
   inspectUnderlayImage(new Uint8Array(await file.arrayBuffer()), file.type);
   const objectUrl = URL.createObjectURL(file);

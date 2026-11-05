@@ -1,5 +1,6 @@
 "use client";
 
+import { chooseLanguage, currentLanguage, tr, untranslated } from "@/lib/i18n";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -99,12 +100,12 @@ import "./plan-check.css";
 const PlanCanvas = dynamic(() => import("./components/plan-canvas"), {
   ssr: false,
   loading: () => (
-    <div className="canvas-loading">Подготавливаем рабочее пространство…</div>
+    <div className="canvas-loading">{tr`Подготавливаем рабочее пространство…`}</div>
   ),
 });
 const PlanThree = dynamic(() => import("./components/plan-three"), {
   ssr: false,
-  loading: () => <div className="canvas-loading">Подготавливаем 3D…</div>,
+  loading: () => <div className="canvas-loading">{tr`Подготавливаем 3D…`}</div>,
 });
 const PdfImportDialog = dynamic(
   () => import("./components/pdf-import-dialog"),
@@ -394,7 +395,7 @@ export default function Editor() {
   const askAboutWall = (wallId: string) => {
     const asked = planAskingToRemove(state.plan, wallId, new Date().toISOString());
     const number = state.plan.walls.findIndex((wall) => wall.id === wallId) + 1;
-    if (asked) setProof({ plan: asked, question: `Что, если убрать стену ${number}`, label: `без стены ${number}` });
+    if (asked) setProof({ plan: asked, question: tr`Что, если убрать стену ${number}`, label: tr`без стены ${number}` });
   };
   const createVariantsExample = async () => {
     setVariantsOpen(false);
@@ -408,7 +409,7 @@ export default function Editor() {
   const createWallRoomExample = async () => {
     const example: FloorPlan = {
       ...createSpatialExamplePlan(),
-      name: "Квартира · контуры помещений",
+      name: tr`Квартира · контуры помещений`,
       roomMode: "walls",
     };
     if (await workspace.importProject(serializePlan(example))) {
@@ -523,7 +524,7 @@ export default function Editor() {
       current.editor.plan !== expectedPlan
     ) {
       workspace.reportNotice(
-        "План изменился во время загрузки. Выберите исходный файл ещё раз.",
+        tr`План изменился во время загрузки. Выберите исходный файл ещё раз.`,
       );
       return false;
     }
@@ -630,7 +631,7 @@ export default function Editor() {
         workspace.reportNotice(
           error instanceof Error
             ? error.message
-            : "Не удалось загрузить изображение.",
+            : tr`Не удалось загрузить изображение.`,
         );
     } finally {
       if (uploadGeneration.current === generation) setImageBusy(false);
@@ -647,7 +648,7 @@ export default function Editor() {
     const width = kind === "door" ? 0.9 : 1.2;
     if (length < width) {
       workspace.reportNotice(
-        `Для этого проёма нужна стена длиной от ${formatLength(width)} м.`,
+        tr`Для этого проёма нужна стена длиной от ${formatLength(width)} м.`,
       );
       return;
     }
@@ -684,11 +685,11 @@ export default function Editor() {
     fit();
   };
   const statusLabel = {
-    loading: "Загрузка…",
-    saving: "Сохранение…",
-    saved: "Сохранено в браузере",
-    error: "Не сохранено",
-    conflict: "Конфликт версий",
+    loading: tr`Загрузка…`,
+    saving: tr`Сохранение…`,
+    saved: tr`Сохранено в браузере`,
+    error: tr`Не сохранено`,
+    conflict: tr`Конфликт версий`,
   }[snapshot.status];
   const exportProject = () => {
     try {
@@ -707,7 +708,7 @@ export default function Editor() {
       workspace.reportNotice(
         error instanceof Error
           ? error.message
-          : "Не удалось экспортировать проект.",
+          : tr`Не удалось экспортировать проект.`,
       );
     }
   };
@@ -717,14 +718,14 @@ export default function Editor() {
     setLibraryOpen(false);
     try {
       if (file.size > MAX_PLAN_FILE_BYTES)
-        throw new Error("Файл слишком большой. Максимальный размер — 4 МБ.");
+        throw new Error(tr`Файл слишком большой. Максимальный размер — 4 МБ.`);
       if (await workspace.importProject(await file.text())) {
         enter2D();
         fit();
       }
     } catch (error) {
       workspace.reportNotice(
-        error instanceof Error ? error.message : "Не удалось прочитать файл.",
+        error instanceof Error ? error.message : tr`Не удалось прочитать файл.`,
       );
     } finally {
       setImportBusy(false);
@@ -758,7 +759,7 @@ export default function Editor() {
   return (
     <main className="app-shell">
       <header className="app-header">
-        <Link className="brand" href="/" aria-label="SpacePlan AI — главная">
+        <Link className="brand" href="/" aria-label={tr`SpacePlan AI — главная`}>
           <span className="brand-symbol">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
@@ -776,7 +777,7 @@ export default function Editor() {
         <span className="header-divider" />
         <div className="project-title">
           <h1 title={state.plan.name}>{state.plan.name}</h1>
-          {state.plan.origin && <span className="project-tag">Вариант</span>}
+          {state.plan.origin && <span className="project-tag">{tr`Вариант`}</span>}
         </div>
         <div className="header-actions">
           <span
@@ -789,7 +790,7 @@ export default function Editor() {
           <button
             ref={libraryButtonRef}
             className="header-project-button"
-            aria-label="Мои проекты"
+            aria-label={tr`Мои проекты`}
             disabled={!snapshot.ready || snapshot.busy}
             onClick={() => {
               workspace.dismissNotice();
@@ -797,13 +798,13 @@ export default function Editor() {
             }}
           >
             <FolderOpen size={16} />
-            <span>Мои проекты</span>
+            <span>{tr`Мои проекты`}</span>
           </button>
           <div className="file-actions">
             <button
               className="icon-button"
-              title="Импортировать JSON"
-              aria-label="Импорт JSON"
+              title={tr`Импортировать JSON`}
+              aria-label={tr`Импорт JSON`}
               disabled={!snapshot.ready || snapshot.busy || importBusy}
               onClick={() => importRef.current?.click()}
             >
@@ -811,8 +812,8 @@ export default function Editor() {
             </button>
             <button
               className="icon-button export-button"
-              title="Скачать проект в JSON"
-              aria-label="Экспорт JSON"
+              title={tr`Скачать проект в JSON`}
+              aria-label={tr`Экспорт JSON`}
               disabled={!snapshot.ready}
               onClick={exportProject}
             >
@@ -822,13 +823,13 @@ export default function Editor() {
           <button
             ref={exportButtonRef}
             className="plan-export-trigger"
-            title="Скачать план в PNG или PDF"
-            aria-label="Экспорт плана"
+            title={tr`Скачать план в PNG или PDF`}
+            aria-label={tr`Экспорт плана`}
             disabled={!snapshot.ready || snapshot.busy}
             onClick={() => setExportPlan(state.plan)}
           >
             <FileImage size={16} />
-            <span>Экспорт плана</span>
+            <span>{tr`Экспорт плана`}</span>
           </button>
           <button
             className="secondary-button"
@@ -838,8 +839,7 @@ export default function Editor() {
               setNewProject(true);
             }}
           >
-            <Plus size={16} /> Новый проект
-          </button>
+            <Plus size={16} />{tr` Новый проект`}</button>
         </div>
       </header>
       {snapshot.ready && startedAsExample(state.plan) && (
@@ -852,26 +852,24 @@ export default function Editor() {
             <button
               className="secondary-button"
               disabled={!snapshot.ready || snapshot.busy}
-              title="Сохранить копию текущего плана как отдельный проект и открыть её"
+              title={tr`Сохранить копию текущего плана как отдельный проект и открыть её`}
               onClick={() => {
                 workspace.dismissNotice();
                 void workspace.createVariant();
               }}
             >
-              <GitBranch size={15} /> Вариант
-            </button>
+              <GitBranch size={15} />{tr` Вариант`}</button>
             <button
               className="secondary-button"
               disabled={!snapshot.ready}
-              title="Сравнить текущий план с другим проектом из библиотеки"
+              title={tr`Сравнить текущий план с другим проектом из библиотеки`}
               onClick={() => setCompareOpen(true)}
             >
-              <GitCompare size={15} /> Сравнить
-            </button>
+              <GitCompare size={15} />{tr` Сравнить`}</button>
             <button
               className="secondary-button"
               disabled={!snapshot.ready}
-              title="Что в этой квартире можно изменить и что для этого понадобится"
+              title={tr`Что в этой квартире можно изменить и что для этого понадобится`}
               onClick={() => setXrayOpen(true)}
             >
               <ScanSearch size={15} /> X-Ray
@@ -879,15 +877,14 @@ export default function Editor() {
             <button
               className="primary-button"
               disabled={!snapshot.ready}
-              title="Что можно сказать о плане, насколько это надёжно и где нужен специалист"
+              title={tr`Что можно сказать о плане, насколько это надёжно и где нужен специалист`}
               onClick={() => setReportOpen(true)}
             >
-              <FileCheck2 size={15} /> Отчёт
-            </button>
+              <FileCheck2 size={15} />{tr` Отчёт`}</button>
           </div>
           <button
             className={`icon-button help-button ${helpOpen ? "active" : ""}`}
-            aria-label="Справка по редактору"
+            aria-label={tr`Справка по редактору`}
             aria-expanded={helpOpen}
             onClick={() => setHelpOpen(!helpOpen)}
           >
@@ -899,7 +896,7 @@ export default function Editor() {
         <div className="storage-notice" role="alert">
           <p>{snapshot.storageError}</p>
           <div className="storage-notice-actions">
-            <button onClick={exportProject}>Экспорт JSON</button>
+            <button onClick={exportProject}>{tr`Экспорт JSON`}</button>
             {snapshot.status === "conflict" ? (
               <>
                 <button
@@ -907,28 +904,22 @@ export default function Editor() {
                   onClick={async () => {
                     if (await workspace.saveCopy()) fit();
                   }}
-                >
-                  Сохранить копию
-                </button>
+                >{tr`Сохранить копию`}</button>
                 <button
                   disabled={snapshot.busy}
                   onClick={async () => {
                     if (
                       window.confirm(
-                        "Загрузить сохранённую версию? Текущие изменения и неприменённые поля будут заменены. Для их сохранения сначала экспортируйте JSON или сохраните копию.",
+                        tr`Загрузить сохранённую версию? Текущие изменения и неприменённые поля будут заменены. Для их сохранения сначала экспортируйте JSON или сохраните копию.`,
                       )
                     ) {
                       if (await workspace.reloadSaved()) fit();
                     }
                   }}
-                >
-                  Загрузить сохранённый
-                </button>
+                >{tr`Загрузить сохранённый`}</button>
               </>
             ) : (
-              <button onClick={workspace.retrySave}>
-                Повторить сохранение
-              </button>
+              <button onClick={workspace.retrySave}>{tr`Повторить сохранение`}</button>
             )}
           </div>
         </div>
@@ -937,13 +928,12 @@ export default function Editor() {
         <aside className="rooms-panel">
           <div className="panel-heading">
             <span>
-              <Layers2 size={16} /> Структура плана
-            </span>
+              <Layers2 size={16} />{tr` Структура плана`}</span>
           </div>
           <div
             className="structure-tabs"
             role="tablist"
-            aria-label="Разделы плана"
+            aria-label={tr`Разделы плана`}
           >
             <button
               role="tab"
@@ -951,27 +941,21 @@ export default function Editor() {
               aria-controls="rooms-tab-panel"
               id="rooms-tab"
               onClick={() => setSidebar("rooms")}
-            >
-              Комнаты
-            </button>
+            >{tr`Комнаты`}</button>
             <button
               role="tab"
               aria-selected={sidebar === "structure"}
               aria-controls="structure-tab-panel"
               id="structure-tab"
               onClick={() => setSidebar("structure")}
-            >
-              Стены
-            </button>
+            >{tr`Стены`}</button>
             <button
               role="tab"
               aria-selected={sidebar === "source"}
               aria-controls="source-tab-panel"
               id="source-tab"
               onClick={() => setSidebar("source")}
-            >
-              Подложка
-            </button>
+            >{tr`Подложка`}</button>
           </div>
           {sidebar === "source" && (
             <div
@@ -1029,8 +1013,8 @@ export default function Editor() {
                         confidence: candidate.confidence,
                         width: candidate.width,
                         place: candidate.wallId
-                          ? `в стене ${state.plan.walls.findIndex((wall) => wall.id === candidate.wallId) + 1}`
-                          : "между двумя стенами: добавится короткая стена",
+                          ? tr`в стене ${state.plan.walls.findIndex((wall) => wall.id === candidate.wallId) + 1}`
+                          : tr`между двумя стенами: добавится короткая стена`,
                         reasons: candidate.reasons,
                         selected: activeOpeningSuggestion.selected[index],
                       })),
@@ -1058,22 +1042,18 @@ export default function Editor() {
               aria-labelledby="structure-tab"
             >
               <div className="construction-list-heading">
-                <span>СТЕНЫ И ПРОЁМЫ</span>
+                <span>{tr`СТЕНЫ И ПРОЁМЫ`}</span>
                 <span data-testid="wall-count">
-                  {pluralRu(state.plan.walls.length, "стена", "стены", "стен")}
+                  {pluralRu(state.plan.walls.length, tr`стена`, tr`стены`, tr`стен`)}
                 </span>
               </div>
               <button
                 className="add-room-button"
                 onClick={() => enter2D("wall")}
               >
-                <Plus size={14} /> Начертить стену
-              </button>
+                <Plus size={14} />{tr` Начертить стену`}</button>
               {!state.plan.walls.length && (
-                <p className="structure-empty">
-                  Потяните на плане от начала стены к её концу. Соседние концы
-                  притягиваются друг к другу.
-                </p>
+                <p className="structure-empty">{tr`Потяните на плане от начала стены к её концу. Соседние концы притягиваются друг к другу.`}</p>
               )}
               {state.plan.openings.some((opening) => opening.kind === "door") && (
                 <DoorCollisionsPanel
@@ -1145,10 +1125,7 @@ export default function Editor() {
                   onSetKind={(wallId, kind) => dispatch({ type: "wall:set-kind", wallId, kind })}
                 />
               </div>
-              <p className="structure-empty">
-                Включите «По стенам» во вкладке «Комнаты»: замкнутые стены
-                определят внутренние контуры и площадь помещений.
-              </p>
+              <p className="structure-empty">{tr`Включите «По стенам» во вкладке «Комнаты»: замкнутые стены определят внутренние контуры и площадь помещений.`}</p>
             </div>
           )}
           <div
@@ -1161,32 +1138,28 @@ export default function Editor() {
             <div
               className="room-source-switch"
               role="group"
-              aria-label="Источник помещений"
+              aria-label={tr`Источник помещений`}
             >
               <button
-                aria-label="Ручные комнаты"
+                aria-label={tr`Ручные комнаты`}
                 aria-pressed={!wallMode}
                 disabled={!snapshot.ready || snapshot.busy}
                 onClick={() => changeRoomMode("manual")}
-              >
-                Вручную
-              </button>
+              >{tr`Вручную`}</button>
               <button
-                aria-label="Комнаты по стенам"
+                aria-label={tr`Комнаты по стенам`}
                 aria-pressed={wallMode}
                 disabled={!snapshot.ready || snapshot.busy}
                 onClick={() => changeRoomMode("walls")}
-              >
-                По стенам
-              </button>
+              >{tr`По стенам`}</button>
             </div>
             <div className="rooms-section-heading">
-              <span>ПОМЕЩЕНИЯ</span>
+              <span>{tr`ПОМЕЩЕНИЯ`}</span>
               <span data-testid="room-count">
                 {displayedRooms.length.toString().padStart(2, "0")}
               </span>
             </div>
-            <div className="room-list" aria-label="Помещения">
+            <div className="room-list" aria-label={tr`Помещения`}>
               <RoomList
                 rooms={displayedRooms}
                 selectedId={state.selectedId}
@@ -1220,10 +1193,7 @@ export default function Editor() {
                 />
               )}
               {wallMode && (
-                <div className="wall-rooms-explanation">
-                  Площадь внутри стен, с учётом их толщины. Двери и окна
-                  сохраняют границы комнат.
-                  {detection.warnings.map((warning, index) => (
+                <div className="wall-rooms-explanation">{tr`Площадь внутри стен, с учётом их толщины. Двери и окна сохраняют границы комнат.`}{detection.warnings.map((warning, index) => (
                     <p role="status" key={index}>
                       {warning}
                     </p>
@@ -1235,8 +1205,7 @@ export default function Editor() {
                       onClick={() => {
                         void createWallRoomExample();
                       }}
-                    >
-                      Открыть пример со стенами <ArrowUpRight size={13} />
+                    >{tr`Открыть пример со стенами `}<ArrowUpRight size={13} />
                     </button>
                   )}
                 </div>
@@ -1254,8 +1223,7 @@ export default function Editor() {
               />
             </div>
             <button className="add-room-button" disabled={!snapshot.ready || snapshot.busy} onClick={() => { dispatch({ type: "clearError" }); setNewRectangle(true); }}>
-              <BrickWall size={15} /> Комната со стенами
-            </button>
+              <BrickWall size={15} />{tr` Комната со стенами`}</button>
             {wallMode ? (
               <button
                 className="add-room-button"
@@ -1264,33 +1232,31 @@ export default function Editor() {
                   enter2D("wall");
                 }}
               >
-                <BrickWall size={15} /> Начать обводку стен
-              </button>
+                <BrickWall size={15} />{tr` Начать обводку стен`}</button>
             ) : (
               <button className="add-room-button" onClick={addDefaultRoom}>
-                <Plus size={15} /> Добавить комнату
-              </button>
+                <Plus size={15} />{tr` Добавить комнату`}</button>
             )}
           </div>
           <PlanSummary rooms={displayedRooms} totalArea={totalArea} wallMode={wallMode} />
         </aside>
-        <section className="workspace" aria-label="Рабочая область редактора">
+        <section className="workspace" aria-label={tr`Рабочая область редактора`}>
           <div className="workspace-toolbar">
             <WallKindLegend walls={state.plan.walls} />
             <div
               className="view-mode-switch"
               role="group"
-              aria-label="Режим просмотра"
+              aria-label={tr`Режим просмотра`}
             >
               <button
-                aria-label="Режим 2D"
+                aria-label={tr`Режим 2D`}
                 aria-pressed={viewMode === "2d"}
                 onClick={() => enter2D()}
               >
                 <Grid2X2 size={14} /> 2D
               </button>
               <button
-                aria-label="Режим 3D"
+                aria-label={tr`Режим 3D`}
                 aria-pressed={viewMode === "3d"}
                 onClick={enter3D}
               >
@@ -1301,10 +1267,10 @@ export default function Editor() {
               <button
                 ref={planCheckButtonRef}
                 className="icon-button plan-check-trigger"
-                aria-label="Проверить план"
+                aria-label={tr`Проверить план`}
                 aria-haspopup="dialog"
                 aria-expanded={planCheckOpen}
-                title="Проверка плана"
+                title={tr`Проверка плана`}
                 disabled={!snapshot.ready || snapshot.busy}
                 onClick={() => {
                   setViewOpen(false);
@@ -1319,8 +1285,8 @@ export default function Editor() {
               </button>
               <button
                 className="icon-button"
-                title="Отменить (Ctrl+Z)"
-                aria-label="Отменить"
+                title={tr`Отменить (Ctrl+Z)`}
+                aria-label={tr`Отменить`}
                 disabled={!state.past.length}
                 onClick={() => dispatch({ type: "undo" })}
               >
@@ -1328,8 +1294,8 @@ export default function Editor() {
               </button>
               <button
                 className="icon-button"
-                title="Повторить (Ctrl+Shift+Z)"
-                aria-label="Повторить"
+                title={tr`Повторить (Ctrl+Shift+Z)`}
+                aria-label={tr`Повторить`}
                 disabled={!state.future.length}
                 onClick={() => dispatch({ type: "redo" })}
               >
@@ -1341,8 +1307,8 @@ export default function Editor() {
                   <div className="view-menu-wrap">
                     <button
                       className={`icon-button ${viewOpen ? "active" : ""}`}
-                      title="Настройки вида"
-                      aria-label="Настройки вида"
+                      title={tr`Настройки вида`}
+                      aria-label={tr`Настройки вида`}
                       aria-expanded={viewOpen}
                       onClick={() => setViewOpen(!viewOpen)}
                     >
@@ -1494,7 +1460,7 @@ export default function Editor() {
                 <span>{state.error}</span>
                 <button
                   className="icon-button"
-                  aria-label="Скрыть ошибку"
+                  aria-label={tr`Скрыть ошибку`}
                   onClick={() => dispatch({ type: "clearError" })}
                 >
                   <X size={15} />
@@ -1511,7 +1477,7 @@ export default function Editor() {
             </span>
             <span>
               <Focus size={12} />{" "}
-              {viewMode === "3d" ? "Размеры в метрах" : "Привязка 0,1 м"}
+              {viewMode === "3d" ? tr`Размеры в метрах` : tr`Привязка 0,1 м`}
             </span>
           </div>
         </section>
@@ -1583,23 +1549,32 @@ export default function Editor() {
         </aside>
       </div>
       <footer className="app-footer">
-        <span>Решения о конструктиве принимает специалист</span>
         <span>
-          Локально в браузере · Резервная копия — JSON{" "}
+          <button
+            type="button"
+            className="language-switch"
+            data-testid="language-switch"
+            onClick={() => void workspace.flush().then(() => chooseLanguage(currentLanguage() === "en" ? "ru" : "en"))}
+          >
+            {currentLanguage() === "en" ? untranslated("Русский") : "English"}
+          </button>
+          <span className="footer-dot">·</span>
+          {tr`Решения о конструктиве принимает специалист`}
+        </span>
+        <span>{tr`Локально в браузере · Резервная копия — JSON`}{" "}
           <span className="footer-dot">·</span>{" "}
-          <span className="footer-version">
-            Версия {APP_VERSION} <ArrowDownRight size={11} />
+          <span className="footer-version">{tr`Версия `}{APP_VERSION} <ArrowDownRight size={11} />
           </span>
         </span>
       </footer>
       {variantsOpen && (
         <PlanVariantsDialog
           plan={state.plan}
-          onSave={(variant, index) => saveProposal(variant.plan, `подбор ${index}`)}
+          onSave={(variant, index) => saveProposal(variant.plan, tr`подбор ${index}`)}
           onProof={(variant, index) => setProof({
             plan: { ...variant.plan, origin: createPlanOrigin(state.plan, new Date().toISOString()) },
             question: variant.title,
-            label: `подбор ${index}`,
+            label: tr`подбор ${index}`,
           })}
           onCompare={() => {
             setVariantsOpen(false);
@@ -1732,7 +1707,7 @@ export default function Editor() {
                 current.id !== calibration.projectId ||
                 current.underlay !== calibration.underlay
               )
-                throw new Error("Подложка изменилась. Выберите точки заново.");
+                throw new Error(tr`Подложка изменилась. Выберите точки заново.`);
               const underlay = calibrateUnderlay(
                 calibration.underlay,
                 calibration.start,
@@ -1749,7 +1724,7 @@ export default function Editor() {
               setCalibrationError(
                 error instanceof Error
                   ? error.message
-                  : "Проверьте длину отрезка.",
+                  : tr`Проверьте длину отрезка.`,
               );
             }
           }}
@@ -1800,7 +1775,7 @@ export default function Editor() {
             const url = URL.createObjectURL(new Blob([JSON.stringify(workspace.unreadableRecords(), null, 2)], { type: "application/json" }));
             const link = document.createElement("a");
             link.href = url;
-            link.download = "SpacePlan-нечитаемые-записи.json";
+            link.download = tr`SpacePlan-нечитаемые-записи.json`;
             link.click();
             setTimeout(() => URL.revokeObjectURL(url), 30_000);
           }}
@@ -1829,7 +1804,7 @@ export default function Editor() {
         className="project-file-input"
         type="file"
         accept=".json,application/json"
-        aria-label="Файл проекта JSON"
+        aria-label={tr`Файл проекта JSON`}
         onChange={(event) => {
           void importProject(event.target.files?.[0]);
         }}
@@ -1843,7 +1818,7 @@ export default function Editor() {
           <span>{snapshot.notice}</span>
           <button
             className="icon-button"
-            aria-label="Закрыть сообщение"
+            aria-label={tr`Закрыть сообщение`}
             onClick={workspace.dismissNotice}
           >
             <X size={16} />
@@ -1851,9 +1826,7 @@ export default function Editor() {
         </div>
       )}
       {!snapshot.ready && (
-        <div className="workspace-loading" role="status">
-          Восстанавливаем ваши проекты…
-        </div>
+        <div className="workspace-loading" role="status">{tr`Восстанавливаем ваши проекты…`}</div>
       )}
     </main>
   );

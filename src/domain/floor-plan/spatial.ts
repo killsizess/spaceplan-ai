@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { assertRectangle, wallLength } from "@/domain/geometry";
 import type { FloorPlan, Opening, Wall } from "./types";
 import { doorSwingWorld } from "./door-swing";
@@ -44,7 +45,7 @@ function assertWall(wall: Wall): number {
     wall.height <= 0
   ) {
     throw new Error(
-      "Толщина и высота стены должны быть положительными числами.",
+      tr`Толщина и высота стены должны быть положительными числами.`,
     );
   }
   return length;
@@ -75,13 +76,13 @@ export function buildWallSolids(
       opening.width <= 0 ||
       opening.height <= 0
     ) {
-      throw new Error("Некорректные размеры проёма.");
+      throw new Error(tr`Некорректные размеры проёма.`);
     }
     if (
       opening.offset + opening.width > length + EPSILON ||
       opening.sillHeight + opening.height > wall.height + EPSILON
     ) {
-      throw new Error("Проём выходит за границы стены.");
+      throw new Error(tr`Проём выходит за границы стены.`);
     }
   }
 
@@ -107,7 +108,7 @@ export function buildWallSolids(
   let cursor = 0;
   for (const opening of wallOpenings) {
     if (opening.offset < cursor - EPSILON) {
-      throw new Error("Проёмы на одной стене не должны перекрываться.");
+      throw new Error(tr`Проёмы на одной стене не должны перекрываться.`);
     }
     // Clamp floating-point boundary noise accepted by the model validation.
     const start = Math.max(cursor, opening.offset);
@@ -164,7 +165,7 @@ export function spatialBounds(plan: FloorPlan): SpatialBounds {
   for (const opening of plan.openings) {
     if (opening.kind !== "door") continue;
     const wall = wallsById.get(opening.wallId);
-    if (!wall) throw new Error("Стена двери не найдена.");
+    if (!wall) throw new Error(tr`Стена двери не найдена.`);
     const swing = doorSwingWorld(wall, opening);
     if (!swing) continue;
     // Include the finite 3D leaf thickness as well as the nominal swept sector.

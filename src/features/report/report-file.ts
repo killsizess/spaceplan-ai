@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import type { FloorPlan } from "@/domain/floor-plan/types";
 import { createRasterPdfDocument, type RasterPdfInput } from "@/lib/raster-pdf";
 import { createPlanExportLayout, DEFAULT_EXPORT_OPTIONS } from "../editor/export-layout";
@@ -42,7 +43,7 @@ export async function createPagedPdf(plan: FloorPlan, layOut: (measure: MeasureT
   await document.fonts.ready;
   signal.throwIfAborted();
   const measuring = document.createElement("canvas").getContext("2d");
-  if (!measuring) throw new Error("Браузер не смог подготовить отчёт.");
+  if (!measuring) throw new Error(tr`Браузер не смог подготовить отчёт.`);
   const measure = (text: string, size: number, weight: number) => {
     // Measured large and scaled down: canvas metrics at very small sizes are coarse.
     measuring.font = fontOf(size * 20, weight);
@@ -57,7 +58,7 @@ export async function createPagedPdf(plan: FloorPlan, layOut: (measure: MeasureT
     canvas.height = Math.round(REPORT_PAGE.height * scale);
     try {
       const context = canvas.getContext("2d");
-      if (!context) throw new Error("Браузер не смог подготовить отчёт.");
+      if (!context) throw new Error(tr`Браузер не смог подготовить отчёт.`);
       context.scale(canvas.width / REPORT_PAGE.width, canvas.height / REPORT_PAGE.height);
       drawPage(context, page);
       const jpeg = await blobBytes(await canvasBlob(canvas, "image/jpeg", signal), signal);

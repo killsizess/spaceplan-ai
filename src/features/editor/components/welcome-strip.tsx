@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useSyncExternalStore } from "react";
 import { X } from "lucide-react";
 import { isExamplePlan } from "@/domain/floor-plan/operations";
@@ -54,15 +55,13 @@ export function WelcomeStrip({ onExample, onUpload }: { onExample: () => void; o
   const hidden = useSyncExternalStore(subscribe, () => sessionHidden || readHidden(), () => true);
   if (hidden) return null;
   return (
-    <section className="welcome-strip" aria-label="С чего начать" data-testid="welcome-strip">
+    <section className="welcome-strip" aria-label={tr`С чего начать`} data-testid="welcome-strip">
       <p>
-        <strong>С чего начать.</strong> Это учебный план без стен. Загрузите чертёж или нарисуйте стены,
-        отметьте несущие и нажмите «X-Ray»: он покажет, что можно изменить и что для этого понадобится.
-      </p>
+        <strong>{tr`С чего начать.`}</strong>{tr` Это учебный план без стен. Загрузите чертёж или нарисуйте стены, отметьте несущие и нажмите «X-Ray»: он покажет, что можно изменить и что для этого понадобится.`}</p>
       <div>
-        <button type="button" className="secondary-button" onClick={onUpload}>Загрузить чертёж</button>
-        <button type="button" className="primary-button" onClick={onExample}>Посмотреть на примере</button>
-        <button type="button" className="icon-button" aria-label="Скрыть подсказку" onClick={hide}>
+        <button type="button" className="secondary-button" onClick={onUpload}>{tr`Загрузить чертёж`}</button>
+        <button type="button" className="primary-button" onClick={onExample}>{tr`Посмотреть на примере`}</button>
+        <button type="button" className="icon-button" aria-label={tr`Скрыть подсказку`} onClick={hide}>
           <X size={16} aria-hidden="true" />
         </button>
       </div>

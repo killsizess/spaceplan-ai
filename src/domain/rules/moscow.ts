@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { planFromOrigin } from "@/domain/floor-plan/plan-origin";
 import { formatArea, formatLength } from "@/lib/format";
 import type { FloorPlan, Opening, RoomKind, Wall } from "@/domain/floor-plan/types";
@@ -26,68 +27,68 @@ import type { FactKey, Procedure, RegulationDocument, RuleFinding, RulePack, Rul
 const DOCUMENTS: readonly RegulationDocument[] = [
   {
     id: "moscow-508",
-    short: "508-ПП",
-    title: "Постановление Правительства Москвы от 25.10.2011 № 508-ПП, приложение 1 «Требования к проведению переустройства и (или) перепланировки помещений в многоквартирном доме»",
-    edition: "Приложение 1 в редакции № 1083-ПП от 15.06.2022 с изменениями № 841-ПП от 18.04.2025, подписанные тексты с mos.ru",
+    short: tr`508-ПП`,
+    title: tr`Постановление Правительства Москвы от 25.10.2011 № 508-ПП, приложение 1 «Требования к проведению переустройства и (или) перепланировки помещений в многоквартирном доме»`,
+    edition: tr`Приложение 1 в редакции № 1083-ПП от 15.06.2022 с изменениями № 841-ПП от 18.04.2025, подписанные тексты с mos.ru`,
     url: "https://www.mos.ru/authority/documents/doc/55691220/",
-    gaps: "Не прочитан № 3005-ПП от 26.12.2022. № 2920-ПП от 28.11.2025 и № 950-ПП от 07.04.2026 прочитаны как проекты с сайта Мосжилинспекции; пункты 2 и 9 они, судя по проектам, не меняют.",
+    gaps: tr`Не прочитан № 3005-ПП от 26.12.2022. № 2920-ПП от 28.11.2025 и № 950-ПП от 07.04.2026 прочитаны как проекты с сайта Мосжилинспекции; пункты 2 и 9 они, судя по проектам, не меняют.`,
   },
   {
     id: "rf-pp-47",
-    short: "ПП РФ № 47",
-    title: "Постановление Правительства РФ от 28.01.2006 № 47, Положение о признании помещения жилым помещением",
-    edition: "Редакция от 20.06.2026",
+    short: tr`ПП РФ № 47`,
+    title: tr`Постановление Правительства РФ от 28.01.2006 № 47, Положение о признании помещения жилым помещением`,
+    edition: tr`Редакция от 20.06.2026`,
     url: "https://legalacts.ru/doc/postanovlenie-pravitelstva-rf-ot-28012006-n-47/",
-    gaps: "Прочитана копия на legalacts.ru, а не официальная публикация.",
+    gaps: tr`Прочитана копия на legalacts.ru, а не официальная публикация.`,
   },
   {
     id: "sp-54",
-    short: "СП 54",
-    title: "СП 54.13330.2022 «Здания жилые многоквартирные»",
-    edition: "Редакция от 27.12.2024, с изменениями № 1 и № 2",
+    short: tr`СП 54`,
+    title: tr`СП 54.13330.2022 «Здания жилые многоквартирные»`,
+    edition: tr`Редакция от 27.12.2024, с изменениями № 1 и № 2`,
     url: "https://meganorm.ru/mega_doc/norm_update_29032025/nomenklatura/0/sp_54_13330_2022_svod_pravil_zdaniya_zhilye_mnogokvartirnye.html",
-    gaps: "Прочитана копия на meganorm.ru. Свод относится к проектированию новых и реконструируемых зданий (п. 1.1); применимость к перепланировке в существующем доме определяет специалист.",
+    gaps: tr`Прочитана копия на meganorm.ru. Свод относится к проектированию новых и реконструируемых зданий (п. 1.1); применимость к перепланировке в существующем доме определяет специалист.`,
   },
   {
     id: "zhk-rf",
-    short: "ЖК РФ",
-    title: "Жилищный кодекс РФ, статьи 25 и 26",
-    edition: "Действующая редакция по zakonrf.info, дата редакции там не указана",
+    short: tr`ЖК РФ`,
+    title: tr`Жилищный кодекс РФ, статьи 25 и 26`,
+    edition: tr`Действующая редакция по zakonrf.info, дата редакции там не указана`,
     url: "https://www.zakonrf.info/jk/26/",
-    gaps: "Прочитана копия, а не официальная публикация.",
+    gaps: tr`Прочитана копия, а не официальная публикация.`,
   },
 ];
 
 const NOT_CHECKED: readonly string[] = [
-  "Вентиляционные каналы и короба, не отмеченные на плане как помещение «Вентшахта, короб» (508-ПП, п. 9.5).",
-  "Инженерные сети, радиаторы и тёплые полы от общедомовых систем (508-ПП, пп. 9.4, 9.7, 9.8).",
-  "Пилоны, диафрагмы, колонны и места связей между элементами (508-ПП, п. 9.10): план такого не хранит.",
-  "Балконы и лоджии, не отмеченные на плане как помещение «Балкон, лоджия» (508-ПП, пп. 9.13, 9.18), а также террасы и веранды.",
-  "Нагрузка на перекрытия и материал перегородок (508-ПП, пп. 2.2.9, 9.6).",
-  "Инсоляция, шум и другие санитарные требования (ПП РФ № 47, пп. 21, 26).",
-  "Порядок подачи документов и сроки согласования.",
+  tr`Вентиляционные каналы и короба, не отмеченные на плане как помещение «Вентшахта, короб» (508-ПП, п. 9.5).`,
+  tr`Инженерные сети, радиаторы и тёплые полы от общедомовых систем (508-ПП, пп. 9.4, 9.7, 9.8).`,
+  tr`Пилоны, диафрагмы, колонны и места связей между элементами (508-ПП, п. 9.10): план такого не хранит.`,
+  tr`Балконы и лоджии, не отмеченные на плане как помещение «Балкон, лоджия» (508-ПП, пп. 9.13, 9.18), а также террасы и веранды.`,
+  tr`Нагрузка на перекрытия и материал перегородок (508-ПП, пп. 2.2.9, 9.6).`,
+  tr`Инсоляция, шум и другие санитарные требования (ПП РФ № 47, пп. 21, 26).`,
+  tr`Порядок подачи документов и сроки согласования.`,
 ];
 
 const from508 = (...points: string[]): RuleSource[] =>
-  points.map((point) => ({ document: "moscow-508", point: `прил. 1, п. ${point}` }));
-const fromPp47 = (point: string): RuleSource => ({ document: "rf-pp-47", point: `п. ${point}` });
-const fromSp54 = (point: string): RuleSource => ({ document: "sp-54", point: `п. ${point}` });
+  points.map((point) => ({ document: "moscow-508", point: tr`прил. 1, п. ${point}` }));
+const fromPp47 = (point: string): RuleSource => ({ document: "rf-pp-47", point: tr`п. ${point}` });
+const fromSp54 = (point: string): RuleSource => ({ document: "sp-54", point: tr`п. ${point}` });
 const fromZhk = (point: string): RuleSource => ({ document: "zhk-rf", point });
 
 export const PROCEDURES: Readonly<Record<Procedure, { label: string; meaning: string; sources: readonly RuleSource[] }>> = {
-  forbidden: { label: "Не допускается", meaning: "Такую работу запрещает документ из базы правил.", sources: [] },
-  specialist: { label: "Нужен специалист", meaning: "Ответ зависит от конструкций дома, а на плане их состояния не видно.", sources: [] },
+  forbidden: { label: tr`Не допускается`, meaning: tr`Такую работу запрещает документ из базы правил.`, sources: [] },
+  specialist: { label: tr`Нужен специалист`, meaning: tr`Ответ зависит от конструкций дома, а на плане их состояния не видно.`, sources: [] },
   project: {
-    label: "Нужен проект",
-    meaning: "Проект перепланировки, решение о согласовании до работ и акт после них; работы выполняет член СРО.",
-    sources: [...from508("2", "13", "15"), fromZhk("ст. 26, ч. 2")],
+    label: tr`Нужен проект`,
+    meaning: tr`Проект перепланировки, решение о согласовании до работ и акт после них; работы выполняет член СРО.`,
+    sources: [...from508("2", "13", "15"), fromZhk(tr`ст. 26, ч. 2`)],
   },
   simplified: {
-    label: "Упрощённый порядок",
-    meaning: "Согласование до работ не требуется; после работ подаётся запрос на акт и эскиз планов до и после.",
+    label: tr`Упрощённый порядок`,
+    meaning: tr`Согласование до работ не требуется; после работ подаётся запрос на акт и эскиз планов до и после.`,
     sources: from508("19", "19.1", "19.4"),
   },
-  unknown: { label: "Нет данных", meaning: "Ответ зависит от того, чего на плане нет.", sources: [] },
+  unknown: { label: tr`Нет данных`, meaning: tr`Ответ зависит от того, чего на плане нет.`, sources: [] },
 };
 
 /** Heaviest first; `overall` takes the first one found among the changes. */
@@ -111,14 +112,14 @@ function numberOf(plan: Pick<FloorPlan, "walls">, wall: Wall): number {
 }
 function wallList(plan: Pick<FloorPlan, "walls">, walls: readonly Wall[]): string {
   const numbers = walls.map((wall) => numberOf(plan, wall)).sort((a, b) => a - b);
-  return `${numbers.length === 1 ? "стена" : "стены"} ${numbers.join(", ")}`;
+  return `${numbers.length === 1 ? tr`стена` : tr`стены`} ${numbers.join(", ")}`;
 }
 
 /** «стены 5, 7 исходного плана; новые: стена 9». */
 function changedWalls(source: Pick<FloorPlan, "walls">, plan: Pick<FloorPlan, "walls">, before: readonly Wall[], added: readonly Wall[]): string {
   return [
-    before.length ? `${wallList(source, before)} исходного плана` : "",
-    added.length ? `новые: ${wallList(plan, added)}` : "",
+    before.length ? tr`${wallList(source, before)} исходного плана` : "",
+    added.length ? tr`новые: ${wallList(plan, added)}` : "",
   ].filter(Boolean).join("; ");
 }
 
@@ -147,7 +148,7 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       level: "specialist",
       state: "problem",
       procedure: "forbidden",
-      title: "Дом признан аварийным: переустройство и перепланировка не допускаются",
+      title: tr`Дом признан аварийным: переустройство и перепланировка не допускаются`,
       sources: from508("9.15"),
     });
   }
@@ -157,8 +158,8 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       level: "specialist",
       state: "note",
       procedure: "project",
-      title: "Объект культурного наследия: работы только по проекту",
-      detail: "Нужно ещё заключение Департамента культурного наследия города Москвы.",
+      title: tr`Объект культурного наследия: работы только по проекту`,
+      detail: tr`Нужно ещё заключение Департамента культурного наследия города Москвы.`,
       sources: from508("2.1.2", "2.2.13", "12"),
     });
   }
@@ -167,7 +168,7 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       ruleId: "moscow.rooms.unresolved",
       level: "undetermined",
       state: "problem",
-      title: "Помещения не определены, поэтому площади, окна и высоты не проверены",
+      title: tr`Помещения не определены, поэтому площади, окна и высоты не проверены`,
       detail: unresolved,
       sources: [],
     });
@@ -178,7 +179,7 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       ruleId: "moscow.rooms.none",
       level: "undetermined",
       state: "problem",
-      title: "В плане нет помещений: проверять по нормам пока нечего",
+      title: tr`В плане нет помещений: проверять по нормам пока нечего`,
       sources: [],
     });
     return findings;
@@ -189,8 +190,8 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       ruleId: "moscow.rooms.kind",
       level: "undetermined",
       state: "note",
-      title: `Назначение не указано: ${unnamed.map((room) => room.name).join(", ")}`,
-      detail: "Нормы для жилых комнат, кухонь и санузлов к таким помещениям не применялись. Укажите назначение в свойствах помещения.",
+      title: tr`Назначение не указано: ${unnamed.map((room) => room.name).join(", ")}`,
+      detail: tr`Нормы для жилых комнат, кухонь и санузлов к таким помещениям не применялись. Укажите назначение в свойствах помещения.`,
       roomIds: unnamed.map((room) => room.id),
       sources: [],
     });
@@ -211,8 +212,8 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       ruleId: "moscow.sp54.5.11",
       level: "verified",
       state: "problem",
-      title: `${room.name}: ${formatArea(round(room.area))} при минимуме ${minimum(room)} м²`,
-      detail: "Минимум из свода правил для проектирования новых и реконструируемых домов. Обязателен ли он при этой перепланировке, определяет специалист. Спальня на двух человек: 10 м²; мансардный этаж: 7 м².",
+      title: tr`${room.name}: ${formatArea(round(room.area))} при минимуме ${minimum(room)} м²`,
+      detail: tr`Минимум из свода правил для проектирования новых и реконструируемых домов. Обязателен ли он при этой перепланировке, определяет специалист. Спальня на двух человек: 10 м²; мансардный этаж: 7 м².`,
       roomIds: [room.id],
       sources: [fromSp54("5.11")],
     });
@@ -222,7 +223,7 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       ruleId: "moscow.sp54.5.11",
       level: "verified",
       state: "ok",
-      title: `Площади не ниже минимумов СП 54: помещений ${measured.length}`,
+      title: tr`Площади не ниже минимумов СП 54: помещений ${measured.length}`,
       sources: [fromSp54("5.11")],
     });
   }
@@ -232,8 +233,8 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       ruleId: "moscow.rooms.manual",
       level: "undetermined",
       state: "note",
-      title: "Помещения заданы вручную: окна, высоты и стены по нормам не проверялись",
-      detail: "Нарисуйте стены, чтобы правила увидели границы помещений и проёмы.",
+      title: tr`Помещения заданы вручную: окна, высоты и стены по нормам не проверялись`,
+      detail: tr`Нарисуйте стены, чтобы правила увидели границы помещений и проёмы.`,
       sources: [],
     });
     return findings;
@@ -248,8 +249,8 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       ruleId: "moscow.pp47.25",
       level: "verified",
       state: "problem",
-      title: `${room.name}: нет окна наружу`,
-      detail: "Комнаты и кухни должны иметь непосредственное естественное освещение. Окно на балкон или лоджию считается окном наружу.",
+      title: tr`${room.name}: нет окна наружу`,
+      detail: tr`Комнаты и кухни должны иметь непосредственное естественное освещение. Окно на балкон или лоджию считается окном наружу.`,
       roomIds: [room.id],
       sources: [fromPp47("25")],
     });
@@ -259,7 +260,7 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       ruleId: "moscow.pp47.25",
       level: "verified",
       state: "ok",
-      title: `Окно наружу есть в каждой комнате и кухне: помещений ${needDaylight.length}`,
+      title: tr`Окно наружу есть в каждой комнате и кухне: помещений ${needDaylight.length}`,
       sources: [fromPp47("25")],
     });
   }
@@ -278,7 +279,7 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
         level: "specialist",
         state: "problem",
         procedure: "forbidden",
-        title: "Проём без двери между жилой комнатой и газифицированной кухней: не допускается",
+        title: tr`Проём без двери между жилой комнатой и газифицированной кухней: не допускается`,
         openingIds: ids,
         sources: from508("9.25"),
       }
@@ -287,8 +288,8 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
         level: "undetermined",
         state: "problem",
         procedure: "unknown",
-        title: "Проём без двери между кухней и жилой комнатой, но неизвестно, есть ли газ",
-        detail: "С газифицированной кухней такой проём не допускается. Ответьте на вопрос о газе.",
+        title: tr`Проём без двери между кухней и жилой комнатой, но неизвестно, есть ли газ`,
+        detail: tr`С газифицированной кухней такой проём не допускается. Ответьте на вопрос о газе.`,
         openingIds: ids,
         sources: from508("9.25"),
       });
@@ -307,8 +308,8 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       ruleId: "moscow.pp47.22",
       level: "verified",
       state: "problem",
-      title: `${room.name}: высота ${formatLength(round(heightOf(room)))} м при минимуме ${room.kind === "hall" ? "2,1" : "2,5"} м`,
-      detail: "Высота взята по самой низкой стене помещения. В отдельных климатических районах минимум 2,7 м; район Москвы по СП 131 не сверялся.",
+      title: tr`${room.name}: высота ${formatLength(round(heightOf(room)))} м при минимуме ${room.kind === "hall" ? "2,1" : "2,5"} м`,
+      detail: tr`Высота взята по самой низкой стене помещения. В отдельных климатических районах минимум 2,7 м; район Москвы по СП 131 не сверялся.`,
       roomIds: [room.id],
       sources: [fromPp47("22")],
     });
@@ -334,16 +335,16 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "specialist",
       state: "problem",
       procedure: "specialist",
-      title: `Затронута несущая стена: стена ${numberOf(source, wall)} исходного плана ${text}`,
-      detail: "Не допускается нарушение прочности и устойчивости несущих конструкций и нагрузка на них сверх допустимой. Определить это по плану нельзя: нужно заключение специалиста.",
+      title: tr`Затронута несущая стена: стена ${numberOf(source, wall)} исходного плана ${text}`,
+      detail: tr`Не допускается нарушение прочности и устойчивости несущих конструкций и нагрузка на них сверх допустимой. Определить это по плану нельзя: нужно заключение специалиста.`,
       wallIds: [wall.id],
       sources: from508("9.3", "9.6"),
     });
-  for (const wall of walls.removed) if (kindOf(wall) === "bearing") bearing("удалена", wall);
-  for (const { before: wall } of walls.moved) if (kindOf(wall) === "bearing") bearing("перенесена или изменена её длина", wall);
-  for (const { before: wall } of walls.thickened) if (kindOf(wall) === "bearing") bearing("изменена толщина", wall);
+  for (const wall of walls.removed) if (kindOf(wall) === "bearing") bearing(tr`удалена`, wall);
+  for (const { before: wall } of walls.moved) if (kindOf(wall) === "bearing") bearing(tr`перенесена или изменена её длина`, wall);
+  for (const { before: wall } of walls.thickened) if (kindOf(wall) === "bearing") bearing(tr`изменена толщина`, wall);
   for (const { before: wall, after: next } of walls.retyped) {
-    if (kindOf(wall) === "bearing" && kindOf(next) !== "bearing") bearing("больше не отмечена несущей", wall);
+    if (kindOf(wall) === "bearing" && kindOf(next) !== "bearing") bearing(tr`больше не отмечена несущей`, wall);
   }
   const newBearing = walls.added.filter((wall) => kindOf(wall) === "bearing");
   if (newBearing.length) {
@@ -352,7 +353,7 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "specialist",
       state: "problem",
       procedure: "project",
-      title: `Новая несущая стена: нужен проект (${wallList(plan, newBearing)})`,
+      title: tr`Новая несущая стена: нужен проект (${wallList(plan, newBearing)})`,
       wallIds: newBearing.map((wall) => wall.id),
       sources: from508("2.2.2"),
     });
@@ -368,8 +369,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "undetermined",
       state: "problem",
       procedure: "unknown",
-      title: `Изменены стены без указанного типа: ${changedWalls(source, plan, unknownBefore, unknownNew)}`,
-      detail: "Пока тип не указан, вывода об этих изменениях нет: это может быть несущая стена.",
+      title: tr`Изменены стены без указанного типа: ${changedWalls(source, plan, unknownBefore, unknownNew)}`,
+      detail: tr`Пока тип не указан, вывода об этих изменениях нет: это может быть несущая стена.`,
       wallIds: [...unknownBefore, ...unknownNew].map((wall) => wall.id),
       sources: [],
     });
@@ -398,7 +399,7 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
         level: "specialist",
         state: "problem",
         procedure: "project",
-        title: `Перегородки в доме с деревянными перекрытиями: нужен проект (${named})`,
+        title: tr`Перегородки в доме с деревянными перекрытиями: нужен проект (${named})`,
         wallIds,
         sources: from508("2.2.10"),
       });
@@ -408,8 +409,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
         level: "verified",
         state: "note",
         procedure: "simplified",
-        title: `Перегородки: упрощённый порядок (${named})`,
-        detail: `Согласование до работ не требуется, после работ подаётся запрос на акт. Иначе, если перегородка создаёт нагрузку более 150 кг/м² (п. 2.2.9)${facts.woodenFloors === undefined ? " или перекрытия деревянные (п. 2.2.10; это ещё не указано)" : ""}: тогда нужен проект.`,
+        title: tr`Перегородки: упрощённый порядок (${named})`,
+        detail: tr`Согласование до работ не требуется, после работ подаётся запрос на акт. Иначе, если перегородка создаёт нагрузку более 150 кг/м² (п. 2.2.9)${facts.woodenFloors === undefined ? tr` или перекрытия деревянные (п. 2.2.10; это ещё не указано)` : ""}: тогда нужен проект.`,
         wallIds,
         sources: from508("19.6.1", "19.1", "2.2.9", "2.2.10"),
       });
@@ -428,10 +429,10 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
         level: "specialist",
         state: "problem",
         procedure: "project",
-        title: `Изменён контур квартиры: затронуто стен ${outerChanged.length}`,
-        detail: "Изменение границ обособленных помещений делается по проекту. Если затронута граница с соседним помещением или общее имущество, могут понадобиться согласие собственников и изменения в ЕГРН.",
+        title: tr`Изменён контур квартиры: затронуто стен ${outerChanged.length}`,
+        detail: tr`Изменение границ обособленных помещений делается по проекту. Если затронута граница с соседним помещением или общее имущество, могут понадобиться согласие собственников и изменения в ЕГРН.`,
         wallIds: outerChanged.map((wall) => wall.id),
-        sources: [...from508("2.2.5"), fromZhk("ст. 25, ч. 2"), fromZhk("ст. 26, ч. 2, п. 3")],
+        sources: [...from508("2.2.5"), fromZhk(tr`ст. 25, ч. 2`), fromZhk(tr`ст. 26, ч. 2, п. 3`)],
       });
     }
   }
@@ -450,7 +451,7 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       if (!host) return 0;
       return numberOf(change === "removed" ? source : plan, host);
     }))].filter(Boolean).sort((a, b) => a - b);
-    return numbers.length === 1 ? `стена ${numbers[0]}` : `стены ${numbers.join(", ")}`;
+    return numbers.length === 1 ? tr`стена ${numbers[0]}` : tr`стены ${numbers.join(", ")}`;
   };
   if (onPerimeter.length) {
     findings.push({
@@ -458,10 +459,10 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "specialist",
       state: "problem",
       procedure: "project",
-      title: `Изменён проём на границе квартиры: ${onPerimeter.length} (${onWalls(onPerimeter)})`,
-      detail: "Создание, ликвидация и изменение формы окон и дверей в наружной стене делается по проекту и может затрагивать общее имущество. Если стена не наружная, а межквартирная, порядок определит специалист.",
+      title: tr`Изменён проём на границе квартиры: ${onPerimeter.length} (${onWalls(onPerimeter)})`,
+      detail: tr`Создание, ликвидация и изменение формы окон и дверей в наружной стене делается по проекту и может затрагивать общее имущество. Если стена не наружная, а межквартирная, порядок определит специалист.`,
       openingIds: onPerimeter.map(({ opening }) => opening.id),
-      sources: [...from508("3", "3.1"), fromZhk("ст. 26, ч. 2, п. 3")],
+      sources: [...from508("3", "3.1"), fromZhk(tr`ст. 26, ч. 2, п. 3`)],
     });
   }
   const onBalconyWall = changed.filter(({ opening, host, rooms }) => {
@@ -475,8 +476,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "specialist",
       state: "problem",
       procedure: "project",
-      title: `Проём к балкону или лоджии: нужен проект (${onWalls(onBalconyWall)})`,
-      detail: "Это чтение верно, если работа не затрагивает архитектурный облик дома; иначе действует п. 3.9.",
+      title: tr`Проём к балкону или лоджии: нужен проект (${onWalls(onBalconyWall)})`,
+      detail: tr`Это чтение верно, если работа не затрагивает архитектурный облик дома; иначе действует п. 3.9.`,
       openingIds: onBalconyWall.map(({ opening }) => opening.id),
       sources: from508("2.2.14", "3.9"),
     });
@@ -489,8 +490,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "specialist",
       state: "problem",
       procedure: "project",
-      title: `Проём в несущей стене: нужен проект (${onWalls(newInBearing)})`,
-      detail: "В пилонах, диафрагмах, колоннах и местах связей между сборными элементами проём не допускается вовсе (п. 9.10); какая это конструкция, определит специалист.",
+      title: tr`Проём в несущей стене: нужен проект (${onWalls(newInBearing)})`,
+      detail: tr`В пилонах, диафрагмах, колоннах и местах связей между сборными элементами проём не допускается вовсе (п. 9.10); какая это конструкция, определит специалист.`,
       openingIds: newInBearing.map(({ opening }) => opening.id),
       sources: from508("2.2.4", "9.10"),
     });
@@ -502,8 +503,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "undetermined",
       state: "problem",
       procedure: "unknown",
-      title: `Заделан проём в несущей стене (${onWalls(closedInBearing)} исходного плана)`,
-      detail: "Проектный проём заделывают в упрощённом порядке (п. 19.6.7), самовольно устроенный — по проекту (п. 2.2.6). Какой это проём, план не знает.",
+      title: tr`Заделан проём в несущей стене (${onWalls(closedInBearing)} исходного плана)`,
+      detail: tr`Проектный проём заделывают в упрощённом порядке (п. 19.6.7), самовольно устроенный — по проекту (п. 2.2.6). Какой это проём, план не знает.`,
       openingIds: closedInBearing.map(({ opening }) => opening.id),
       sources: from508("2.2.6", "19.6.7"),
     });
@@ -515,7 +516,7 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "verified",
       state: "note",
       procedure: "simplified",
-      title: `Проёмы в перегородках: упрощённый порядок (${onWalls(inPartition)})`,
+      title: tr`Проёмы в перегородках: упрощённый порядок (${onWalls(inPartition)})`,
       openingIds: inPartition.map(({ opening }) => opening.id),
       sources: from508("19.6.2", "19.1"),
     });
@@ -527,8 +528,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "undetermined",
       state: "problem",
       procedure: "unknown",
-      title: `Изменён проём в стене без указанного типа (${onWalls(inUnknown)})`,
-      detail: "Пока тип стены не указан, вывода нет: в несущей стене это работа по проекту.",
+      title: tr`Изменён проём в стене без указанного типа (${onWalls(inUnknown)})`,
+      detail: tr`Пока тип стены не указан, вывода нет: в несущей стене это работа по проекту.`,
       openingIds: inUnknown.map(({ opening }) => opening.id),
       sources: [],
     });
@@ -541,7 +542,7 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "undetermined",
       state: "problem",
       procedure: "unknown",
-      title: "Санузлы и кухни не сравнивались с исходным планом: помещения не определены",
+      title: tr`Санузлы и кухни не сравнивались с исходным планом: помещения не определены`,
       sources: [],
     });
     return findings;
@@ -555,7 +556,7 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "specialist",
       state: "problem",
       procedure: "project",
-      title: `Санузел устроен, перенесён или изменены его границы: нужен проект (${changedBathrooms.map((room) => room.name).join(", ")})`,
+      title: tr`Санузел устроен, перенесён или изменены его границы: нужен проект (${changedBathrooms.map((room) => room.name).join(", ")})`,
       roomIds: changedBathrooms.map((room) => room.id),
       sources: from508("2.2.1"),
     });
@@ -566,8 +567,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "specialist",
       state: "problem",
       procedure: "specialist",
-      title: `Санузла больше нет на прежнем месте: ${bathrooms.gone.map((room) => room.name).join(", ")}`,
-      detail: "Отдельного пункта об этом в прочитанных документах нет: инженерные сети и общее имущество оценит специалист.",
+      title: tr`Санузла больше нет на прежнем месте: ${bathrooms.gone.map((room) => room.name).join(", ")}`,
+      detail: tr`Отдельного пункта об этом в прочитанных документах нет: инженерные сети и общее имущество оценит специалист.`,
       roomIds: bathrooms.gone.map((room) => room.id),
       sources: [],
     });
@@ -578,7 +579,7 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "specialist",
       state: "problem",
       procedure: "project",
-      title: `Кухня устроена или перенесена: нужен проект (${kitchens.created.map((room) => room.name).join(", ")})`,
+      title: tr`Кухня устроена или перенесена: нужен проект (${kitchens.created.map((room) => room.name).join(", ")})`,
       roomIds: kitchens.created.map((room) => room.id),
       sources: from508("2.2.11"),
     });
@@ -589,8 +590,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "undetermined",
       state: "note",
       procedure: "unknown",
-      title: "Границы кухни изменены или кухни нет на прежнем месте",
-      detail: "Устройство и перенос кухни делаются по проекту (п. 2.2.11). Считается ли этим изменение границ, определит специалист.",
+      title: tr`Границы кухни изменены или кухни нет на прежнем месте`,
+      detail: tr`Устройство и перенос кухни делаются по проекту (п. 2.2.11). Считается ли этим изменение границ, определит специалист.`,
       roomIds: [...kitchens.resized.map((item) => item.after.id), ...kitchens.gone.map((room) => room.id)],
       sources: from508("2.2.11"),
     });
@@ -611,7 +612,7 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
         level: "specialist",
         state: "problem",
         procedure: "forbidden",
-        title: `Газифицированная кухня объединена с жилой комнатой: не допускается (${names})`,
+        title: tr`Газифицированная кухня объединена с жилой комнатой: не допускается (${names})`,
         roomIds,
         sources: from508("9.16"),
       });
@@ -621,8 +622,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
         level: "undetermined",
         state: "problem",
         procedure: "unknown",
-        title: `Кухня объединена с жилой комнатой, но неизвестно, есть ли газ (${names})`,
-        detail: "Объединять газифицированное помещение с жилой комнатой нельзя. Ответьте на вопрос о газе.",
+        title: tr`Кухня объединена с жилой комнатой, но неизвестно, есть ли газ (${names})`,
+        detail: tr`Объединять газифицированное помещение с жилой комнатой нельзя. Ответьте на вопрос о газе.`,
         roomIds,
         sources: from508("9.16"),
       });
@@ -631,8 +632,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
         ruleId: "moscow.508.9.16",
         level: "assumption",
         state: "note",
-        title: `Кухня объединена с жилой комнатой, запрет для газа не применён (${names})`,
-        detail: "Вы указали, что газа нет. Границы кухни всё равно могут потребовать проекта (п. 2.2.11).",
+        title: tr`Кухня объединена с жилой комнатой, запрет для газа не применён (${names})`,
+        detail: tr`Вы указали, что газа нет. Границы кухни всё равно могут потребовать проекта (п. 2.2.11).`,
         roomIds,
         sources: from508("9.16", "2.2.11"),
       });
@@ -651,8 +652,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "specialist",
       state: "problem",
       procedure: "forbidden",
-      title: `Балкон или лоджия объединены с помещением: не допускается (${absorbed.map(({ room }) => room.name).join(", ")})`,
-      detail: "Запрет касается и включения их площади в общую площадь помещения.",
+      title: tr`Балкон или лоджия объединены с помещением: не допускается (${absorbed.map(({ room }) => room.name).join(", ")})`,
+      detail: tr`Запрет касается и включения их площади в общую площадь помещения.`,
       roomIds: absorbed.map(({ room }) => room.id),
       sources: from508("9.18"),
     });
@@ -670,7 +671,7 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
         level: "specialist",
         state: "problem",
         procedure: "forbidden",
-        title: `Новый или увеличенный балкон на втором и выше этаже: не допускается (${names})`,
+        title: tr`Новый или увеличенный балкон на втором и выше этаже: не допускается (${names})`,
         roomIds,
         sources: from508("9.13"),
       });
@@ -680,8 +681,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
         level: "specialist",
         state: "problem",
         procedure: "project",
-        title: `Новый балкон или лоджия на первом этаже: нужен проект (${names})`,
-        detail: "Без фундаментов и помещений под ними и без отопления.",
+        title: tr`Новый балкон или лоджия на первом этаже: нужен проект (${names})`,
+        detail: tr`Без фундаментов и помещений под ними и без отопления.`,
         roomIds,
         sources: from508("3.5", "9.26"),
       });
@@ -691,8 +692,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
         level: "undetermined",
         state: "problem",
         procedure: "unknown",
-        title: `Новый или увеличенный балкон, но неизвестен этаж (${names})`,
-        detail: "На втором и выше этаже это запрещено, на первом делается по проекту. Ответьте на вопрос об этаже.",
+        title: tr`Новый или увеличенный балкон, но неизвестен этаж (${names})`,
+        detail: tr`На втором и выше этаже это запрещено, на первом делается по проекту. Ответьте на вопрос об этаже.`,
         roomIds,
         sources: from508("9.13", "3.5"),
       });
@@ -705,8 +706,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "specialist",
       state: "problem",
       procedure: "specialist",
-      title: `Балкона или лоджии нет на прежнем месте: ${goneBalconies.map((room) => room.name).join(", ")}`,
-      detail: "Отдельного пункта об этом нет; работа может затрагивать общее имущество и облик дома.",
+      title: tr`Балкона или лоджии нет на прежнем месте: ${goneBalconies.map((room) => room.name).join(", ")}`,
+      detail: tr`Отдельного пункта об этом нет; работа может затрагивать общее имущество и облик дома.`,
       roomIds: goneBalconies.map((room) => room.id),
       sources: from508("3.8", "3.9"),
     });
@@ -721,7 +722,7 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "specialist",
       state: "problem",
       procedure: "forbidden",
-      title: `Вентшахта или короб изменены или убраны: не допускается (${touchedShafts.map((room) => room.name).join(", ")})`,
+      title: tr`Вентшахта или короб изменены или убраны: не допускается (${touchedShafts.map((room) => room.name).join(", ")})`,
       roomIds: touchedShafts.map((room) => room.id),
       sources: from508("9.5"),
     });
@@ -739,15 +740,15 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
     if (facts.gasified && (upper.kind === "kitchen" || lower.kind === "kitchen")) sources.push(...from508("9.27"));
     return sources;
   };
-  const reportStack = (upper: RuleRoom, lower: RuleRoom, where: "ниже" | "выше") => {
-    const mine = where === "ниже" ? upper : lower, theirs = where === "ниже" ? lower : upper;
+  const reportStack = (upper: RuleRoom, lower: RuleRoom, where: "below" | "above") => {
+    const mine = where === "below" ? upper : lower, theirs = where === "below" ? lower : upper;
     findings.push({
       ruleId: "moscow.stack",
       level: "assumption",
       state: "problem",
       procedure: "forbidden",
-      title: `${mine.name} окажется ${where === "ниже" ? "над" : "под"} чужим помещением «${theirs.name}»`,
-      detail: `Вы указали, что этажом ${where} такая же планировка, как исходная. Размещать санузел и кухню над жилыми комнатами, а санузел над кухней не допускается.`,
+      title: tr`${mine.name} окажется ${where === "below" ? tr`над` : tr`под`} чужим помещением «${theirs.name}»`,
+      detail: tr`Вы указали, что этажом ${where === "below" ? tr`ниже` : tr`выше`} такая же планировка, как исходная. Размещать санузел и кухню над жилыми комнатами, а санузел над кухней не допускается.`,
       roomIds: [mine.id],
       sources: stackSources(upper, lower),
     });
@@ -759,7 +760,7 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
   if (facts.below === "same-layout") {
     for (const room of movedWet) {
       for (const old of before.rooms) {
-        if (liesOver(room, old) && overlapArea(room, old) >= MIN_STACK_OVERLAP) reportStack(room, old, "ниже");
+        if (liesOver(room, old) && overlapArea(room, old) >= MIN_STACK_OVERLAP) reportStack(room, old, "below");
       }
     }
   }
@@ -767,7 +768,7 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
     const movedUnder = [...after.rooms.filter(isNewLiving), ...(kitchens.created)];
     for (const room of movedUnder) {
       for (const old of before.rooms) {
-        if (liesOver(old, room) && overlapArea(room, old) >= MIN_STACK_OVERLAP) reportStack(old, room, "выше");
+        if (liesOver(old, room) && overlapArea(room, old) >= MIN_STACK_OVERLAP) reportStack(old, room, "above");
       }
     }
   }
@@ -778,8 +779,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       level: "undetermined",
       state: "problem",
       procedure: "unknown",
-      title: "Неизвестно, что над и под новым санузлом или кухней",
-      detail: "Над жилыми комнатами их размещать нельзя. Ответьте на вопросы о соседях снизу и сверху: при такой же планировке это проверяется по исходному плану.",
+      title: tr`Неизвестно, что над и под новым санузлом или кухней`,
+      detail: tr`Над жилыми комнатами их размещать нельзя. Ответьте на вопросы о соседях снизу и сверху: при такой же планировке это проверяется по исходному плану.`,
       roomIds: movedWet.map((room) => room.id),
       sources: [fromPp47("24"), fromSp54("7.20"), fromSp54("7.21")],
     });
@@ -791,7 +792,7 @@ export const MOSCOW_PACK: RulePack = {
   id: "moscow",
   kind: "regulation",
   procedures: PROCEDURES,
-  region: "Москва",
+  region: tr`Москва`,
   version: "2026-11-05",
   reviewed: false,
   documents: DOCUMENTS,

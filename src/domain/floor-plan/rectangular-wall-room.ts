@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import {
   assertPoint,
   validateRoomDimensions,
@@ -43,7 +44,7 @@ function validatedPlan(plan: FloorPlan): FloorPlan {
   const parsed = floorPlanSchema.safeParse(plan);
   if (!parsed.success) {
     const issue = parsed.error.issues.find((item) => item.code === "custom");
-    throw new Error(issue?.message ?? "Проверьте размеры и свойства стен комнаты.");
+    throw new Error(issue?.message ?? tr`Проверьте размеры и свойства стен комнаты.`);
   }
   return parsed.data;
 }
@@ -166,11 +167,11 @@ export function addRectangularWallRoom(
   assertPoint(input);
   if (
     ![input.thickness, input.wallHeight].every((value) => Number.isFinite(value) && value > 0 && value <= 100)
-  ) throw new Error("Толщина и высота стен должны быть больше 0 и не больше 100 м.");
+  ) throw new Error(tr`Толщина и высота стен должны быть больше 0 и не больше 100 м.`);
   if (
     wallIds.length !== 4 || new Set(wallIds).size !== 4 ||
     wallIds.some((id) => !id || id.length > 100 || [...plan.rooms, ...plan.walls, ...plan.openings].some((item) => item.id === id))
-  ) throw new Error("Для комнаты нужны четыре новых уникальных идентификатора стен.");
+  ) throw new Error(tr`Для комнаты нужны четыре новых уникальных идентификатора стен.`);
   const half = input.thickness / 2;
   const corners: Point[] = [
     { x: input.x - half, y: input.y - half },
@@ -185,7 +186,7 @@ export function addRectangularWallRoom(
   const next = validatedPlan({ ...plan, roomMode: "walls", walls: [...plan.walls, ...walls] });
   const room = expectedRoom(next, input.x, input.y, input.width, input.depth);
   if (!room || !resolveWalls(next, room))
-    throw new Error("Комната пересекает существующие стены или имеет неоднозначную границу.");
+    throw new Error(tr`Комната пересекает существующие стены или имеет неоднозначную границу.`);
   return next;
 }
 
@@ -202,7 +203,7 @@ export function resizeRectangularWallRoom(
   validateDimensions(width, depth);
   const boundary = getRectangularRoomWalls(plan, room);
   if (!boundary)
-    throw new Error("Помещение изменилось или его граница не состоит из четырёх соединённых прямых стен.");
+    throw new Error(tr`Помещение изменилось или его граница не состоит из четырёх соединённых прямых стен.`);
   if (near(width, boundary.width) && near(depth, boundary.depth)) return plan;
   const { top, right, bottom, left } = boundary;
   const oldCorners: Point[] = [
@@ -236,6 +237,6 @@ export function resizeRectangularWallRoom(
   });
   const resized = expectedRoom(next, room.bounds.minX, room.bounds.minY, width, depth);
   if (!resized || !resolveWalls(next, resized))
-    throw new Error("Новый размер пересекает другие стены или нарушает прямоугольный контур комнаты.");
+    throw new Error(tr`Новый размер пересекает другие стены или нарушает прямоугольный контур комнаты.`);
   return next;
 }

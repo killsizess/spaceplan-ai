@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, FileCheck2, LoaderCircle, X } from "lucide-react";
 import type { FloorPlan } from "@/domain/floor-plan/types";
@@ -9,7 +10,7 @@ import { buildPlanReport, REPORT_LEVEL_ORDER, REPORT_LEVELS, type ReportState } 
 import { createPlanReportPdf } from "./report-file";
 import "./plan-report.css";
 
-const STATE_LABEL: Readonly<Record<ReportState, string>> = { problem: "Замечание", note: "К сведению", ok: "В порядке" };
+const STATE_LABEL: Readonly<Record<ReportState, string>> = { problem: tr`Замечание`, note: tr`К сведению`, ok: tr`В порядке` };
 
 export default function PlanReportDialog({
   plan,
@@ -54,12 +55,12 @@ export default function PlanReportDialog({
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = makePlanExportFilename(`${plan.name} — отчёт`, "pdf");
+      link.download = makePlanExportFilename(tr`${plan.name} — отчёт`, "pdf");
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
-      setMessage("Отчёт сохранён в PDF.");
+      setMessage(tr`Отчёт сохранён в PDF.`);
     } catch (cause) {
-      if (!controller.signal.aborted) setMessage(cause instanceof Error ? cause.message : "Не удалось подготовить PDF.");
+      if (!controller.signal.aborted) setMessage(cause instanceof Error ? cause.message : tr`Не удалось подготовить PDF.`);
     } finally {
       if (!controller.signal.aborted) setBusy(false);
     }
@@ -79,13 +80,13 @@ export default function PlanReportDialog({
         if (event.target === event.currentTarget) close();
       }}
     >
-      <button type="button" className="icon-button modal-close" aria-label="Закрыть отчёт" onClick={close} autoFocus>
+      <button type="button" className="icon-button modal-close" aria-label={tr`Закрыть отчёт`} onClick={close} autoFocus>
         <X size={18} aria-hidden="true" />
       </button>
       <header className="plan-report-header">
         <span className="plan-report-symbol"><FileCheck2 size={22} aria-hidden="true" /></span>
         <div>
-          <span className="eyebrow">ОТЧЁТ ПО ПЛАНУ</span>
+          <span className="eyebrow">{tr`ОТЧЁТ ПО ПЛАНУ`}</span>
           <h2 id="plan-report-title">{plan.name}</h2>
         </div>
       </header>
@@ -97,21 +98,20 @@ export default function PlanReportDialog({
         </section>
 
         <dl className="plan-report-figures">
-          <div><dt>Площадь</dt><dd data-testid="report-area">{totals.area === null ? "не определена" : formatArea(totals.area)}</dd></div>
-          <div><dt>Помещений</dt><dd>{totals.rooms}</dd></div>
+          <div><dt>{tr`Площадь`}</dt><dd data-testid="report-area">{totals.area === null ? tr`не определена` : formatArea(totals.area)}</dd></div>
+          <div><dt>{tr`Помещений`}</dt><dd>{totals.rooms}</dd></div>
           <div>
-            <dt>Стен</dt>
+            <dt>{tr`Стен`}</dt>
             <dd>{totals.walls}</dd>
-            <small data-testid="report-wall-kinds">несущих {totals.bearing} · перегородок {totals.partition} · не указано {totals.unknownWalls}</small>
+            <small data-testid="report-wall-kinds">{tr`несущих `}{totals.bearing}{tr` · перегородок `}{totals.partition}{tr` · не указано `}{totals.unknownWalls}</small>
           </div>
-          <div><dt>Двери / окна</dt><dd>{totals.doors} / {totals.windows}</dd></div>
+          <div><dt>{tr`Двери / окна`}</dt><dd>{totals.doors} / {totals.windows}</dd></div>
         </dl>
 
         {report.origin && (
-          <p className="plan-report-origin" data-testid="report-origin">
-            Вариант плана «{report.origin.planName}». Площадь: было{" "}
-            {report.origin.areaBefore === null ? "не определена" : formatArea(report.origin.areaBefore)}, стало{" "}
-            {report.origin.areaAfter === null ? "не определена" : formatArea(report.origin.areaAfter)}.
+          <p className="plan-report-origin" data-testid="report-origin">{tr`Вариант плана «`}{report.origin.planName}{tr`». Площадь: было`}{" "}
+            {report.origin.areaBefore === null ? tr`не определена` : formatArea(report.origin.areaBefore)}{tr`, стало`}{" "}
+            {report.origin.areaAfter === null ? tr`не определена` : formatArea(report.origin.areaAfter)}.
           </p>
         )}
 
@@ -142,10 +142,10 @@ export default function PlanReportDialog({
 
         {report.rooms.length > 0 && (
           <section className="plan-report-rooms">
-            <h3>Помещения</h3>
+            <h3>{tr`Помещения`}</h3>
             <table>
               <thead>
-                <tr><th scope="col">Название</th><th scope="col">Назначение</th><th scope="col">Площадь</th></tr>
+                <tr><th scope="col">{tr`Название`}</th><th scope="col">{tr`Назначение`}</th><th scope="col">{tr`Площадь`}</th></tr>
               </thead>
               <tbody>
                 {report.rooms.map((room, index) => (
@@ -158,8 +158,8 @@ export default function PlanReportDialog({
 
         {report.facts.length > 0 && (
           <section className="plan-report-facts" data-testid="report-facts">
-            <h3>Ответы о доме</h3>
-            <p>Указаны владельцем плана и не проверялись. Выводы по нормам зависят от них.</p>
+            <h3>{tr`Ответы о доме`}</h3>
+            <p>{tr`Указаны владельцем плана и не проверялись. Выводы по нормам зависят от них.`}</p>
             <dl>
               {report.facts.map((fact) => (
                 <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.answer}</dd></div>
@@ -169,17 +169,17 @@ export default function PlanReportDialog({
         )}
 
         <section className="plan-report-limits" data-testid="report-limits">
-          <h3>Границы этого отчёта</h3>
+          <h3>{tr`Границы этого отчёта`}</h3>
           {report.limits.map((limit) => <p key={limit}>{limit}</p>)}
         </section>
       </div>
 
       <footer className="plan-report-footer">
         <p role="status" data-testid="report-message">{message}</p>
-        {onProof && <button type="button" className="secondary-button" onClick={onProof}>Почему такой вывод</button>}
+        {onProof && <button type="button" className="secondary-button" onClick={onProof}>{tr`Почему такой вывод`}</button>}
         <button type="button" className="primary-button" disabled={busy} onClick={() => void download()}>
           {busy ? <LoaderCircle className="pdf-loading-icon" size={16} aria-hidden="true" /> : <Download size={16} aria-hidden="true" />}
-          {busy ? "Готовим PDF…" : "Скачать PDF"}
+          {busy ? tr`Готовим PDF…` : tr`Скачать PDF`}
         </button>
       </footer>
     </dialog>

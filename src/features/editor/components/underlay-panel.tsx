@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useId, useRef, type ReactNode } from "react";
 import { DraftingCompass, FileUp, ImagePlus, Move, Ruler, Trash2 } from "lucide-react";
 import type { Underlay } from "@/domain/floor-plan/types";
@@ -28,17 +29,17 @@ export function UnderlayPanel({
   const dxfRef = useRef<HTMLInputElement>(null);
   const id = useId();
   return (
-    <section className="underlay-panel" aria-label="Подложка плана">
+    <section className="underlay-panel" aria-label={tr`Подложка плана`}>
       <div className="underlay-heading">
         <ImagePlus size={15} />
-        <h2>Подложка плана</h2>
+        <h2>{tr`Подложка плана`}</h2>
       </div>
       <input
         ref={fileRef}
         type="file"
         accept="image/jpeg,image/png"
         hidden
-        aria-label="Изображение плана JPG или PNG"
+        aria-label={tr`Изображение плана JPG или PNG`}
         disabled={busy}
         onChange={(event) => {
           const file = event.target.files?.[0];
@@ -53,17 +54,17 @@ export function UnderlayPanel({
       >
         <ImagePlus size={16} />
         {busy
-          ? "Подготовка изображения…"
+          ? tr`Подготовка изображения…`
           : underlay
-            ? "Заменить JPG / PNG"
-            : "Загрузить JPG / PNG"}
+            ? tr`Заменить JPG / PNG`
+            : tr`Загрузить JPG / PNG`}
       </button>
       <input
         ref={pdfRef}
         type="file"
         accept="application/pdf,.pdf"
         hidden
-        aria-label="Файл плана PDF"
+        aria-label={tr`Файл плана PDF`}
         disabled={busy}
         onChange={(event) => {
           const file = event.target.files?.[0];
@@ -77,14 +78,14 @@ export function UnderlayPanel({
         disabled={busy}
       >
         <FileUp size={16} />
-        {underlay ? "Заменить из PDF" : "Загрузить PDF"}
+        {underlay ? tr`Заменить из PDF` : tr`Загрузить PDF`}
       </button>
       <input
         ref={dxfRef}
         type="file"
         accept=".dxf,application/dxf,image/vnd.dxf"
         hidden
-        aria-label="Файл чертежа DXF"
+        aria-label={tr`Файл чертежа DXF`}
         disabled={busy}
         onChange={(event) => {
           const file = event.target.files?.[0];
@@ -98,7 +99,7 @@ export function UnderlayPanel({
         disabled={busy}
       >
         <DraftingCompass size={16} />
-        {underlay ? "Заменить из DXF" : "Загрузить DXF"}
+        {underlay ? tr`Заменить из DXF` : tr`Загрузить DXF`}
       </button>
       {underlay ? (
         <>
@@ -115,11 +116,8 @@ export function UnderlayPanel({
                 onChange={(event) =>
                   onChange({ ...underlay, visible: event.target.checked })
                 }
-              />
-              Показывать подложку
-            </label>
-            <label className="underlay-opacity-label" htmlFor={`${id}-opacity`}>
-              Непрозрачность <span>{Math.round(underlay.opacity * 100)}%</span>
+              />{tr`Показывать подложку`}</label>
+            <label className="underlay-opacity-label" htmlFor={`${id}-opacity`}>{tr`Непрозрачность `}<span>{Math.round(underlay.opacity * 100)}%</span>
             </label>
             <input
               id={`${id}-opacity`}
@@ -141,40 +139,29 @@ export function UnderlayPanel({
               className={`underlay-scale-status ${underlay.calibrated ? "calibrated" : ""}`}
             >
               {underlay.calibrated
-                ? "Масштаб настроен"
-                : "Масштаб ещё не настроен"}
+                ? tr`Масштаб настроен`
+                : tr`Масштаб ещё не настроен`}
             </span>
             <div className="underlay-action-pair">
               <button
                 onClick={onCalibrate}
                 disabled={busy || !underlay.visible}
               >
-                <Ruler size={14} />
-                Масштаб
-              </button>
+                <Ruler size={14} />{tr`Масштаб`}</button>
               <button onClick={onMove} disabled={busy || !underlay.visible}>
-                <Move size={14} />
-                Сдвинуть
-              </button>
+                <Move size={14} />{tr`Сдвинуть`}</button>
             </div>
             <button
               className="underlay-remove"
               onClick={() => onChange(null)}
               disabled={busy}
             >
-              <Trash2 size={13} />
-              Удалить подложку
-            </button>
+              <Trash2 size={13} />{tr`Удалить подложку`}</button>
             {children}
           </div>
         </>
       ) : null}
-      <p className="underlay-help">
-        JPG / PNG до 12 МБ. Изображение сохраняется в проекте; для экономии
-        места оно уменьшается до 2048 px и сжимается. Обработка — в браузере.{" "}
-        PDF до 25 МБ: выберите страницу, затем задайте масштаб. DXF до 30 МБ:
-        масштаб берётся из единиц чертежа, DWG сначала сохраните как DXF.
-      </p>
+      <p className="underlay-help">{tr`JPG / PNG до 12 МБ. Изображение сохраняется в проекте; для экономии места оно уменьшается до 2048 px и сжимается. Обработка — в браузере.`}{" "}{tr`PDF до 25 МБ: выберите страницу, затем задайте масштаб. DXF до 30 МБ: масштаб берётся из единиц чертежа, DWG сначала сохраните как DXF.`}</p>
     </section>
   );
 }

@@ -1,3 +1,4 @@
+import { currentLocale, tr } from "@/lib/i18n";
 import type { Point } from "@/domain/geometry";
 import type { CurvePolyline } from "./opening-candidates";
 import type { LineSegment } from "./wall-candidates";
@@ -49,28 +50,28 @@ export interface DxfDrawing {
 }
 
 export const DXF_UNIT_CHOICES: readonly { label: string; metresPerUnit: number }[] = [
-  { label: "миллиметры", metresPerUnit: 0.001 },
-  { label: "сантиметры", metresPerUnit: 0.01 },
-  { label: "дециметры", metresPerUnit: 0.1 },
-  { label: "метры", metresPerUnit: 1 },
-  { label: "дюймы", metresPerUnit: 0.0254 },
-  { label: "футы", metresPerUnit: 0.3048 },
+  { label: tr`миллиметры`, metresPerUnit: 0.001 },
+  { label: tr`сантиметры`, metresPerUnit: 0.01 },
+  { label: tr`дециметры`, metresPerUnit: 0.1 },
+  { label: tr`метры`, metresPerUnit: 1 },
+  { label: tr`дюймы`, metresPerUnit: 0.0254 },
+  { label: tr`футы`, metresPerUnit: 0.3048 },
 ];
 
 function unitsOf(code: number): DxfUnits {
   const known: Record<number, [number, string]> = {
-    1: [0.0254, "дюймы"],
-    2: [0.3048, "футы"],
-    4: [0.001, "миллиметры"],
-    5: [0.01, "сантиметры"],
-    6: [1, "метры"],
-    10: [0.9144, "ярды"],
-    14: [0.1, "дециметры"],
+    1: [0.0254, tr`дюймы`],
+    2: [0.3048, tr`футы`],
+    4: [0.001, tr`миллиметры`],
+    5: [0.01, tr`сантиметры`],
+    6: [1, tr`метры`],
+    10: [0.9144, tr`ярды`],
+    14: [0.1, tr`дециметры`],
   };
   const unit = known[code];
   return unit
     ? { code, metresPerUnit: unit[0], label: unit[1] }
-    : { code, metresPerUnit: null, label: "не указаны в файле" };
+    : { code, metresPerUnit: null, label: tr`не указаны в файле` };
 }
 
 /**
@@ -81,10 +82,10 @@ function unitsOf(code: number): DxfUnits {
 export function decodeDxf(bytes: Uint8Array): string {
   const head = new TextDecoder("latin1").decode(bytes.subarray(0, 64 * 1024));
   if (/^AC10\d\d/.test(head)) {
-    throw new Error("Это файл DWG. Сохраните чертёж как DXF (ASCII) в вашей CAD-программе и загрузите его.");
+    throw new Error(tr`Это файл DWG. Сохраните чертёж как DXF (ASCII) в вашей CAD-программе и загрузите его.`);
   }
   if (head.startsWith("AutoCAD Binary DXF")) {
-    throw new Error("Это двоичный DXF. Сохраните чертёж как текстовый DXF (ASCII) и загрузите его.");
+    throw new Error(tr`Это двоичный DXF. Сохраните чертёж как текстовый DXF (ASCII) и загрузите его.`);
   }
   try {
     return new TextDecoder("utf-8", { fatal: true }).decode(bytes).replace(/^﻿/, "");
@@ -139,7 +140,7 @@ class Reader {
     if (code === "" && value === "") return this.next();
     const parsed = Number(code);
     if (code === "" || !Number.isInteger(parsed)) {
-      throw new Error(`Файл не похож на текстовый DXF: строка ${this.line - 1} должна содержать код группы.`);
+      throw new Error(tr`Файл не похож на текстовый DXF: строка ${this.line - 1} должна содержать код группы.`);
     }
     this.currentCode = parsed;
     this.currentValue = value;
@@ -515,7 +516,7 @@ export function parseDxf(source: string): DxfDrawing {
     }
   }
   if (!sawEntities) {
-    throw new Error("Файл не похож на чертёж DXF: в нём нет раздела с объектами.");
+    throw new Error(tr`Файл не похож на чертёж DXF: в нём нет раздела с объектами.`);
   }
 
   const segments: DxfDrawing["segments"] = [];
@@ -567,13 +568,13 @@ export function parseDxf(source: string): DxfDrawing {
   for (const curve of curves) entry(curve.layer).curves++;
   const layers: DxfLayer[] = [...counts.entries()]
     .map(([name, count]) => ({ name, ...count, visible: tableLayers.get(name) ?? true }))
-    .sort((a, b) => a.name.localeCompare(b.name, "ru"));
+    .sort((a, b) => a.name.localeCompare(b.name, currentLocale()));
 
   const warnings: string[] = [];
-  if (counters.splines) warnings.push(`Сплайны не прочитаны: ${counters.splines}. Дуга двери, нарисованная сплайном, не будет найдена.`);
-  if (counters.xrefs.size) warnings.push(`Внешние ссылки не загружены: ${[...counters.xrefs].slice(0, 5).join(", ")}. Их геометрии в файле нет.`);
-  if (counters.missingBlocks.size) warnings.push(`В файле нет описания блоков: ${[...counters.missingBlocks].slice(0, 5).join(", ")}.`);
-  if (truncated) warnings.push(`Чертёж слишком большой: прочитаны первые ${MAX_DXF_ENTITIES.toLocaleString("ru-RU")} объектов.`);
+  if (counters.splines) warnings.push(tr`Сплайны не прочитаны: ${counters.splines}. Дуга двери, нарисованная сплайном, не будет найдена.`);
+  if (counters.xrefs.size) warnings.push(tr`Внешние ссылки не загружены: ${[...counters.xrefs].slice(0, 5).join(", ")}. Их геометрии в файле нет.`);
+  if (counters.missingBlocks.size) warnings.push(tr`В файле нет описания блоков: ${[...counters.missingBlocks].slice(0, 5).join(", ")}.`);
+  if (truncated) warnings.push(tr`Чертёж слишком большой: прочитаны первые ${MAX_DXF_ENTITIES.toLocaleString(currentLocale())} объектов.`);
 
   return { version, units: unitsOf(insUnits), layers, segments, curves, warnings, truncated };
 }
@@ -599,7 +600,7 @@ export function dxfGeometry(
   metresPerUnit: number,
   layers: ReadonlySet<string>,
 ): DxfGeometry | null {
-  if (!(metresPerUnit > 0) || !Number.isFinite(metresPerUnit)) throw new Error("Выберите единицы чертежа.");
+  if (!(metresPerUnit > 0) || !Number.isFinite(metresPerUnit)) throw new Error(tr`Выберите единицы чертежа.`);
   const lines = drawing.segments.filter((item) => layers.has(item.layer));
   const arcs = drawing.curves.filter((item) => layers.has(item.layer));
   if (!lines.length && !arcs.length) return null;
@@ -617,9 +618,9 @@ export function dxfGeometry(
   for (const arc of arcs) arc.points.forEach(include);
   const width = (maxX - minX) * metresPerUnit, height = (maxY - minY) * metresPerUnit;
   if (Math.max(width, height) > MAX_DXF_SIZE_METRES) {
-    throw new Error(`Чертёж получается ${Math.round(Math.max(width, height))} м в длину. Проверьте единицы или отключите слои с объектами далеко от плана.`);
+    throw new Error(tr`Чертёж получается ${Math.round(Math.max(width, height))} м в длину. Проверьте единицы или отключите слои с объектами далеко от плана.`);
   }
-  if (!(Math.max(width, height) > 0)) throw new Error("У выбранных слоёв нет размера.");
+  if (!(Math.max(width, height) > 0)) throw new Error(tr`У выбранных слоёв нет размера.`);
   // DXF Y grows upwards, plan Y downwards.
   const toPlan = (p: Point): Point => ({ x: (p.x - minX) * metresPerUnit, y: (maxY - p.y) * metresPerUnit });
   return {

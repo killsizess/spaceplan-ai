@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { assertPoint } from "@/domain/geometry";
 import { floorPlanSchema } from "./schema";
 import type { FloorPlan } from "./types";
@@ -5,7 +6,7 @@ import { analyzeWallIntersections, type WallIntersectionDiagnostic } from "./wal
 import { sameWallNode } from "./wall-nodes";
 
 const EPSILON = 1e-9;
-const STALE_INTERSECTION = "Пересечение изменилось. Выберите его заново.";
+const STALE_INTERSECTION = tr`Пересечение изменилось. Выберите его заново.`;
 
 /** Splits both live walls and transfers openings as a single validated edit. */
 export function connectWallIntersection(
@@ -18,16 +19,16 @@ export function connectWallIntersection(
     diagnostic.wallIds.length !== 2 ||
     diagnostic.wallIds.some((id) => typeof id !== "string" || id.length < 1 || id.length > 100) ||
     diagnostic.wallIds[0] === diagnostic.wallIds[1]
-  ) throw new Error("Некорректная пара пересекающихся стен.");
+  ) throw new Error(tr`Некорректная пара пересекающихся стен.`);
   if (
     newWallIds.length !== 2 ||
     newWallIds.some((id) => typeof id !== "string" || id.length < 1 || id.length > 100)
-  ) throw new Error("Идентификаторы новых стен должны содержать от 1 до 100 символов.");
+  ) throw new Error(tr`Идентификаторы новых стен должны содержать от 1 до 100 символов.`);
   const existingIds = new Set([...plan.rooms, ...plan.walls, ...plan.openings].map((item) => item.id));
   if (newWallIds[0] === newWallIds[1] || newWallIds.some((id) => existingIds.has(id))) {
-    throw new Error("Идентификатор объекта уже существует.");
+    throw new Error(tr`Идентификатор объекта уже существует.`);
   }
-  if (plan.walls.length > 998) throw new Error("Нельзя разделить стены: в плане будет больше 1000 стен.");
+  if (plan.walls.length > 998) throw new Error(tr`Нельзя разделить стены: в плане будет больше 1000 стен.`);
 
   const pair = diagnostic.wallIds.map((id) => plan.walls.find((wall) => wall.id === id));
   if (!pair[0] || !pair[1]) throw new Error(STALE_INTERSECTION);
@@ -51,7 +52,7 @@ export function connectWallIntersection(
       t * length > EPSILON && (1 - t) * length > EPSILON &&
       Math.hypot(point.x - wall.start.x - t * dx, point.y - wall.start.y - t * dy) <= EPSILON
     ) {
-      throw new Error("В этой точке пересекаются больше двух стен. Сначала измените положение лишней стены.");
+      throw new Error(tr`В этой точке пересекаются больше двух стен. Сначала измените положение лишней стены.`);
     }
   }
   const splits = pair.map((wall, index) => {
@@ -73,7 +74,7 @@ export function connectWallIntersection(
         offset: Math.max(0, opening.offset - split.distance),
       };
     }
-    throw new Error("Точка пересечения попадает внутрь проёма. Переместите стену или проём.");
+    throw new Error(tr`Точка пересечения попадает внутрь проёма. Переместите стену или проём.`);
   });
   const walls = plan.walls.map((wall) => splits.some((split) => split.wall.id === wall.id)
     ? { ...wall, end: { ...point } }
@@ -85,7 +86,7 @@ export function connectWallIntersection(
   const parsed = floorPlanSchema.safeParse({ ...plan, walls, openings });
   if (!parsed.success) {
     const issue = parsed.error.issues.find((item) => item.code === "custom");
-    throw new Error(issue?.message ?? "Проверьте размеры, координаты и свойства стен.");
+    throw new Error(issue?.message ?? tr`Проверьте размеры, координаты и свойства стен.`);
   }
   return parsed.data;
 }

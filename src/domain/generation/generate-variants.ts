@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { deleteObject, addWallsAndOpenings } from "@/domain/floor-plan/construction";
 import { analyzeDoorWallCollisions } from "@/domain/floor-plan/door-collisions";
 import { analyzeDoorPairCollisions } from "@/domain/floor-plan/door-pair-collisions";
@@ -144,7 +145,7 @@ function removals(plan: FloorPlan): Step[] {
       const smaller = sides[0].area <= sides[1].area ? sides[0] : sides[1];
       const larger = smaller === sides[0] ? sides[1] : sides[0];
       const next = planWithoutWall(plan, wall.id, rooms);
-      steps.push({ plan: next, move: { kind: "remove-partition", subject: wall.id, text: `Убрать стену ${wallNumber(plan, wall)} между «${larger.name}» и «${smaller.name}»` } });
+      steps.push({ plan: next, move: { kind: "remove-partition", subject: wall.id, text: tr`Убрать стену ${wallNumber(plan, wall)} между «${larger.name}» и «${smaller.name}»` } });
     } catch {
       // A plan this would break is simply not a candidate.
     }
@@ -168,8 +169,8 @@ function shifts(plan: FloorPlan): Step[] {
           return same && same.area > room.area;
         });
         const text = grown
-          ? `Сдвинуть стену ${wallNumber(plan, wall)} на ${formatLength(Math.abs(distance))} м, чтобы увеличить «${grown.name}»`
-          : `Сдвинуть стену ${wallNumber(plan, wall)} на ${formatLength(Math.abs(distance))} м`;
+          ? tr`Сдвинуть стену ${wallNumber(plan, wall)} на ${formatLength(Math.abs(distance))} м, чтобы увеличить «${grown.name}»`
+          : tr`Сдвинуть стену ${wallNumber(plan, wall)} на ${formatLength(Math.abs(distance))} м`;
         steps.push({ plan: next, move: { kind: "shift-partition", subject: wall.id, text } });
       } catch {
         // A shift that collapses a neighbour or loses a joint is not a candidate.
@@ -252,10 +253,10 @@ function splits(plan: FloorPlan): Step[] {
             const number = roomsOf(next).filter((item) => item.kind === "bedroom").length + 1;
             let newName = "";
             for (const unnamed of parts.filter((item) => !item.labelId)) {
-              newName = `Спальня ${number}`;
+              newName = tr`Спальня ${number}`;
               next = setWallRoomLabel(next, unnamed, { name: newName, kind: "bedroom", color: NEW_ROOM_COLOR }, freshId(next, "generated-room"));
             }
-            steps.push({ plan: next, move: { kind: "split-room", subject: room.labelId ?? room.id, text: `Разделить «${room.name}» на ${parts.map((item) => formatArea(item.area)).join(" и ")} перегородкой с дверью${newName ? `: появится «${newName}»` : ""}` } });
+            steps.push({ plan: next, move: { kind: "split-room", subject: room.labelId ?? room.id, text: tr`Разделить «${room.name}» на ${parts.map((item) => formatArea(item.area)).join(tr` и `)} перегородкой с дверью${newName ? tr`: появится «${newName}»` : ""}` } });
             // The door's swing is not a different layout: one working side is enough.
             break;
           } catch {
@@ -317,18 +318,18 @@ export function generateVariants(
   const rejected: Record<RejectionReason, number> = { forbidden: 0, "new-problem": 0, geometry: 0, requirement: 0, "bathroom-entrance": 0, "not-buildable": 0 };
   const untypedWalls = source.walls.filter((wall) => !wall.kind || wall.kind === "unknown").length;
   const empty = (blockers: string[]): GenerationResult => ({ variants: [], tried: 0, rejected, blockers, untypedWalls });
-  if (source.roomMode !== "walls") return empty(["Варианты подбираются по стенам. Сейчас помещения заданы вручную: включите режим «По стенам» и нарисуйте стены."]);
-  if (!source.walls.length) return empty(["На плане нет стен. Нарисуйте их или загрузите чертёж."]);
+  if (source.roomMode !== "walls") return empty([tr`Варианты подбираются по стенам. Сейчас помещения заданы вручную: включите режим «По стенам» и нарисуйте стены.`]);
+  if (!source.walls.length) return empty([tr`На плане нет стен. Нарисуйте их или загрузите чертёж.`]);
   if (!source.walls.some((wall) => wall.kind === "partition")) {
-    return empty(["Нет ни одной стены с отметкой «перегородка», а менять можно только их. Отметьте типы стен."]);
+    return empty([tr`Нет ни одной стены с отметкой «перегородка», а менять можно только их. Отметьте типы стен.`]);
   }
   let startRooms: ResolvedWallRoom[];
   try {
     startRooms = roomsOf(source);
   } catch (error) {
-    return empty([error instanceof Error ? error.message : "Помещения не определены."]);
+    return empty([error instanceof Error ? error.message : tr`Помещения не определены.`]);
   }
-  if (!startRooms.length) return empty(["На плане нет замкнутых помещений."]);
+  if (!startRooms.length) return empty([tr`На плане нет замкнутых помещений.`]);
 
   const { origin: _previous, ...base } = source;
   void _previous;
@@ -388,7 +389,7 @@ export function generateVariants(
     }
     const variant: GeneratedVariant = {
       key,
-      title: moves.map((move) => move.text).join(", затем "),
+      title: moves.map((move) => move.text).join(tr`, затем `),
       moves,
       plan,
       rules,
@@ -453,5 +454,5 @@ export function generateVariants(
 
 /** One line about the size of a candidate, for the card. */
 export function variantSummary(variant: GeneratedVariant): string {
-  return `Помещений: ${variant.roomsBefore} → ${variant.roomsAfter}. Площадь: ${formatArea(Math.round(variant.areaBefore * 100) / 100)} → ${formatArea(Math.round(variant.areaAfter * 100) / 100)}.`;
+  return tr`Помещений: ${variant.roomsBefore} → ${variant.roomsAfter}. Площадь: ${formatArea(Math.round(variant.areaBefore * 100) / 100)} → ${formatArea(Math.round(variant.areaAfter * 100) / 100)}.`;
 }

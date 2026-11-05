@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import type { Point } from "@/domain/geometry";
 import { floorPlanSchema, wallRoomLabelSchema } from "./schema";
 import type { FloorPlan, RoomKind, WallRoomLabel } from "./types";
@@ -83,26 +84,26 @@ export function resolveWallRoomLabels(plan: FloorPlan): WallRoomLabelResolution 
   return {
     rooms: result.rooms,
     unassigned: result.unassigned,
-    warnings: result.unassigned.length ? [...result.warnings, `Не привязано подписей помещений: ${result.unassigned.length}. Назначьте их вручную или удалите.`] : result.warnings,
+    warnings: result.unassigned.length ? [...result.warnings, tr`Не привязано подписей помещений: ${result.unassigned.length}. Назначьте их вручную или удалите.`] : result.warnings,
   };
 }
 
 function validate(plan: FloorPlan): FloorPlan {
   const parsed = floorPlanSchema.safeParse(plan);
-  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Проверьте свойства помещения.");
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? tr`Проверьте свойства помещения.`);
   return parsed.data;
 }
 function currentRoom(plan: FloorPlan, snapshot: WallRoom) {
-  if (plan.roomMode !== "walls") throw new Error("Переключитесь в режим помещений по стенам.");
+  if (plan.roomMode !== "walls") throw new Error(tr`Переключитесь в режим помещений по стенам.`);
   const result = resolve(plan);
   const index = result.rooms.findIndex((room) => sameContour(room, snapshot));
-  if (index < 0) throw new Error("Помещение изменилось. Выберите его заново.");
+  if (index < 0) throw new Error(tr`Помещение изменилось. Выберите его заново.`);
   return { room: result.rooms[index], boundaryWallIds: result.supports[index] };
 }
 function validateBinding(plan: FloorPlan, room: WallRoom, labelId: string): FloorPlan {
   const next = validate(plan);
   if (!resolveWallRoomLabels(next).rooms.some((candidate) => candidate.labelId === labelId && sameContour(candidate, room))) {
-    throw new Error("Несколько сохранённых записей соответствуют этому помещению. Удалите лишние параметры и повторите привязку.");
+    throw new Error(tr`Несколько сохранённых записей соответствуют этому помещению. Удалите лишние параметры и повторите привязку.`);
   }
   return next;
 }
@@ -110,11 +111,11 @@ function validateBinding(plan: FloorPlan, room: WallRoom, labelId: string): Floo
 export function setWallRoomLabel(plan: FloorPlan, snapshot: WallRoom, values: WallRoomLabelValues, labelId: string): FloorPlan {
   const { room, boundaryWallIds } = currentRoom(plan, snapshot);
   const existing = room.labelId ? plan.wallRoomLabels.find((label) => label.id === room.labelId) : undefined;
-  if (!existing && plan.wallRoomLabels.some((label) => label.id === labelId)) throw new Error("Подпись уже существует. Назначьте её помещению вручную.");
+  if (!existing && plan.wallRoomLabels.some((label) => label.id === labelId)) throw new Error(tr`Подпись уже существует. Назначьте её помещению вручную.`);
   const attributes = valuesSchema.safeParse(values);
-  if (!attributes.success) throw new Error(attributes.error.issues[0]?.message ?? "Проверьте свойства помещения.");
+  if (!attributes.success) throw new Error(attributes.error.issues[0]?.message ?? tr`Проверьте свойства помещения.`);
   const parsed = wallRoomLabelSchema.safeParse({ id: existing?.id ?? labelId, ...attributes.data, anchor: room.labelPoint, boundaryWallIds });
-  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Проверьте название, назначение и цвет помещения.");
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? tr`Проверьте название, назначение и цвет помещения.`);
   const label = parsed.data;
   if (existing && existing.name === label.name && existing.kind === label.kind && existing.color === label.color) return plan;
   return validateBinding({ ...plan, wallRoomLabels: existing ? plan.wallRoomLabels.map((item) => item.id === existing.id ? label : item) : [...plan.wallRoomLabels, label] }, room, label.id);
@@ -123,13 +124,13 @@ export function setWallRoomLabel(plan: FloorPlan, snapshot: WallRoom, values: Wa
 export function assignWallRoomLabel(plan: FloorPlan, labelId: string, snapshot: WallRoom): FloorPlan {
   const { room, boundaryWallIds } = currentRoom(plan, snapshot);
   const label = plan.wallRoomLabels.find((item) => item.id === labelId);
-  if (!label) throw new Error("Подпись помещения не найдена.");
-  if (room.labelId || !resolveWallRoomLabels(plan).unassigned.some((item) => item.id === labelId)) throw new Error("Подпись или помещение уже связаны. Обновите выбор.");
+  if (!label) throw new Error(tr`Подпись помещения не найдена.`);
+  if (room.labelId || !resolveWallRoomLabels(plan).unassigned.some((item) => item.id === labelId)) throw new Error(tr`Подпись или помещение уже связаны. Обновите выбор.`);
   return validateBinding({ ...plan, wallRoomLabels: plan.wallRoomLabels.map((item) => item.id === labelId ? { ...item, anchor: room.labelPoint, boundaryWallIds } : item) }, room, labelId);
 }
 
 export function removeWallRoomLabel(plan: FloorPlan, labelId: string): FloorPlan {
-  if (!plan.wallRoomLabels.some((label) => label.id === labelId)) throw new Error("Подпись помещения не найдена.");
+  if (!plan.wallRoomLabels.some((label) => label.id === labelId)) throw new Error(tr`Подпись помещения не найдена.`);
   return validate({ ...plan, wallRoomLabels: plan.wallRoomLabels.filter((label) => label.id !== labelId) });
 }
 

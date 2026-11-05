@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import type { RefObject } from "react";
 import { Circle, Group, Line, Rect, Text } from "react-konva";
 import type { Opening, Room, Wall } from "@/domain/floor-plan/types";
@@ -157,7 +158,7 @@ export function ManualRoomShape({
               x={0}
               y={9 / scale}
               width={room.width}
-              text={`${formatLength(room.width)} м`}
+              text={tr`${formatLength(room.width)} м`}
               fontSize={10 / scale}
               fontFamily={CANVAS_FONT}
               fill="#5f6c65"
@@ -166,7 +167,7 @@ export function ManualRoomShape({
             <Text
               x={9 / scale}
               y={room.height / 2 + 20 / scale}
-              text={`${formatLength(room.height)} м`}
+              text={tr`${formatLength(room.height)} м`}
               fontSize={10 / scale}
               fontFamily={CANVAS_FONT}
               fill="#5f6c65"
@@ -255,7 +256,7 @@ export function WallShape({
           x={0}
           y={-wall.thickness / 2 - 19 / scale}
           width={length}
-          text={`${formatLength(length)} м`}
+          text={tr`${formatLength(length)} м`}
           align="center"
           fontSize={11 / scale}
           fontFamily={CANVAS_FONT}
@@ -454,7 +455,7 @@ export function OpeningCandidateOverlay({
               y={mid.y - 22 / scale}
               width={24 / scale}
               align="center"
-              text={`${candidate.kind === "door" ? "Д" : "О"}${candidate.confident ? "" : "?"}`}
+              text={`${candidate.kind === "door" ? tr`Д` : tr`О`}${candidate.confident ? "" : "?"}`}
               fontSize={12 / scale}
               fontStyle="bold"
               fill={on ? color : "#a3aa9c"}
@@ -490,7 +491,7 @@ export function WallDraftOverlay({ draft, scale }: { draft: Segment; scale: numb
       <Text
         x={(draft.start.x + draft.end.x) / 2 + 10 / scale}
         y={(draft.start.y + draft.end.y) / 2 - 24 / scale}
-        text={`${formatLength(Math.hypot(draft.end.x - draft.start.x, draft.end.y - draft.start.y))} м`}
+        text={tr`${formatLength(Math.hypot(draft.end.x - draft.start.x, draft.end.y - draft.start.y))} м`}
         fontSize={12 / scale}
         fontFamily={CANVAS_FONT}
         fill="#1a7353"
@@ -522,7 +523,7 @@ export function CalibrationOverlay({ segment, scale }: { segment: Segment; scale
       <Text
         x={segment.end.x + 10 / scale}
         y={segment.end.y - 20 / scale}
-        text="Укажите вторую точку"
+        text={tr`Укажите вторую точку`}
         fontSize={12 / scale}
         fontFamily={CANVAS_FONT}
         fill="#9c4c1f"
@@ -552,7 +553,7 @@ export function RoomDraftOverlay({
       <Text
         x={draft.x}
         y={draft.y - 24 / scale}
-        text={`${formatLength(draft.width)} × ${formatLength(draft.height)} м`}
+        text={tr`${formatLength(draft.width)} × ${formatLength(draft.height)} м`}
         fontSize={12 / scale}
         fontFamily={CANVAS_FONT}
         fill="#1a7353"

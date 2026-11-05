@@ -1,12 +1,13 @@
+import { tr } from "@/lib/i18n";
 import type { FloorPlan, Wall, WallKind } from "./types";
 
 /** Wall types in the order the editor offers them. */
 export const WALL_KINDS: readonly WallKind[] = ["unknown", "partition", "bearing"];
 
 export const WALL_KIND_LABELS: Readonly<Record<WallKind, string>> = {
-  unknown: "Не указано",
-  partition: "Перегородка",
-  bearing: "Несущая",
+  unknown: tr`Не указано`,
+  partition: tr`Перегородка`,
+  bearing: tr`Несущая`,
 };
 
 /** The type of a wall; an absent field means "unknown", never a guess. */

@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import type { Underlay } from "@/domain/floor-plan/types";
 import { inspectUnderlayImage } from "./underlay-image";
@@ -30,23 +31,23 @@ export function useUnderlayImage(
       );
       if (dimensions.width !== width || dimensions.height !== height) {
         throw new Error(
-          "Размеры изображения не совпадают с данными проекта. Замените подложку исправным JPG или PNG.",
+          tr`Размеры изображения не совпадают с данными проекта. Замените подложку исправным JPG или PNG.`,
         );
       }
     } catch (error) {
-      errorRef.current(error instanceof Error ? error.message : "Не удалось прочитать подложку.");
+      errorRef.current(error instanceof Error ? error.message : tr`Не удалось прочитать подложку.`);
       return;
     }
     const image = new window.Image();
     image.onload = () => {
       if (image.naturalWidth !== width || image.naturalHeight !== height) {
-        errorRef.current("Размеры подложки не совпадают с данными проекта. Загрузите изображение заново.");
+        errorRef.current(tr`Размеры подложки не совпадают с данными проекта. Загрузите изображение заново.`);
         return;
       }
       setLoaded({ source, image });
     };
     image.onerror = () =>
-      errorRef.current("Не удалось показать изображение подложки. Загрузите исправный JPG или PNG.");
+      errorRef.current(tr`Не удалось показать изображение подложки. Загрузите исправный JPG или PNG.`);
     image.src = source;
     return () => {
       image.onload = null;

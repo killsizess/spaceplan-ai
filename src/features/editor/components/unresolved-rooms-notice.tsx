@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { TriangleAlert } from "lucide-react";
 import "../unresolved-rooms.css";
 
@@ -23,26 +24,17 @@ export function UnresolvedRoomsNotice({
   return (
     <section className="unresolved-rooms-notice" role="alert" data-testid="unresolved-rooms-notice">
       <h3>
-        <TriangleAlert size={14} /> Помещения по стенам не определены
-      </h3>
+        <TriangleAlert size={14} />{tr` Помещения по стенам не определены`}</h3>
       <p>
-        <strong>Что не так:</strong> <span data-testid="unresolved-rooms-reason">{reason}</span>
+        <strong>{tr`Что не так:`}</strong> <span data-testid="unresolved-rooms-reason">{reason}</span>
       </p>
       <p>
-        <strong>Что сохранено:</strong> проект открыт без изменений. Стен: {wallCount}, подписей помещений: {labelCount};
-        ничего не удалено и не перестроено.
-      </p>
+        <strong>{tr`Что сохранено:`}</strong>{tr` проект открыт без изменений. Стен: `}{wallCount}{tr`, подписей помещений: `}{labelCount}{tr`; ничего не удалено и не перестроено.`}</p>
       <p>
-        <strong>Что недоступно, пока помещения не определены:</strong> площади, требования к помещениям, пол в 3D и экспорт чертежа.
-        Экспорт проекта в JSON работает.
-      </p>
+        <strong>{tr`Что недоступно, пока помещения не определены:`}</strong>{tr` площади, требования к помещениям, пол в 3D и экспорт чертежа. Экспорт проекта в JSON работает.`}</p>
       <p>
-        <strong>Что можно сделать:</strong> исправить стены (принимаются правки, после которых помещения определяются) или
-        переключиться на ручные комнаты. Стены и проёмы при этом остаются в проекте.
-      </p>
-      <button type="button" className="secondary-button" disabled={busy} onClick={onUseManualRooms}>
-        Перейти к ручным комнатам
-      </button>
+        <strong>{tr`Что можно сделать:`}</strong>{tr` исправить стены (принимаются правки, после которых помещения определяются) или переключиться на ручные комнаты. Стены и проёмы при этом остаются в проекте.`}</p>
+      <button type="button" className="secondary-button" disabled={busy} onClick={onUseManualRooms}>{tr`Перейти к ручным комнатам`}</button>
     </section>
   );
 }

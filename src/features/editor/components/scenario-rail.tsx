@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { Check, TriangleAlert } from "lucide-react";
 import type { ScenarioStep, ScenarioStepId } from "../scenario-steps";
 
@@ -16,13 +17,13 @@ export function ScenarioRail({
   onOpen: (id: ScenarioStepId) => void;
 }) {
   return (
-    <nav className="scenario-rail" aria-label="Маршрут по плану" data-testid="scenario-rail">
+    <nav className="scenario-rail" aria-label={tr`Маршрут по плану`} data-testid="scenario-rail">
       <ol>
         {steps.map((step, index) => (
           <li key={step.id} data-state={step.state} data-step={step.id}>
             <button
               type="button"
-              aria-label={`Шаг ${index + 1}: ${step.label.toLowerCase()}, ${step.value}`}
+              aria-label={tr`Шаг ${index + 1}: ${step.label.toLowerCase()}, ${step.value}`}
               aria-current={step.state === "current" ? "step" : undefined}
               onClick={() => onOpen(step.id)}
             >

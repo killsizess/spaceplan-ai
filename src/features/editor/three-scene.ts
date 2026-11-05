@@ -1,3 +1,4 @@
+import { tr, untranslated } from "@/lib/i18n";
 import {
   ACESFilmicToneMapping,
   BoxGeometry,
@@ -87,7 +88,7 @@ export function createThreeScene(
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFShadowMap;
   const canvas = renderer.domElement;
-  canvas.setAttribute("aria-label", "3D-модель планировки");
+  canvas.setAttribute("aria-label", tr`3D-модель планировки`);
   canvas.setAttribute("role", "img");
   host.appendChild(canvas);
 
@@ -559,10 +560,10 @@ export function createThreeScene(
   const keyDown = (event: KeyboardEvent) => {
     if (event.ctrlKey || event.metaKey || event.altKey || failed) return;
     const key = event.key.toLowerCase();
-    if (key === "f" || key === "а") {
+    if (key === "f" || key === untranslated("а")) {
       event.preventDefault();
       fit();
-    } else if (key === "t" || key === "е") {
+    } else if (key === "t" || key === untranslated("е")) {
       event.preventDefault();
       fit(true);
     } else if (key === "+" || key === "=" || key === "-" || key === "_") {

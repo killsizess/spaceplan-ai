@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { BrickWall, Check, X } from "lucide-react";
 import { formatLength } from "@/lib/format";
 
@@ -39,28 +40,20 @@ export function PdfWallSuggestions({
 }) {
   const selected = suggestion?.walls.filter((wall) => wall.selected).length ?? 0;
   return (
-    <section className="pdf-wall-suggestions" aria-label="Стены из чертежа" data-testid="pdf-wall-suggestions">
+    <section className="pdf-wall-suggestions" aria-label={tr`Стены из чертежа`} data-testid="pdf-wall-suggestions">
       <h3>
-        <BrickWall size={13} /> Стены из чертежа
-      </h3>
+        <BrickWall size={13} />{tr` Стены из чертежа`}</h3>
       {suggestion ? (
         suggestion.walls.length > 0 ? (
           <>
-            <p role="status">
-              Найдено стен: <strong data-testid="wall-suggestion-count">{suggestion.walls.length}</strong>, выбрано{" "}
-              <strong data-testid="wall-suggestion-selected">{selected}</strong>. Они показаны на плане пунктиром:
-              щелчок по стене на плане или галочка ниже исключает её.
-              {suggestion.truncated && " Чертёж очень подробный: показана только часть."}
+            <p role="status">{tr`Найдено стен: `}<strong data-testid="wall-suggestion-count">{suggestion.walls.length}</strong>{tr`, выбрано`}{" "}
+              <strong data-testid="wall-suggestion-selected">{selected}</strong>{tr`. Они показаны на плане пунктиром: щелчок по стене на плане или галочка ниже исключает её.`}{suggestion.truncated && tr` Чертёж очень подробный: показана только часть.`}
             </p>
             <div className="pdf-wall-suggestions-bulk">
-              <button type="button" disabled={busy || selected === suggestion.walls.length} onClick={() => onSelectAll(true)}>
-                Выбрать все
-              </button>
-              <button type="button" disabled={busy || selected === 0} onClick={() => onSelectAll(false)}>
-                Снять все
-              </button>
+              <button type="button" disabled={busy || selected === suggestion.walls.length} onClick={() => onSelectAll(true)}>{tr`Выбрать все`}</button>
+              <button type="button" disabled={busy || selected === 0} onClick={() => onSelectAll(false)}>{tr`Снять все`}</button>
             </div>
-            <ul className="pdf-wall-suggestions-list" aria-label="Предложенные стены">
+            <ul className="pdf-wall-suggestions-list" aria-label={tr`Предложенные стены`}>
               {suggestion.walls.map((wall, index) => (
                 <li key={index}>
                   <label>
@@ -69,51 +62,38 @@ export function PdfWallSuggestions({
                       checked={wall.selected}
                       disabled={busy}
                       onChange={() => onToggle(index)}
-                    />
-                    Стена {index + 1}
+                    />{tr`Стена `}{index + 1}
                     <small>
-                      {formatLength(wall.length)} м · {formatLength(wall.thickness)} м
-                    </small>
+                      {formatLength(wall.length)}{tr` м · `}{formatLength(wall.thickness)}{tr` м`}</small>
                   </label>
                 </li>
               ))}
             </ul>
             <div className="underlay-action-pair">
               <button disabled={busy || selected === 0} onClick={onAccept}>
-                <Check size={14} /> Добавить стены ({selected})
+                <Check size={14} />{tr` Добавить стены (`}{selected})
               </button>
               <button disabled={busy} onClick={onDismiss}>
-                <X size={14} /> Отклонить
-              </button>
+                <X size={14} />{tr` Отклонить`}</button>
             </div>
           </>
         ) : (
           <>
-            <p role="status">
-              Пары параллельных линий, похожие на стены, не найдены. Обведите стены
-              вручную инструментом «Стена».
-            </p>
+            <p role="status">{tr`Пары параллельных линий, похожие на стены, не найдены. Обведите стены вручную инструментом «Стена».`}</p>
             <div className="underlay-action-pair">
-              <button onClick={onDismiss}>Понятно</button>
+              <button onClick={onDismiss}>{tr`Понятно`}</button>
             </div>
           </>
         )
       ) : (
         <>
-          <p>
-            На странице {lineCount} векторных линий
-            {linesTruncated ? " (прочитана только часть)" : ""}. Стены ищутся как пары
-            параллельных линий толщиной от 5 до 60 см.
-          </p>
+          <p>{tr`На странице `}{lineCount}{tr` векторных линий`}{linesTruncated ? tr` (прочитана только часть)` : ""}{tr`. Стены ищутся как пары параллельных линий толщиной от 5 до 60 см.`}</p>
           {!calibrated && (
-            <p className="pdf-wall-suggestions-hint">
-              Сначала задайте масштаб: толщина и длина стен определяются в метрах.
-            </p>
+            <p className="pdf-wall-suggestions-hint">{tr`Сначала задайте масштаб: толщина и длина стен определяются в метрах.`}</p>
           )}
           <div className="underlay-action-pair">
             <button disabled={busy || !calibrated || lineCount === 0} onClick={onSuggest}>
-              <BrickWall size={14} /> Предложить стены
-            </button>
+              <BrickWall size={14} />{tr` Предложить стены`}</button>
           </div>
         </>
       )}

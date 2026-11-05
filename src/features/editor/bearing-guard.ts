@@ -1,11 +1,12 @@
+import { tr } from "@/lib/i18n";
 import { bearingWallChanges, type BearingChange } from "@/domain/floor-plan/wall-kind";
 import { editorReducer, type EditorAction, type EditorState } from "./editor-state";
 
 const CHANGE_TEXT: Record<BearingChange, string> = {
-  deleted: "будет удалена",
-  moved: "будет перенесена или изменится её длина",
-  thickness: "изменится толщина",
-  unmarked: "перестанет считаться несущей",
+  deleted: tr`будет удалена`,
+  moved: tr`будет перенесена или изменится её длина`,
+  thickness: tr`изменится толщина`,
+  unmarked: tr`перестанет считаться несущей`,
 };
 
 /** Actions that restore or replace a plan as a whole are the user's explicit choice, not an edit of a wall. */
@@ -23,10 +24,10 @@ export function bearingChangeMessage(state: EditorState, action: EditorAction): 
   if (next.plan === state.plan) return null;
   const changes = bearingWallChanges(state.plan, next.plan);
   if (!changes.length) return null;
-  const list = changes.map((item) => `Стена ${item.number}: ${CHANGE_TEXT[item.change]}`).join("\n");
+  const list = changes.map((item) => tr`Стена ${item.number}: ${CHANGE_TEXT[item.change]}`).join("\n");
   return [
-    changes.length === 1 ? "Вы меняете несущую стену." : `Вы меняете несущие стены: ${changes.length}.`,
+    changes.length === 1 ? tr`Вы меняете несущую стену.` : tr`Вы меняете несущие стены: ${changes.length}.`,
     list,
-    "Это может нарушить конструкцию здания. Отмена вернёт всё как было (шаг можно отменить и после изменения). Продолжить?",
+    tr`Это может нарушить конструкцию здания. Отмена вернёт всё как было (шаг можно отменить и после изменения). Продолжить?`,
   ].join("\n\n");
 }
