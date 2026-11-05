@@ -361,7 +361,7 @@ test("invalid connected edits preserve the saved plan and independent editing is
   await page.getByLabel("Конец X", { exact: true }).fill("0");
   await page.getByLabel("Конец Y", { exact: true }).fill("0");
   await applyProperties(page);
-  await expect(page.getByRole("alert").first()).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: /\S/ }).first()).toBeVisible();
   await expectSavedPlan(page, original);
   expect(await savedRecord(page)).toBe(record);
   await expect(page.getByRole("button", { name: "Отменить", exact: true }))

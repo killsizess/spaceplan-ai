@@ -193,7 +193,7 @@ test("blank and overlong labels leave the saved record, geometry and history unt
   for (const invalid of ["   ", "А".repeat(61)]) {
     await page.getByLabel("Название помещения", { exact: true }).fill(invalid);
     await page.getByRole("button", { name: "Сохранить параметры помещения", exact: true }).click();
-    await expect(page.getByRole("alert").first()).toBeVisible();
+    await expect(page.getByRole("alert").filter({ hasText: /\S/ }).first()).toBeVisible();
     expect(await savedRecord(page)).toBe(record);
     expect(await saved(page)).toEqual(original);
     await expect(page.getByRole("button", { name: "Отменить", exact: true })).toBeDisabled();

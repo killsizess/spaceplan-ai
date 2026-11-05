@@ -123,7 +123,7 @@ test("length preserves connected corners and rejects nonnumeric and zero drafts"
   const record = await savedRecord(page);
   for (const invalid of ["NaN", "0"]) {
     await applyLength(page, invalid);
-    await expect(page.getByRole("alert").first()).toBeVisible();
+    await expect(page.getByRole("alert").filter({ hasText: /\S/ }).first()).toBeVisible();
     expect(await savedRecord(page)).toBe(record);
     await expect(page.getByRole("button", { name: "Отменить", exact: true })).toBeDisabled();
   }

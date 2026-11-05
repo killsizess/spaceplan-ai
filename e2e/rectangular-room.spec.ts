@@ -231,7 +231,7 @@ test("invalid room dimensions keep the dialog and saved plan intact", async ({
   await expect(page.getByTestId("total-area")).toHaveText("20 м²");
   await page.getByLabel("Внутренняя глубина", { exact: true }).fill("0");
   await page.getByRole("button", { name: "Изменить размеры комнаты" }).click();
-  await expect(page.getByRole("alert").first()).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: /\S/ }).first()).toBeVisible();
   await expect(page.getByTestId("total-area")).toHaveText("20 м²");
   expectClosedRectangle(await saved(page));
   expect(await page.evaluate(() => document.documentElement.scrollWidth))

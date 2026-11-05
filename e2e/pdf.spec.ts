@@ -267,7 +267,7 @@ test("invalid and password-protected PDFs leave the saved plan intact", async ({
   for (const file of files) {
     await choosePdf(page, file.name, file.bytes);
     const error = page
-      .locator('[role="alert"]:visible')
+      .locator('[role="alert"]:visible:not(#__next-route-announcer__)')
       .or(page.getByTestId("project-notice"));
     await expect(error.first()).toContainText(file.message);
     expect(await savedPlan(page)).toEqual(original);
