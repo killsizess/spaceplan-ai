@@ -24,5 +24,27 @@ export async function settleFrames(page: Page, frames = 2) {
  */
 export async function fitPlan(page: Page) {
   await page.getByRole("button", { name: "Показать весь план", exact: true }).click();
-  await settleFrames(page, 3);
+  await settleCamera(page);
+}
+
+/**
+ * Waits until the 2D camera has stood still for several frames. A fit can also come later
+ * than the click: when the canvas changes size, the observer reports it a moment after.
+ */
+export async function settleCamera(page: Page) {
+  await page.getByTestId("plan-canvas").evaluate((node) => new Promise<void>((resolve) => {
+    const read = () => ["data-camera-x", "data-camera-y", "data-scale"].map((name) => node.getAttribute(name)).join();
+    let last = read();
+    let still = 0;
+    let frames = 0;
+    const step = () => {
+      const now = read();
+      still = now === last ? still + 1 : 0;
+      last = now;
+      frames += 1;
+      if (still >= 10 || frames >= 240) resolve();
+      else requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }));
 }

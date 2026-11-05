@@ -312,34 +312,37 @@ test("a door can become a door-way with no door, and the gas rule sees it", asyn
   expect(errors).toEqual([]);
 });
 
-test("a first visit says where to start, and the hint stays hidden once hidden", async ({ page }) => {
-  await page.goto("/");
-  await saved(page);
-  const strip = page.getByTestId("welcome-strip");
-  await expect(strip).toContainText("С чего начать");
+test.describe("the first-visit hint", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
 
-  await strip.getByRole("button", { name: "Загрузить чертёж" }).click();
-  await expect(page.getByRole("tab", { name: "Подложка", exact: true })).toHaveAttribute("aria-selected", "true");
+  test("a first visit says where to start, and the hint stays hidden once hidden", async ({ page }) => {
+    await page.goto("/");
+    await saved(page);
+    const strip = page.getByTestId("welcome-strip");
+    await expect(strip).toContainText("С чего начать");
 
-  await strip.getByRole("button", { name: "Скрыть подсказку" }).click();
-  await expect(strip).toHaveCount(0);
-  await page.reload();
-  await saved(page);
-  await expect(page.getByTestId("project-title").or(page.getByRole("heading", { name: "Квартира на Садовой" }))).toBeVisible();
-  await expect(strip).toHaveCount(0);
-});
+    await strip.getByRole("button", { name: "Загрузить чертёж" }).click();
+    await expect(page.getByRole("tab", { name: "Подложка", exact: true })).toHaveAttribute("aria-selected", "true");
 
-test("the hint leads to a working example, and is not shown on someone's own plan", async ({ page }) => {
-  await page.goto("/");
-  await saved(page);
-  await page.getByTestId("welcome-strip").getByRole("button", { name: "Посмотреть на примере" }).click();
-  await expect(page.getByTestId("xray-wall")).toHaveCount(7);
-  await expect(page.getByTestId("welcome-strip")).toHaveCount(0);
+    await strip.getByRole("button", { name: "Скрыть подсказку" }).click();
+    await expect(strip).toHaveCount(0);
+    await page.reload();
+    await saved(page);
+    await expect(page.getByTestId("project-title").or(page.getByRole("heading", { name: "Квартира на Садовой" }))).toBeVisible();
+    await expect(strip).toHaveCount(0);
+  });
+
+  test("the hint leads to a working example, and is not shown on someone's own plan", async ({ page }) => {
+    await page.goto("/");
+    await saved(page);
+    await page.getByTestId("welcome-strip").getByRole("button", { name: "Посмотреть на примере" }).click();
+    await expect(page.getByTestId("xray-wall")).toHaveCount(7);
+    await expect(page.getByTestId("welcome-strip")).toHaveCount(0);
+  });
 });
 
 test("X-Ray says how to check a change, and the report lists the answers it was built on", async ({ page }) => {
   await importPlan(page, apartment({ region: "moscow", gasified: true, floorLevel: "upper" }));
-  await expect(page.getByTestId("welcome-strip")).toHaveCount(0);
   await page.getByRole("button", { name: "X-Ray", exact: true }).click();
   await expect(page.getByTestId("xray-variant-hint")).toContainText("нажмите «Вариант»");
   await page.getByRole("button", { name: "Закрыть X-Ray" }).click();

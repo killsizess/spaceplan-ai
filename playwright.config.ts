@@ -8,6 +8,14 @@ export default defineConfig({
   timeout: 30000,
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3010",
+    // The first-visit hint changes the canvas size when a project opens; only its own tests need it.
+    storageState: {
+      cookies: [],
+      origins: [{
+        origin: new URL(process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3010").origin,
+        localStorage: [{ name: "spaceplan-ai:welcome-hidden:v1", value: "1" }],
+      }],
+    },
     viewport: { width: 1440, height: 1000 },
     channel:
       process.env.PLAYWRIGHT_CHANNEL ??

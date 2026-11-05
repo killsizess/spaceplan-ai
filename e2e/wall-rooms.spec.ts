@@ -4,7 +4,7 @@ import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import { detectWallRooms } from "../src/domain/floor-plan/wall-rooms";
 import type { FloorPlan, Wall } from "../src/domain/floor-plan/types";
 import { PerspectiveCamera, Vector3 } from "three";
-import { fitPlan, settleFrames } from "./frames";
+import { fitPlan, settleCamera, settleFrames } from "./frames";
 
 const wall = (
   id: string,
@@ -280,6 +280,7 @@ test("drawing closed walls creates rooms without manual rectangles", async ({
     .getByRole("button", { name: "Начать обводку стен", exact: true })
     .click();
   const drawWall = async (x1: number, y1: number, x2: number, y2: number) => {
+    await settleCamera(page);
     const canvas = page.getByTestId("plan-canvas");
     const box = await canvas.boundingBox();
     const transform = await canvas.evaluate((node) => ({
