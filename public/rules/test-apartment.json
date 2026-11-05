@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 8,
+  "unit": "m",
+  "id": "xray",
+  "name": "Тестовая квартира для сверки",
+  "roomMode": "walls",
+  "rooms": [],
+  "walls": [
+    {
+      "id": "top",
+      "start": {
+        "x": 0,
+        "y": 0
+      },
+      "end": {
+        "x": 10,
+        "y": 0
+      },
+      "thickness": 0.2,
+      "height": 2.7,
+      "kind": "bearing"
+    },
+    {
+      "id": "right",
+      "start": {
+        "x": 10,
+        "y": 0
+      },
+      "end": {
+        "x": 10,
+        "y": 6
+      },
+      "thickness": 0.2,
+      "height": 2.7,
+      "kind": "bearing"
+    },
+    {
+      "id": "bottom",
+      "start": {
+        "x": 10,
+        "y": 6
+      },
+      "end": {
+        "x": 0,
+        "y": 6
+      },
+      "thickness": 0.2,
+      "height": 2.7,
+      "kind": "bearing"
+    },
+    {
+      "id": "left",
+      "start": {
+        "x": 0,
+        "y": 6
+      },
+      "end": {
+        "x": 0,
+        "y": 0
+      },
+      "thickness": 0.2,
+      "height": 2.7,
+      "kind": "bearing"
+    },
+    {
+      "id": "living-kitchen",
+      "start": {
+        "x": 6,
+        "y": 0
+      },
+      "end": {
+        "x": 6,
+        "y": 3
+      },
+      "thickness": 0.2,
+      "height": 2.7,
+      "kind": "partition"
+    },
+    {
+      "id": "living-bath",
+      "start": {
+        "x": 6,
+        "y": 3
+      },
+      "end": {
+        "x": 6,
+        "y": 6
+      },
+      "thickness": 0.2,
+      "height": 2.7,
+      "kind": "partition"
+    },
+    {
+      "id": "kitchen-bath",
+      "start": {
+        "x": 6,
+        "y": 3
+      },
+      "end": {
+        "x": 10,
+        "y": 3
+      },
+      "thickness": 0.2,
+      "height": 2.7,
+      "kind": "partition"
+    }
+  ],
+  "openings": [
+    {
+      "id": "living-window",
+      "wallId": "top",
+      "kind": "window",
+      "offset": 2,
+      "width": 1.2,
+      "height": 1.2,
+      "sillHeight": 0.9
+    },
+    {
+      "id": "kitchen-window",
+      "wallId": "top",
+      "kind": "window",
+      "offset": 7,
+      "width": 1.2,
+      "height": 1.2,
+      "sillHeight": 0.9
+    }
+  ],
+  "wallRoomLabels": [
+    {
+      "id": "label-Гостиная",
+      "name": "Гостиная",
+      "kind": "living",
+      "color": "#f1e3c6",
+      "anchor": {
+        "x": 3.000000000000001,
+        "y": 3.000000000000001
+      },
+      "boundaryWallIds": [
+        "bottom",
+        "left",
+        "living-bath",
+        "living-kitchen",
+        "top"
+      ]
+    },
+    {
+      "id": "label-Кухня",
+      "name": "Кухня",
+      "kind": "kitchen",
+      "color": "#f1e3c6",
+      "anchor": {
+        "x": 8,
+        "y": 1.4999999999999998
+      },
+      "boundaryWallIds": [
+        "kitchen-bath",
+        "living-kitchen",
+        "right",
+        "top"
+      ]
+    },
+    {
+      "id": "label-Санузел",
+      "name": "Санузел",
+      "kind": "bathroom",
+      "color": "#f1e3c6",
+      "anchor": {
+        "x": 8,
+        "y": 4.5
+      },
+      "boundaryWallIds": [
+        "bottom",
+        "kitchen-bath",
+        "living-bath",
+        "right"
+      ]
+    }
+  ],
+  "requirements": [],
+  "buildingFacts": {
+    "region": "moscow"
+  }
+}

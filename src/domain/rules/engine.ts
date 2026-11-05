@@ -42,9 +42,13 @@ export function rulesForPlan(plan: FloorPlan): RuleReport | null {
   return pack ? runRules(pack, plan) : null;
 }
 
-const CLAUSE = "прил. 1, п. ";
+/** Points that share one of these beginnings are listed together. */
+const CLAUSES = [
+  { point: "прил. 1, п. ", list: "прил. 1, пп. " },
+  { point: "п. ", list: "пп. " },
+];
 
-/** «508-ПП, прил. 1, пп. 9.3, 9.6; ПП РФ № 47, п. 24». */
+/** «508-ПП, прил. 1, пп. 9.3, 9.6; ПП РФ № 47, п. 24; ЖК РФ, ст. 25, ч. 2; ст. 26, ч. 2, п. 3». */
 export function citation(report: Pick<RuleReport, "documents">, finding: Pick<RuleFinding, "sources">): string {
   const byDocument = new Map<string, string[]>();
   for (const source of finding.sources) {
@@ -53,10 +57,10 @@ export function citation(report: Pick<RuleReport, "documents">, finding: Pick<Ru
   return [...byDocument]
     .map(([id, points]) => {
       const short = report.documents.find((item) => item.id === id)?.short ?? id;
-      const clauses = points.every((point) => point.startsWith(CLAUSE));
-      const listed = clauses && points.length > 1
-        ? `прил. 1, пп. ${points.map((point) => point.slice(CLAUSE.length)).join(", ")}`
-        : points.join(", ");
+      const clause = CLAUSES.find(({ point: start }) => points.every((point) => point.startsWith(start)));
+      const listed = clause && points.length > 1
+        ? `${clause.list}${points.map((point) => point.slice(clause.point.length)).join(", ")}`
+        : points.join("; ");
       return `${short}, ${listed}`;
     })
     .join("; ");

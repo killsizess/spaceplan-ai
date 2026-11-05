@@ -124,9 +124,11 @@ test("a variant made in the app is checked against its source, down to a forbidd
   await expect(page.getByTestId("xray-overall")).toHaveAttribute("data-procedure", "forbidden");
   await expect(finding(page, "moscow.508.9.16")).toContainText("Газифицированная кухня объединена с жилой комнатой");
   await expect(finding(page, "moscow.508.9.16")).toContainText("508-ПП, прил. 1, п. 9.16");
-  await expect(finding(page, "moscow.508.19.6.1")).toContainText("упрощённый порядок");
+  // With gas the wall cannot go at all, so no simpler procedure is named for it.
+  await expect(finding(page, "moscow.508.19.6.1")).toHaveCount(0);
 
   await page.getByLabel("В квартире есть газ").selectOption("no");
+  await expect(finding(page, "moscow.508.19.6.1")).toContainText("упрощённый порядок");
   // Without gas the ban goes away, but a changed kitchen still has no clear answer.
   await expect(finding(page, "moscow.508.9.16")).toContainText("запрет для газа не применён");
   await expect(finding(page, "moscow.kitchen.changed")).toContainText("Границы кухни изменены");
@@ -172,4 +174,19 @@ test("X-Ray fits a phone screen", async ({ page }) => {
   });
   expect(overflow).toBeLessThanOrEqual(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("the test apartment published for the specialist opens and answers", async ({ page, request }) => {
+  const response = await request.get("/rules/test-apartment.json");
+  expect(response.ok()).toBe(true);
+  await page.goto("/");
+  await saved(page);
+  await page.getByLabel("Файл проекта JSON").setInputFiles({
+    name: "test-apartment.json", mimeType: "application/json", buffer: await response.body(),
+  });
+  await expect(page.getByRole("heading", { name: "Тестовая квартира для сверки", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "X-Ray", exact: true }).click();
+  await expect(page.getByTestId("xray-draft")).toBeVisible();
+  await expect(page.getByTestId("xray-wall")).toHaveCount(7);
+  await expect(page.locator('[data-wall="living-kitchen"]')).toHaveAttribute("data-procedure", "unknown");
 });

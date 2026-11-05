@@ -349,7 +349,15 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
   }
 
   // Partitions.
-  const oldPartitions = [...walls.removed, ...walls.moved.map((item) => item.before)].filter((wall) => kindOf(wall) === "partition");
+  // A partition between a kitchen and a living room waits for the gas answer: it may not be
+  // removable at all (п. 9.16), so naming a simplified procedure for it would mislead.
+  const joinsKitchenToLiving = (wall: Wall) => {
+    const beside = before.rooms.filter((room) => room.boundaryWallIds.includes(wall.id));
+    return beside.some((room) => room.kind === "kitchen") && beside.some(isLiving);
+  };
+  const oldPartitions = [...walls.removed, ...walls.moved.map((item) => item.before)]
+    .filter((wall) => kindOf(wall) === "partition")
+    .filter((wall) => facts.gasified === false || !joinsKitchenToLiving(wall));
   const newPartitions = walls.added.filter((wall) => kindOf(wall) === "partition");
   if (oldPartitions.length || newPartitions.length) {
     const wallIds = [...oldPartitions, ...newPartitions].map((wall) => wall.id);
