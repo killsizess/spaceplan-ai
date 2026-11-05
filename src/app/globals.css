@@ -844,6 +844,13 @@ h3 {
   display: flex;
   flex-direction: column;
 }
+/* The last control has to scroll clear of the hosting badge in the screen corner: Netlify's
+   free plan keeps it above the page, 61 px up from the bottom, and the footer takes 26 of those.
+   See docs/DESIGN.md and e2e/host-badge.spec.ts. */
+.properties-panel::after {
+  content: "";
+  flex: 0 0 44px;
+}
 .small-tag {
   color: var(--text-4);
   background: var(--accent-100);

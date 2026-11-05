@@ -58,9 +58,12 @@ async function applyPdf(page: Page) {
 
 test("PDF page selection and rotation preserve geometry, history and portable saves", async ({
   page,
+  baseURL,
 }) => {
   const errors: string[] = [];
   const externalRequests: string[] = [];
+  // The site's own address is whatever the run was given: a local server or the published site.
+  const ownHost = new URL(baseURL!).hostname;
   const workers: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("worker", (worker) => workers.push(worker.url()));
@@ -68,7 +71,7 @@ test("PDF page selection and rotation preserve geometry, history and portable sa
     const url = new URL(request.url());
     if (
       ["http:", "https:"].includes(url.protocol) &&
-      !["localhost", "127.0.0.1"].includes(url.hostname)
+      url.hostname !== ownHost
     ) {
       externalRequests.push(request.url());
     }
