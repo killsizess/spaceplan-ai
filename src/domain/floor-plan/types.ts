@@ -141,8 +141,41 @@ export interface BuildingFacts {
   floorLevel?: "first" | "upper";
 }
 
+/** What a rule in the developer's words is about: a room kind, or any living room. */
+export type ProfileTarget = RoomKind | "any-living";
+
+interface ProfileRuleBase {
+  id: string;
+  /** The developer's own words this rule came from. */
+  phrase: string;
+}
+
+/** One rule understood from the developer's text. */
+export type ProfileRule = ProfileRuleBase & (
+  | { type: "room-min-area"; target: ProfileTarget; value: number }
+  | { type: "room-max-area"; target: ProfileTarget; value: number }
+  | { type: "room-count"; target: ProfileTarget; min?: number; max?: number }
+  | { type: "min-height"; value: number }
+  | { type: "window-required"; target: ProfileTarget }
+  | { type: "no-merge"; target: ProfileTarget; other: ProfileTarget }
+  | { type: "keep-bearing" }
+  | { type: "keep-room"; target: ProfileTarget }
+  | { type: "project-required" }
+);
+
+/**
+ * v10. Rules for a place with no ready-made rule base, as the developer wrote them. The
+ * text is kept with what was understood from it and what was not: nothing is silently
+ * dropped, and a phrase that was not understood is not checked.
+ */
+export interface RuleProfile {
+  prompt: string;
+  rules: ProfileRule[];
+  notUnderstood: string[];
+}
+
 export interface FloorPlan {
-  schemaVersion: 9;
+  schemaVersion: 10;
   unit: "m";
   id: string;
   name: string;
@@ -158,4 +191,6 @@ export interface FloorPlan {
   origin?: PlanOrigin;
   /** v8. */
   buildingFacts?: BuildingFacts;
+  /** v10. */
+  ruleProfile?: RuleProfile;
 }

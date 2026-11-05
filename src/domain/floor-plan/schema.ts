@@ -222,9 +222,35 @@ export const buildingFactsSchema = z.object({
   floorLevel: z.enum(["first", "upper"]).optional(),
 }).strict();
 
+const profileTarget = z.enum(["living", "bedroom", "kitchen", "bathroom", "hall", "other", "balcony", "shaft", "any-living"]);
+const profileRuleBase = { id, phrase: z.string().trim().min(1).max(500) };
+const profileNumber = z.number().finite().positive().max(10000);
+
+export const ruleProfileSchema = z.object({
+  prompt: z.string().max(5000),
+  rules: z.array(z.discriminatedUnion("type", [
+    z.object({ ...profileRuleBase, type: z.literal("room-min-area"), target: profileTarget, value: profileNumber }).strict(),
+    z.object({ ...profileRuleBase, type: z.literal("room-max-area"), target: profileTarget, value: profileNumber }).strict(),
+    z.object({
+      ...profileRuleBase,
+      type: z.literal("room-count"),
+      target: profileTarget,
+      min: z.number().int().min(0).max(100).optional(),
+      max: z.number().int().min(0).max(100).optional(),
+    }).strict(),
+    z.object({ ...profileRuleBase, type: z.literal("min-height"), value: profileNumber }).strict(),
+    z.object({ ...profileRuleBase, type: z.literal("window-required"), target: profileTarget }).strict(),
+    z.object({ ...profileRuleBase, type: z.literal("no-merge"), target: profileTarget, other: profileTarget }).strict(),
+    z.object({ ...profileRuleBase, type: z.literal("keep-bearing") }).strict(),
+    z.object({ ...profileRuleBase, type: z.literal("keep-room"), target: profileTarget }).strict(),
+    z.object({ ...profileRuleBase, type: z.literal("project-required") }).strict(),
+  ])).max(100),
+  notUnderstood: z.array(z.string().max(500)).max(100),
+}).strict();
+
 const floorPlanFields = z
   .object({
-    schemaVersion: z.literal(9),
+    schemaVersion: z.literal(10),
     unit: z.literal("m"),
     id,
     name: z.string().trim().min(1).max(100),
@@ -237,6 +263,7 @@ const floorPlanFields = z
     underlay: underlaySchema.optional(),
     origin: planOriginSchema.optional(),
     buildingFacts: buildingFactsSchema.optional(),
+    ruleProfile: ruleProfileSchema.optional(),
   })
   .strict();
 

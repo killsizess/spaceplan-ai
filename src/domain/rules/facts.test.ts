@@ -8,7 +8,7 @@ describe("answers as a report prints them", () => {
   });
 
   it("prints only the region when there is no rule base for it", () => {
-    expect(factLines({ region: "other" })).toEqual([{ label: "Где находится квартира", answer: "Другой регион" }]);
+    expect(factLines({ region: "other" })).toEqual([{ label: "Где находится квартира", answer: "Другая страна или регион" }]);
   });
 
   it("prints every question for Moscow, and an unanswered one as not known", () => {

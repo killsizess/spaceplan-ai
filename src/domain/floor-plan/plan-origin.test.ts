@@ -41,7 +41,7 @@ describe("variant origin", () => {
     const plan = source();
     const rebuilt = planFromOrigin(createPlanOrigin(plan, at));
     expect(rebuilt.id).toBe(plan.id);
-    expect(rebuilt.schemaVersion).toBe(9);
+    expect(rebuilt.schemaVersion).toBe(10);
     expect(floorPlanSchema.safeParse(rebuilt).success).toBe(true);
     expect(diffPlans(rebuilt, plan).identical).toBe(true);
   });

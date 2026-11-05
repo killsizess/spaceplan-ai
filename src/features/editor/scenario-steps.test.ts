@@ -65,10 +65,10 @@ describe("scenario route", () => {
       expect(value(withRegion(), "norms")).toBe("регион не указан");
     });
 
-    it("says when there is no base for the region and does not hold the route there", () => {
-      expect(value(withRegion("other"), "norms")).toBe("базы нет");
+    it("asks for rules where there is no ready-made base", () => {
+      expect(value(withRegion("other"), "norms")).toBe("правила не заданы");
       const steps = scenarioSteps({ plan: withRegion("other"), freeEnds: 0, violatedRequirements: 0, variants: 0 });
-      expect(steps.find((step) => step.id === "norms")!.state).toBe("done");
+      expect(steps.find((step) => step.id === "norms")!.state).not.toBe("done");
     });
 
     it("counts problems before questions", () => {

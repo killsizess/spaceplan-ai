@@ -8,12 +8,12 @@ const example = () => {
   return plan;
 };
 
-describe("formats 7 and 8", () => {
-  it("opens v7 and v8 files as current, with nothing changed and no answers invented", () => {
-    for (const schemaVersion of [7, 8]) {
+describe("formats 7 to 9", () => {
+  it("open as current, with nothing changed and no answers invented", () => {
+    for (const schemaVersion of [7, 8, 9]) {
       const old = { ...example(), schemaVersion };
       const opened = parsePlanFile(JSON.stringify(old));
-      expect(opened).toEqual({ ...old, schemaVersion: 9 });
+      expect(opened).toEqual({ ...old, schemaVersion: 10 });
       expect("buildingFacts" in opened).toBe(false);
     }
   });
@@ -25,6 +25,21 @@ describe("formats 7 and 8", () => {
 
   it("refuses a v7 file carrying a v8 field rather than blessing it", () => {
     expect(() => parsePlanFile(JSON.stringify({ ...example(), schemaVersion: 7, buildingFacts: { region: "moscow" } }))).toThrow();
+  });
+});
+
+describe("format 10", () => {
+  const profile = { prompt: "Кухня не меньше 9 м²", rules: [{ id: "r1", phrase: "Кухня не меньше 9 м²", type: "room-min-area", target: "kitchen", value: 9 }], notUnderstood: [] };
+
+  it("keeps the developer's rules through a save and an open", () => {
+    const plan = { ...createExamplePlan(), ruleProfile: profile as never };
+    expect(parsePlanFile(serializePlan(plan)).ruleProfile).toEqual(profile);
+  });
+
+  it("refuses a v9 file carrying the rules, and rules that do not fit the format", () => {
+    expect(() => parsePlanFile(JSON.stringify({ ...example(), schemaVersion: 9, ruleProfile: profile }))).toThrow();
+    expect(() => parsePlanFile(JSON.stringify({ ...example(), ruleProfile: { ...profile, rules: [{ id: "r1", phrase: "x", type: "guess" }] } }))).toThrow();
+    expect(() => parsePlanFile(JSON.stringify({ ...example(), ruleProfile: { prompt: "x" } }))).toThrow();
   });
 });
 
@@ -40,7 +55,7 @@ describe("format 9", () => {
     const again = parsePlanFile(serializePlan(plan));
     expect(again.buildingFacts).toEqual(plan.buildingFacts);
     expect(again.rooms.map((item) => item.kind)).toEqual(plan.rooms.map((item) => item.kind));
-    expect(again.schemaVersion).toBe(9);
+    expect(again.schemaVersion).toBe(10);
   });
 
   it("refuses a v8 file carrying anything format 9 added", () => {
@@ -58,6 +73,6 @@ describe("format 9", () => {
   });
 
   it("refuses an unknown version", () => {
-    expect(() => parsePlanFile(JSON.stringify({ ...createExamplePlan(), schemaVersion: 10 }))).toThrow(/версии от 1 до 9/);
+    expect(() => parsePlanFile(JSON.stringify({ ...createExamplePlan(), schemaVersion: 11 }))).toThrow(/версии от 1 до 10/);
   });
 });

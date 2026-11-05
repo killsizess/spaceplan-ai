@@ -1,6 +1,7 @@
-import type { FloorPlan, RoomKind, WallKind } from "@/domain/floor-plan/types";
+import type { FloorPlan, ProfileRule, RoomKind, RuleProfile, WallKind } from "@/domain/floor-plan/types";
 import { wallKindOf } from "@/domain/floor-plan/wall-kind";
 import { PROCEDURE_ORDER } from "./moscow";
+import { matchesTarget, OWNER_DOCUMENT } from "./profile-pack";
 import { isPerimeterWall, roomsOfPlan, type RuleRoom } from "./rule-rooms";
 import type { Procedure, RuleSource } from "./types";
 
@@ -151,7 +152,60 @@ function moveOf(plan: FloorPlan, room: RuleRoom): WorkAnswer | null {
   return null;
 }
 
+const countByRemoval = (walls: readonly WallPotential[]) =>
+  Object.fromEntries(
+    PROCEDURE_ORDER.map((procedure) => [procedure, walls.filter((wall) => wall.removal.procedure === procedure).length]),
+  ) as Record<Procedure, number>;
+
+/** X-Ray for the developer's own rules: what they forbid or ask for, and otherwise no answer. */
+function buildProfileXray(plan: FloorPlan, profile: RuleProfile): PlanXray {
+  const { rooms, unresolved } = roomsOfPlan(plan);
+  const source = (rule: ProfileRule): RuleSource => ({ document: OWNER_DOCUMENT, point: `«${rule.phrase}»` });
+  const project = profile.rules.find((rule) => rule.type === "project-required");
+  const noAnswer: WorkAnswer = { procedure: "unknown", reason: "В правилах застройщика нет ответа об этой работе.", sources: [] };
+  const asked: WorkAnswer = project
+    ? { procedure: "project", reason: "Застройщик указал, что изменения делаются по проекту.", sources: [source(project)] }
+    : noAnswer;
+  const keepBearing = profile.rules.find((rule) => rule.type === "keep-bearing");
+  const walls = plan.walls.map((wall, index): WallPotential => {
+    const kind = wallKindOf(wall);
+    const beside = rooms.filter((room) => room.boundaryWallIds.includes(wall.id));
+    const base = { wallId: wall.id, number: index + 1, kind, rooms: beside.map((room) => room.name) };
+    if (kind === "unknown") {
+      const unknown: WorkAnswer = { procedure: "unknown", reason: "Тип стены не указан: это может быть несущая стена.", sources: [] };
+      return { ...base, removal: unknown, opening: unknown };
+    }
+    if (kind === "bearing") {
+      const answer: WorkAnswer = keepBearing
+        ? { procedure: "forbidden", reason: "Застройщик запретил менять несущие стены.", sources: [source(keepBearing)] }
+        : { procedure: "specialist", reason: "Несущая стена: оценит только специалист.", sources: [] };
+      return { ...base, removal: answer, opening: answer };
+    }
+    const merge = profile.rules.find((rule) => rule.type === "no-merge" &&
+      beside.some((room) => matchesTarget(room.kind, rule.target)) && beside.some((room) => matchesTarget(room.kind, rule.other)));
+    const stay = profile.rules.find((rule) => rule.type === "keep-room" && beside.some((room) => matchesTarget(room.kind, rule.target)));
+    const blocking = merge ?? stay;
+    return {
+      ...base,
+      removal: blocking
+        ? { procedure: "forbidden", reason: merge ? "Снос объединит помещения, которые объединять нельзя." : "Снос изменит помещение, которое должно остаться на месте.", sources: [source(blocking)] }
+        : asked,
+      opening: asked,
+    };
+  });
+  const movable = rooms.flatMap((room): RoomPotential[] => {
+    if (room.kind !== "kitchen" && room.kind !== "bathroom") return [];
+    const stay = profile.rules.find((rule) => rule.type === "keep-room" && matchesTarget(room.kind, rule.target));
+    const move: WorkAnswer = stay
+      ? { procedure: "forbidden", reason: "Застройщик указал, что это помещение остаётся на месте.", sources: [source(stay)] }
+      : asked;
+    return [{ roomId: room.id, name: room.name, kind: room.kind, action: "Перенос", move }];
+  });
+  return { walls, rooms: movable, counts: countByRemoval(walls), unresolved };
+}
+
 export function buildXray(plan: FloorPlan): PlanXray {
+  if (plan.buildingFacts?.region !== "moscow" && plan.ruleProfile) return buildProfileXray(plan, plan.ruleProfile);
   const { rooms, unresolved } = roomsOfPlan(plan);
   const walls = plan.walls.map((wall, index): WallPotential => {
     const kind = wallKindOf(wall);
@@ -166,9 +220,7 @@ export function buildXray(plan: FloorPlan): PlanXray {
       opening: openingOf(plan, kind, perimeter, beside),
     };
   });
-  const counts = Object.fromEntries(
-    PROCEDURE_ORDER.map((procedure) => [procedure, walls.filter((wall) => wall.removal.procedure === procedure).length]),
-  ) as Record<Procedure, number>;
+  const counts = countByRemoval(walls);
   const movable = rooms.flatMap((room): RoomPotential[] => {
     const move = moveOf(plan, room);
     const action = room.kind === "balcony" ? "Новый или больший" : room.kind === "shaft" ? "Изменение" : "Перенос";

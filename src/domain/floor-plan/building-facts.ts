@@ -1,4 +1,4 @@
-import type { BuildingFacts, FloorPlan } from "./types";
+import type { BuildingFacts, FloorPlan, RuleProfile } from "./types";
 
 /**
  * Sets the answers about the building. An answer that is not given is left out, and with
@@ -11,5 +11,13 @@ export function withBuildingFacts(plan: FloorPlan, facts: BuildingFacts): FloorP
   if (Object.keys(answers).length) return { ...plan, buildingFacts: answers };
   const copy = { ...plan };
   delete copy.buildingFacts;
+  return copy;
+}
+
+/** Sets the developer's rules; null removes them. */
+export function withRuleProfile(plan: FloorPlan, profile: RuleProfile | null): FloorPlan {
+  if (profile) return { ...plan, ruleProfile: profile };
+  const copy = { ...plan };
+  delete copy.ruleProfile;
   return copy;
 }

@@ -3,8 +3,10 @@ import { formatArea, formatLength } from "@/lib/format";
 import type { FloorPlan, Opening, RoomKind, Wall } from "@/domain/floor-plan/types";
 import { openingChanges, roomKindChanges, wallChanges } from "./plan-changes";
 import {
+  hasOutsideWindow,
   isPerimeterOpening,
   isPerimeterWall,
+  roomHeight,
   openingCentre,
   overlapArea,
   roomsBeside,
@@ -240,14 +242,7 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
   // Daylight: a window between a room and the outside.
   const walls = new Map(plan.walls.map((wall) => [wall.id, wall]));
   const needDaylight = rooms.filter((room) => isLiving(room) || room.kind === "kitchen");
-  const dark = needDaylight.filter((room) =>
-    !plan.openings.some((opening) => {
-      if (opening.kind !== "window" || !room.boundaryWallIds.includes(opening.wallId)) return false;
-      const [first, second] = roomsBeside(walls.get(opening.wallId)!, openingCentre(opening), rooms);
-      const outside = (other: RuleRoom | null) => !other || other.kind === "balcony";
-      return (first?.id === room.id && outside(second)) || (second?.id === room.id && outside(first));
-    }),
-  );
+  const dark = needDaylight.filter((room) => !hasOutsideWindow(plan, room, rooms));
   for (const room of dark) {
     findings.push({
       ruleId: "moscow.pp47.25",
@@ -300,8 +295,7 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
   }
 
   // Heights: the lowest wall around a room.
-  const heightOf = (room: RuleRoom) =>
-    Math.min(...room.boundaryWallIds.map((id) => walls.get(id)?.height ?? Infinity));
+  const heightOf = (room: RuleRoom) => roomHeight(plan, room);
   const low = rooms.filter((room) => {
     const height = heightOf(room);
     if (isLiving(room) || room.kind === "kitchen") return !hasHeight(height, 2.5);
@@ -795,6 +789,8 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
 
 export const MOSCOW_PACK: RulePack = {
   id: "moscow",
+  kind: "regulation",
+  procedures: PROCEDURES,
   region: "Москва",
   version: "2026-11-05",
   reviewed: false,

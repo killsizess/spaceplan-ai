@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ScanSearch, TriangleAlert, X } from "lucide-react";
-import type { BuildingFacts, FloorPlan, NeighbourFloor } from "@/domain/floor-plan/types";
+import type { BuildingFacts, FloorPlan, NeighbourFloor, RuleProfile } from "@/domain/floor-plan/types";
 import { WALL_KIND_LABELS } from "@/domain/floor-plan/wall-kind";
 import { citation, rulesForPlan } from "@/domain/rules/engine";
+import { describeProfileRule } from "@/domain/rules/profile-pack";
+import { interpretPrompt } from "@/domain/rules/prompt-rules";
 import {
   FLOOR_ANSWERS,
   FLOOR_LABEL,
@@ -93,6 +95,84 @@ function Facts({ facts, onFacts }: { facts: BuildingFacts; onFacts: (facts: Buil
   );
 }
 
+const LAST_PROMPT_KEY = "spaceplan-ai:last-rule-prompt:v1";
+
+function readLastPrompt(): string {
+  try {
+    return window.localStorage.getItem(LAST_PROMPT_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+function rememberPrompt(prompt: string) {
+  try {
+    window.localStorage.setItem(LAST_PROMPT_KEY, prompt);
+  } catch {
+    // Only a convenience: the rules themselves are saved in the plan.
+  }
+}
+
+/** The developer's rules for a place with no ready-made base: written, read back, applied. */
+function ProfileEditor({ profile, onProfile }: { profile: RuleProfile | undefined; onProfile: (profile: RuleProfile | null) => void }) {
+  const [text, setText] = useState(() => profile?.prompt ?? readLastPrompt());
+  return (
+    <section className="xray-profile" data-testid="xray-profile" aria-labelledby="xray-profile-title">
+      <h3 id="xray-profile-title">Правила застройщика</h3>
+      <p>
+        Опишите своими словами, что важно в вашей стране или на вашем объекте. Приложение проверит план по этим правилам,
+        но не будет сверять их с законами страны.
+      </p>
+      <label>
+        <span>Правила своими словами</span>
+        <textarea
+          rows={5}
+          maxLength={5000}
+          value={text}
+          placeholder={"Кухня не меньше 9 м². Спальня не меньше 10 м².\nПотолки не ниже 2,6 м. В каждой комнате окно.\nНесущие стены не трогать. Санузлы не переносить.\nKitchen at least 9 m2. Do not merge the kitchen with the living room."}
+          onChange={(event) => setText(event.target.value)}
+        />
+      </label>
+      <div className="xray-profile-actions">
+        <button
+          type="button"
+          className="primary-button"
+          disabled={!text.trim()}
+          onClick={() => {
+            rememberPrompt(text);
+            onProfile(interpretPrompt(text));
+          }}
+        >
+          Применить правила
+        </button>
+        {profile && <button type="button" className="secondary-button" onClick={() => onProfile(null)}>Убрать правила</button>}
+      </div>
+      <p className="xray-note">
+        Текст разбирается по шаблонам, без нейросети: понимает русский и английский и не угадывает. Проверьте, как приложение его поняло.
+      </p>
+      {profile && (
+        <>
+          <h4>Как приложение это поняло: {profile.rules.length}</h4>
+          <ul data-testid="xray-profile-rules">
+            {profile.rules.map((rule) => (
+              <li key={rule.id} data-rule-type={rule.type}>
+                <strong>{describeProfileRule(rule)}</strong> <small>«{rule.phrase}»</small>
+              </li>
+            ))}
+          </ul>
+          {profile.notUnderstood.length > 0 && (
+            <>
+              <h4>Не понято и не проверяется: {profile.notUnderstood.length}</h4>
+              <ul data-testid="xray-profile-not-understood">
+                {profile.notUnderstood.map((phrase) => <li key={phrase}>«{phrase}»</li>)}
+              </ul>
+            </>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 function WallAnswer({ label, answer, rules }: { label: string; answer: WorkAnswer; rules: RuleReport }) {
   const sources = sourcesText(rules, answer.sources);
   return (
@@ -151,7 +231,7 @@ function Potential({ xray, rules, onShow, onOpenExample }: {
         if (!walls.length) return null;
         return (
           <details key={procedure} open={xray.walls.length <= 12} className="xray-group">
-            <summary>{PROCEDURES[procedure].label}: стен {walls.length}. <small>{PROCEDURES[procedure].meaning}</small></summary>
+            <summary>{rules.procedures[procedure].label}: стен {walls.length}. <small>{rules.procedures[procedure].meaning}</small></summary>
             <ul>{walls.map((wall) => <WallCard key={wall.wallId} wall={wall} rules={rules} onShow={onShow} />)}</ul>
           </details>
         );
@@ -212,12 +292,14 @@ function Findings({ rules, targetOf, onShow }: {
 export default function PlanXrayDialog({
   plan,
   onFacts,
+  onProfile,
   onShow,
   onOpenExample,
   onClose,
 }: {
   plan: FloorPlan;
   onFacts: (facts: BuildingFacts) => void;
+  onProfile: (profile: RuleProfile | null) => void;
   /** Closes the dialog with this wall, opening or room selected on the plan. */
   onShow: (id: string) => void;
   onOpenExample: () => void;
@@ -272,17 +354,18 @@ export default function PlanXrayDialog({
       <div className="plan-report-scroll">
         <Facts facts={facts} onFacts={onFacts} />
 
+        {facts.region === "other" && <ProfileEditor profile={plan.ruleProfile} onProfile={onProfile} />}
         {!rules && (
           <p className="xray-no-rules" data-testid="xray-no-rules">
             {facts.region === "other"
-              ? "Для этого региона базы правил пока нет: нормы не проверяются. Сейчас есть только база для Москвы."
-              : "Укажите, где находится квартира. Правила берутся только для выбранного региона."}
+              ? "Правила ещё не заданы, поэтому план не проверяется. Готовая база пока есть только для Москвы."
+              : "Укажите, где находится квартира. Для другой страны или региона можно задать правила своими словами."}
           </p>
         )}
 
         {rules && xray && (
           <>
-            {!rules.reviewed && (
+            {rules.kind === "regulation" && !rules.reviewed && (
               <p className="xray-draft" data-testid="xray-draft">
                 <TriangleAlert size={16} aria-hidden="true" />
                 <span>
@@ -305,9 +388,9 @@ export default function PlanXrayDialog({
               <section className="xray-overall" data-testid="xray-overall" data-procedure={rules.overall}>
                 <h3>Что понадобится для этого варианта</h3>
                 <ProcedureChip procedure={rules.overall} />
-                <p>{PROCEDURES[rules.overall].meaning}</p>
-                {PROCEDURES[rules.overall].sources.length > 0 && (
-                  <small>{sourcesText(rules, PROCEDURES[rules.overall].sources)}</small>
+                <p>{rules.procedures[rules.overall].meaning}</p>
+                {rules.procedures[rules.overall].sources.length > 0 && (
+                  <small>{sourcesText(rules, rules.procedures[rules.overall].sources)}</small>
                 )}
               </section>
             )}
@@ -318,7 +401,9 @@ export default function PlanXrayDialog({
               <ul>
                 {rules.documents.map((document) => (
                   <li key={document.id}>
-                    <a href={document.url} target="_blank" rel="noreferrer noopener">{document.title}</a>
+                    {document.url
+                      ? <a href={document.url} target="_blank" rel="noreferrer noopener">{document.title}</a>
+                      : <strong>{document.title}</strong>}
                     <p>{document.edition}</p>
                     <p>{document.gaps}</p>
                   </li>

@@ -85,6 +85,12 @@ export const REPORT_RULES_NOTE =
 
 /** The limits of a report built on a rule base: which editions, and how far they can be trusted. */
 function regulationLimits(rules: RuleReport): string[] {
+  if (rules.kind === "owner") {
+    return [
+      "Нормы: правила заданы застройщиком своими словами. Приложение проверило план по ним, но не сверяло их с нормами страны или региона.",
+      ...(rules.notUnderstood.length ? [`Не понято и не проверяется: ${rules.notUnderstood.map((phrase) => `«${phrase}»`).join(", ")}.`] : []),
+    ];
+  }
   const version = rules.version.split("-").reverse().join(".");
   return [
     `Нормы: ${rules.region}, база правил от ${version}. ${rules.reviewed ? "База сверена со специалистом." : "База не сверена со специалистом, поэтому выводы по ней остаются предположениями."}`,

@@ -135,3 +135,23 @@ export function isPerimeterOpening(wall: Wall, opening: Opening, rooms: readonly
   const [first, second] = roomsBeside(wall, openingCentre(opening), rooms);
   return Boolean(first) !== Boolean(second);
 }
+
+/** True when one of the room's windows has the outside, or a balcony, on its other side. */
+export function hasOutsideWindow(plan: Pick<FloorPlan, "walls" | "openings">, room: RuleRoom, rooms: readonly RuleRoom[]): boolean {
+  const walls = new Map(plan.walls.map((wall) => [wall.id, wall]));
+  return plan.openings.some((opening) => {
+    if (opening.kind !== "window" || !room.boundaryWallIds.includes(opening.wallId)) return false;
+    const host = walls.get(opening.wallId);
+    if (!host) return false;
+    const [first, second] = roomsBeside(host, openingCentre(opening), rooms);
+    const outside = (other: RuleRoom | null) => !other || other.kind === "balcony";
+    return (first?.id === room.id && outside(second)) || (second?.id === room.id && outside(first));
+  });
+}
+
+/** The height of a room: the lowest wall around it. */
+export function roomHeight(plan: Pick<FloorPlan, "walls">, room: RuleRoom): number {
+  const walls = new Map(plan.walls.map((wall) => [wall.id, wall]));
+  return Math.min(...room.boundaryWallIds.map((id) => walls.get(id)?.height ?? Infinity));
+}
+

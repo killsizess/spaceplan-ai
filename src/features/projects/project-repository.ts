@@ -15,7 +15,7 @@ export const MAX_PLAN_FILE_BYTES = 4 * 1024 * 1024;
 
 /**
  * Migration is in memory only; a normal successful save upgrades the record.
- * Formats 1–5 are brought to 6 here, then 6 to 7, 7 to 8 and 8 to the current version.
+ * Formats 1–5 are brought to 6 here, then each format to the next, up to the current one.
  */
 function toVersionSix(value: unknown): unknown {
   if (
@@ -112,7 +112,7 @@ function usesVersionNine(plan: Record<string, unknown>): boolean {
 }
 
 /** A v8 file that already carries v9 content is refused rather than blessed. */
-function toCurrentVersion(value: unknown): unknown {
+function toVersionNine(value: unknown): unknown {
   if (
     typeof value !== "object" || value === null ||
     !("schemaVersion" in value) || value.schemaVersion !== 8 ||
@@ -121,8 +121,18 @@ function toCurrentVersion(value: unknown): unknown {
   return { ...value, schemaVersion: 9 };
 }
 
+/** A v9 file that already carries the v10 field is refused rather than blessed. */
+function toCurrentVersion(value: unknown): unknown {
+  if (
+    typeof value !== "object" || value === null ||
+    !("schemaVersion" in value) || value.schemaVersion !== 9 ||
+    "ruleProfile" in value
+  ) return value;
+  return { ...value, schemaVersion: 10 };
+}
+
 const persistedPlanSchema = z.preprocess(
-  (value) => toCurrentVersion(toVersionEight(toVersionSeven(toVersionSix(value)))),
+  (value) => toCurrentVersion(toVersionNine(toVersionEight(toVersionSeven(toVersionSix(value))))),
   floorPlanLoadSchema,
 );
 
@@ -199,10 +209,11 @@ function validatePlan(value: unknown): FloorPlan {
     value.schemaVersion !== 6 &&
     value.schemaVersion !== 7 &&
     value.schemaVersion !== 8 &&
-    value.schemaVersion !== 9
+    value.schemaVersion !== 9 &&
+    value.schemaVersion !== 10
   ) {
     throw new Error(
-      "Версия формата не поддерживается. Нужен план SpacePlan версии от 1 до 9.",
+      "Версия формата не поддерживается. Нужен план SpacePlan версии от 1 до 10.",
     );
   }
   const result = persistedPlanSchema.safeParse(value);

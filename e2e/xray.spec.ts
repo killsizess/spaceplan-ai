@@ -36,7 +36,7 @@ test("no rules run until the owner chooses the region, and the answers are saved
   await expect(page.getByTestId("xray-draft")).toHaveCount(0);
 
   await page.getByLabel("Где находится квартира").selectOption("other");
-  await expect(page.getByTestId("xray-no-rules")).toContainText("Для этого региона базы правил пока нет");
+  await expect(page.getByTestId("xray-no-rules")).toContainText("Правила ещё не заданы");
   await expect(page.getByLabel("В квартире есть газ")).toHaveCount(0);
 
   await page.getByLabel("Где находится квартира").selectOption("moscow");
@@ -61,7 +61,7 @@ test("no rules run until the owner chooses the region, and the answers are saved
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Экспорт JSON" }).click();
   const exported = JSON.parse(await readFile(await (await download).path(), "utf8")) as FloorPlan;
-  expect(exported.schemaVersion).toBe(9);
+  expect(exported.schemaVersion).toBe(10);
   expect(exported.buildingFacts?.gasified).toBe(true);
 
   // An answer is an edit like any other: undo takes it back.
@@ -356,4 +356,60 @@ test("a report on a plan with no region lists no answers", async ({ page }) => {
   await page.getByRole("button", { name: "Отчёт", exact: true }).click();
   await expect(page.getByTestId("report-limits")).toContainText("база правил ещё не подключена");
   await expect(page.getByTestId("report-facts")).toHaveCount(0);
+});
+
+test("a developer anywhere writes rules in their own words, and the plan is checked by them", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await importPlan(page, apartment({}));
+  await page.getByRole("button", { name: "X-Ray", exact: true }).click();
+  await page.getByLabel("Где находится квартира").selectOption("other");
+  await expect(page.getByTestId("xray-no-rules")).toContainText("Правила ещё не заданы");
+  await expect(page.getByLabel("В квартире есть газ")).toHaveCount(0);
+
+  await page.getByLabel("Правила своими словами").fill(
+    "Кухня не меньше 12 м². Do not merge the kitchen with the living room. Несущие стены не трогать. Фасад по согласованию с архитектором",
+  );
+  await page.getByRole("button", { name: "Применить правила" }).click();
+
+  // What was understood, in the app's words, next to the developer's own.
+  const understood = page.getByTestId("xray-profile-rules");
+  await expect(understood.locator("li")).toHaveCount(3);
+  await expect(understood).toContainText("Кухня: площадь не меньше 12 м²");
+  await expect(understood).toContainText("«Do not merge the kitchen with the living room»");
+  await expect(page.getByTestId("xray-profile-not-understood")).toContainText("Фасад по согласованию с архитектором");
+  await expect(page.getByTestId("xray-draft")).toHaveCount(0);
+
+  // The plan is checked by those rules, and each finding quotes its phrase.
+  await expect(page.locator('[data-rule="profile.room-min-area"]')).toContainText("Кухня: 10,64 м² при минимуме 12 м²");
+  await expect(page.locator('[data-rule="profile.room-min-area"]')).toContainText("«Кухня не меньше 12 м²»");
+  await expect(page.locator('[data-wall="top"]')).toHaveAttribute("data-procedure", "forbidden");
+  await expect(page.locator('[data-wall="living-kitchen"]')).toHaveAttribute("data-procedure", "forbidden");
+  await expect(page.locator('[data-wall="kitchen-bath"]')).toHaveAttribute("data-procedure", "unknown");
+  expect((await saved(page)).ruleProfile?.rules).toHaveLength(3);
+  await page.getByRole("button", { name: "Закрыть X-Ray" }).click();
+
+  // The route and the plan show the problem; the report says whose rules these are.
+  await expect(page.locator('.scenario-rail [data-step="norms"]')).toContainText("замечаний 1");
+  await expect.poll(async () => JSON.parse((await page.getByTestId("plan-canvas").getAttribute("data-flagged-rooms"))!).length).toBe(1);
+  await page.getByRole("button", { name: "Отчёт", exact: true }).click();
+  await expect(page.getByTestId("report-limits")).toContainText("заданы застройщиком");
+  await expect(page.getByTestId("report-limits")).toContainText("Фасад по согласованию");
+  await page.getByRole("button", { name: "Закрыть отчёт" }).click();
+
+  // A variant keeps the rules and is checked against its source.
+  await page.getByRole("button", { name: "Вариант", exact: true }).click();
+  await expect(page.getByRole("heading", { name: /вариант/i })).toBeVisible();
+  await page.getByRole("tab", { name: "Стены", exact: true }).click();
+  await page.getByRole("button", { name: "Выбрать стену 5", exact: true }).click();
+  await page.getByRole("button", { name: "Удалить стену", exact: true }).click();
+  await page.getByRole("button", { name: "X-Ray", exact: true }).click();
+  await expect(page.getByTestId("xray-overall")).toHaveAttribute("data-procedure", "forbidden");
+  await expect(page.locator('[data-rule="profile.no-merge"]')).toContainText("«Do not merge the kitchen with the living room»");
+
+  // Removing the rules is an edit like any other, and the text is offered again in a new project.
+  await page.getByRole("button", { name: "Убрать правила" }).click();
+  await expect(page.getByTestId("xray-no-rules")).toBeVisible();
+  await expect(page.getByLabel("Правила своими словами")).toHaveValue(/Кухня не меньше 12/);
+  expect(errors).toEqual([]);
 });

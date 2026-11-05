@@ -72,7 +72,7 @@ describe("explicit T-junction", () => {
     plan.rooms = [createDefaultRoom(plan, "manual")];
     const before = structuredClone(plan);
     const result = connectWallJunction(plan, snapshot(plan), "second-half");
-    expect(result.schemaVersion).toBe(9);
+    expect(result.schemaVersion).toBe(10);
     expect(result.roomMode).toBe(plan.roomMode);
     expect(result.walls).toEqual([
       { ...plan.walls[0], start: { x: 2, y: 0 } },

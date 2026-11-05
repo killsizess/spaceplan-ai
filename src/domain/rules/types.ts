@@ -20,7 +20,7 @@ export interface RegulationDocument {
   title: string;
   /** The edition the rules were taken from. */
   edition: string;
-  /** Where the text was read. */
+  /** Where the text was read; empty for the developer's own text. */
   url: string;
   /** What is known to be missing from that reading; empty when nothing is. */
   gaps: string;
@@ -48,8 +48,20 @@ export interface RuleFinding {
 
 export type FactKey = Exclude<keyof BuildingFacts, "region">;
 
+/**
+ * `regulation`: written from documents, and unconfirmed until a specialist signs it off.
+ * `owner`: the developer's own rules, checked as written and never compared with any law.
+ */
+export type PackKind = "regulation" | "owner";
+
+export type ProcedureTexts = Readonly<Record<Procedure, { label: string; meaning: string; sources: readonly RuleSource[] }>>;
+
 export interface RuleReport {
   packId: string;
+  kind: PackKind;
+  procedures: ProcedureTexts;
+  /** The phrases of the developer's text that were not understood, and so not checked. */
+  notUnderstood: readonly string[];
   region: string;
   /** The date of this edition of the rule base. */
   version: string;
@@ -68,6 +80,9 @@ export interface RuleReport {
 
 export interface RulePack {
   id: string;
+  kind: PackKind;
+  procedures: ProcedureTexts;
+  notUnderstood?: readonly string[];
   region: string;
   version: string;
   reviewed: boolean;

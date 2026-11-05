@@ -1557,6 +1557,7 @@ export default function Editor() {
         <PlanXrayDialog
           plan={state.plan}
           onFacts={(facts) => dispatch({ type: "facts:set", facts })}
+          onProfile={(profile) => dispatch({ type: "profile:set", profile })}
           onShow={(id) => {
             const structural = [...state.plan.walls, ...state.plan.openings].some((item) => item.id === id);
             setXrayOpen(false);

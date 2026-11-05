@@ -18,7 +18,7 @@ export const NEIGHBOUR_ANSWERS: Readonly<Record<NeighbourFloor, string>> = {
   "no-dwelling": "Квартир нет",
 };
 export const FLOOR_ANSWERS = { first: "Первый", upper: "Второй и выше" } as const;
-export const REGION_ANSWERS = { moscow: "Москва", other: "Другой регион" } as const;
+export const REGION_ANSWERS = { moscow: "Москва", other: "Другая страна или регион" } as const;
 
 export interface FactLine {
   label: string;

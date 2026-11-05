@@ -37,7 +37,7 @@ export function scenarioSteps(input: {
   const normsValue = !region
     ? "регион не указан"
     : !rules
-      ? "базы нет"
+      ? "правила не заданы"
       : ruleProblems
         ? `замечаний ${ruleProblems}`
         : ruleQuestions
@@ -61,7 +61,7 @@ export function scenarioSteps(input: {
     walls: walls > 0 && freeEnds === 0,
     kinds: walls > 0 && unknown === 0,
     requirements: plan.requirements.length > 0 && violatedRequirements === 0,
-    norms: region === "other" || (Boolean(rules) && !ruleProblems && !ruleQuestions),
+    norms: Boolean(rules) && !ruleProblems && !ruleQuestions,
     variants: isVariant || variants > 0,
     report: false,
   };

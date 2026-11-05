@@ -209,3 +209,51 @@
     justify-self: start;
   }
 }
+.xray-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line-1);
+  border-radius: 10px;
+}
+.xray-profile p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+.xray-profile label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.xray-profile textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.xray-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.xray-profile .xray-note {
+  font-size: 11.5px;
+  color: var(--text-4);
+}
+.xray-profile li {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.xray-profile li small {
+  font-size: 11.5px;
+  color: var(--text-4);
+}
+

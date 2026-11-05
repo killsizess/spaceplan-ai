@@ -103,7 +103,7 @@ test("invalid, future-version, overlapping and oversized imports leave current d
   const files = [
     { content: "{", message: "JSON" },
     {
-      content: JSON.stringify({ ...plan, schemaVersion: 10 }),
+      content: JSON.stringify({ ...plan, schemaVersion: 11 }),
       message: "Версия формата",
     },
     {

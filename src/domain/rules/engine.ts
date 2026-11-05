@@ -1,29 +1,40 @@
 import type { FloorPlan } from "@/domain/floor-plan/types";
 import { MOSCOW_PACK, PROCEDURE_ORDER } from "./moscow";
+import { profilePack } from "./profile-pack";
 import type { RuleFinding, RulePack, RuleReport } from "./types";
 
 /**
- * The rule base that applies to a plan: only the one the owner chose. Without a chosen
- * region no regional rules run, and the report says so.
+ * The rules that apply to a plan: a ready-made base where there is one, otherwise the rules
+ * the developer wrote for their own country. With neither, no rules run and the report
+ * says so.
  */
-export function packForPlan(plan: Pick<FloorPlan, "buildingFacts">): RulePack | null {
-  return plan.buildingFacts?.region === "moscow" ? MOSCOW_PACK : null;
+export function packForPlan(plan: Pick<FloorPlan, "buildingFacts" | "ruleProfile">): RulePack | null {
+  const region = plan.buildingFacts?.region;
+  if (region === "moscow") return MOSCOW_PACK;
+  if (region === "other" && plan.ruleProfile) return profilePack(plan.ruleProfile);
+  return null;
 }
 
 /**
  * Rules a specialist has not confirmed cannot "verify" anything: geometry may be certain,
  * but the reading of the document behind the statement is not. They stay an assumption.
+ * The developer's own rules are not a reading of anything: checked as written, they hold
+ * or they do not.
  */
-function capped(finding: RuleFinding, reviewed: boolean): RuleFinding {
-  return !reviewed && finding.level === "verified" ? { ...finding, level: "assumption" } : finding;
+function capped(finding: RuleFinding, pack: RulePack): RuleFinding {
+  const unconfirmed = pack.kind === "regulation" && !pack.reviewed;
+  return unconfirmed && finding.level === "verified" ? { ...finding, level: "assumption" } : finding;
 }
 
 export function runRules(pack: RulePack, plan: FloorPlan): RuleReport {
   const { findings, missingFacts, checkedChanges } = pack.check(plan);
-  const final = findings.map((finding) => capped(finding, pack.reviewed));
+  const final = findings.map((finding) => capped(finding, pack));
   const procedures = checkedChanges ? final.map((finding) => finding.procedure) : [];
   return {
     packId: pack.id,
+    kind: pack.kind,
+    procedures: pack.procedures,
+    notUnderstood: pack.notUnderstood ?? [],
     region: pack.region,
     version: pack.version,
     reviewed: pack.reviewed,
