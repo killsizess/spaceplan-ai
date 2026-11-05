@@ -20,6 +20,8 @@ interface PlanThreeProps {
   onReturnTo2D: () => void;
   onCreateExample?: () => void;
   exampleBusy?: boolean;
+  /** Buyer's mode: wall colours by the verdict on their change. */
+  wallTones?: ReadonlyMap<string, string>;
 }
 
 const EMPTY_WALL_ROOMS: readonly WallRoom[] = [];
@@ -32,6 +34,7 @@ export default function PlanThree({
   onReturnTo2D,
   onCreateExample,
   exampleBusy,
+  wallTones,
 }: PlanThreeProps) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<ThreeScene | null>(null);
@@ -71,6 +74,10 @@ export default function PlanThree({
     scene.current?.select(selectedId);
   }, [selectedId]);
 
+  useEffect(() => {
+    scene.current?.highlight(wallTones ?? null);
+  }, [wallTones]);
+
   const roomCount =
     plan.roomMode === "walls" ? wallRooms.length : plan.rooms.length;
   const empty = roomCount === 0 && plan.walls.length === 0;
@@ -85,6 +92,7 @@ export default function PlanThree({
         className="plan-three-host"
         data-testid="plan-three"
         data-renderer-status={status}
+        data-wall-tones={wallTones ? JSON.stringify(Object.fromEntries(wallTones)) : undefined}
         role="region"
         aria-label={tr`Трёхмерный план`}
         aria-describedby={helpId}

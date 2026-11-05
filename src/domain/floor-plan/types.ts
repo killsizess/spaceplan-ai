@@ -187,6 +187,52 @@ export interface RecognitionRecord {
   openings?: { kind: "door" | "window"; center: Point; width: number; confidence: "high" | "low" }[];
 }
 
+/**
+ * v11. An element the developer fixes: the buyer cannot change it. A wet zone or a riser
+ * fixes a whole room (by its saved parameters); the entrance door fixes one opening.
+ */
+export type FixedElement =
+  | { kind: "wet-zone"; roomLabelId: string }
+  | { kind: "riser"; roomLabelId: string }
+  | { kind: "entrance-door"; openingId: string };
+
+/** A wall or an opening as the developer confirmed it against the drawing. */
+export interface ConfirmedWall {
+  id: string;
+  start: Point;
+  end: Point;
+  thickness: number;
+}
+export interface ConfirmedOpening {
+  id: string;
+  kind: "door" | "window";
+  center: Point;
+  width: number;
+}
+
+/**
+ * v11. The developer's preparation of an apartment for buyers: the walls they confirmed,
+ * what is fixed, and what a buyer may change. Ids that no longer exist are ignored, never
+ * guessed at.
+ */
+export interface ApartmentTemplate {
+  confirmed?: { at: string; walls: ConfirmedWall[]; openings: ConfirmedOpening[] };
+  fixed: FixedElement[];
+  /** Walls the buyer may move or remove: partitions only, whatever is listed. */
+  buyerWalls: string[];
+  /** Rooms (saved parameters) the buyer may rename, re-purpose and divide. */
+  buyerRooms: string[];
+}
+
+/** v11. A buyer's copy of a developer's template; its origin is the template as it was. */
+export interface Purchase {
+  templateId: string;
+  templateName: string;
+  startedAt: string;
+  /** The developer's answers about the building, to tell them from the buyer's own. */
+  templateFacts?: BuildingFacts;
+}
+
 export interface FloorPlan {
   schemaVersion: 11;
   unit: "m";
@@ -208,4 +254,8 @@ export interface FloorPlan {
   ruleProfile?: RuleProfile;
   /** v11. */
   recognition?: RecognitionRecord;
+  /** v11. */
+  template?: ApartmentTemplate;
+  /** v11. */
+  purchase?: Purchase;
 }

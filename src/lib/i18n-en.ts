@@ -7,6 +7,7 @@ import rulesMoscow from "./i18n-en/rules-moscow.json";
 import rulesOther from "./i18n-en/rules-other.json";
 import rulesStatus from "./i18n-en/rules-status.json";
 import screens from "./i18n-en/screens.json";
+import templateBuyer from "./i18n-en/template-buyer.json";
 import units from "./i18n-en/units.json";
 
 /** Keyed by the Russian text in the code; `{0}` stands for the values, in the order they appear there. */
@@ -21,4 +22,5 @@ export const EN: Readonly<Record<string, string>> = {
   ...units,
   ...accuracy,
   ...rulesStatus,
+  ...templateBuyer,
 };

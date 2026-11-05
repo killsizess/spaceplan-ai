@@ -262,6 +262,28 @@ const recognitionSchema = z.object({
   }).strict()).max(1000).optional(),
 }).strict();
 
+const templateSchema = z.object({
+  confirmed: z.object({
+    at: z.string().min(1).max(40),
+    walls: z.array(z.object({ id, start: pointSchema, end: pointSchema, thickness: z.number().finite().positive().max(100) }).strict()).max(1000),
+    openings: z.array(z.object({ id, kind: z.enum(["door", "window"]), center: pointSchema, width: z.number().finite().positive().max(100) }).strict()).max(1000),
+  }).strict().optional(),
+  fixed: z.array(z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("wet-zone"), roomLabelId: id }).strict(),
+    z.object({ kind: z.literal("riser"), roomLabelId: id }).strict(),
+    z.object({ kind: z.literal("entrance-door"), openingId: id }).strict(),
+  ])).max(200),
+  buyerWalls: z.array(id).max(1000),
+  buyerRooms: z.array(id).max(100),
+}).strict();
+
+const purchaseSchema = z.object({
+  templateId: id,
+  templateName: z.string().trim().min(1).max(100),
+  startedAt: z.string().min(1).max(40),
+  templateFacts: buildingFactsSchema.optional(),
+}).strict();
+
 const floorPlanFields = z
   .object({
     schemaVersion: z.literal(11),
@@ -279,6 +301,8 @@ const floorPlanFields = z
     buildingFacts: buildingFactsSchema.optional(),
     ruleProfile: ruleProfileSchema.optional(),
     recognition: recognitionSchema.optional(),
+    template: templateSchema.optional(),
+    purchase: purchaseSchema.optional(),
   })
   .strict();
 

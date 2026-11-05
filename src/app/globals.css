@@ -1663,3 +1663,13 @@ h3 {
   text-decoration: underline;
   cursor: pointer;
 }
+
+.locked-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.locked-fieldset:disabled {
+  opacity: 0.6;
+}

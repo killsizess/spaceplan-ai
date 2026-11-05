@@ -87,8 +87,13 @@ describe("the translation", () => {
   });
 
   it("never says something is allowed where the Russian does not", () => {
-    // The app names a procedure at most. Only a sentence saying the opposite may use these words.
-    const claims = Object.values(EN).filter((text) => /\b(allowed|permitted|legal)\b/i.test(text) && !/\bnot\b/i.test(text));
+    // The app names a procedure at most. Only a sentence saying the opposite may use these words,
+    // and what the developer allowed a buyer to change in a template, which is not a legal claim.
+    const developerPermission = /developer allowed|allowed (partition|room)s?\b/gi;
+    const claims = Object.values(EN).filter((text) => {
+      const rest = text.replace(developerPermission, "");
+      return /\b(allowed|permitted|legal)\b/i.test(rest) && !/\bnot\b/i.test(rest);
+    });
     expect(claims.filter((text) => !/up to 40 megapixels/.test(text))).toEqual([]);
   });
 });

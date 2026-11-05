@@ -49,7 +49,10 @@ import type {
   PlanRequirement,
   WallKind,
   RecognitionRecord,
+  ApartmentTemplate,
 } from "@/domain/floor-plan/types";
+import { buyerChangeProblem } from "@/domain/template/buyer-guard";
+import { revertChange } from "@/domain/template/revert";
 
 export interface EditorState {
   plan: FloorPlan;
@@ -95,6 +98,10 @@ export type EditorAction =
   | { type: "requirement:remove"; id: string }
   /** Answers about the building: one undo step. No answers left removes the field. */
   | { type: "facts:set"; facts: BuildingFacts }
+  /** The developer's preparation of the apartment; null removes it. One undo step. */
+  | { type: "template:set"; template: ApartmentTemplate | null }
+  /** Undoes one change of a buyer's copy, any one, by its id in the journal. */
+  | { type: "buyer:revert"; changeId: string }
   | { type: "profile:set"; profile: RuleProfile | null }
   | {
       type: "wall:node-move";
@@ -261,6 +268,13 @@ export function editorReducer(
       selectedId = action.opening.id;
     } else if (action.type === "opening:update") {
       plan = updateOpening(state.plan, action.opening);
+    } else if (action.type === "template:set") {
+      const { template: _previous, ...rest } = state.plan;
+      void _previous;
+      plan = action.template ? { ...rest, template: action.template } : (rest as FloorPlan);
+    } else if (action.type === "buyer:revert") {
+      plan = revertChange(state.plan, action.changeId);
+      selectedId = null;
     } else if (action.type === "underlay:set") {
       plan = setUnderlay(state.plan, action.underlay);
     } else if (action.type === "roomMode:set") {
@@ -271,6 +285,11 @@ export function editorReducer(
       selectedId = null;
     }
     if (plan === state.plan) return { ...state, selectedId, error: null };
+    // A buyer's copy changes only within what the developer allowed; a refusal says why.
+    if (state.plan.purchase) {
+      const problem = buyerChangeProblem(state.plan, plan);
+      if (problem) throw new Error(problem);
+    }
     // A wall type changes no geometry, so no room can change either.
     if ((action.type.startsWith("wall:") && action.type !== "wall:set-kind") || action.type === "openings:add-many" || action.type === "wall-room:add" || action.type === "wall-room:resize" || action.type === "delete" || action.type === "roomMode:set") {
       plan = reconcileWallRoomLabels(state.plan, plan);

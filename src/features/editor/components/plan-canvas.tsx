@@ -42,6 +42,8 @@ import {
   OpeningCandidateOverlay,
   WallDraftOverlay,
   WallShape,
+  RemovedWallShape,
+  type WallTone,
 } from "./canvas-shapes";
 import type { WallCandidate } from "@/domain/floor-plan/wall-candidates";
 import { WallRoomShape } from "./wall-room-shape";
@@ -100,6 +102,12 @@ interface Props {
   wallRooms?: readonly WallRoom[];
   /** Rooms that break a user requirement; outlined as a warning. */
   flaggedRoomIds?: readonly string[];
+  /** Buyer's mode: walls marked by the verdict on their change, or as theirs to change. */
+  wallTones?: ReadonlyMap<string, WallTone>;
+  /** Buyer's mode: walls of the template the buyer took away. */
+  removedWalls?: readonly { wall: Wall; tone: WallTone }[];
+  /** Buyer's mode: walls with no handles, since they cannot be changed. */
+  lockedWallIds?: ReadonlySet<string>;
   /** Walls suggested from a PDF, shown until accepted or dismissed. */
   wallCandidates?: readonly WallCandidate[];
   /** Which suggestions will be added; a click on one switches it. */
@@ -163,6 +171,9 @@ export default function PlanCanvas({
   rooms,
   wallRooms = [],
   flaggedRoomIds = [],
+  wallTones,
+  removedWalls = [],
+  lockedWallIds,
   wallCandidates = [],
   wallCandidateSelection = [],
   onToggleWallCandidate,
@@ -283,8 +294,9 @@ export default function PlanCanvas({
   const moveDirection = moveContext ? (moveMode === "offset" ? moveContext.normal : moveContext.direction) : null;
   // During a gesture the handle follows the pointer projection, not the moving
   // wall: an offset may lengthen the wall and shift its middle.
+  const selectedLocked = Boolean(selectedWall && lockedWallIds?.has(selectedWall.id));
   const moveHandle =
-    tool === "select" && selectedWall && moveContext?.wallId === selectedWall.id && !wallNodePreview
+    tool === "select" && selectedWall && !selectedLocked && moveContext?.wallId === selectedWall.id && !wallNodePreview
       ? wallMovePreview
         ? { x: wallMovePreview.origin.x + wallMovePreview.delta.x, y: wallMovePreview.origin.y + wallMovePreview.delta.y }
         : moveHandleAt(selectedWall)
@@ -643,6 +655,9 @@ export default function PlanCanvas({
         (candidate.from.y + candidate.to.y) / 2,
       ]))}
       data-flagged-rooms={JSON.stringify(flaggedRoomIds.filter((id) => wallRooms.some((room) => room.id === id)))}
+      data-wall-tones={wallTones ? JSON.stringify(Object.fromEntries(wallTones)) : undefined}
+      data-removed-walls={removedWalls.length ? JSON.stringify(removedWalls.map((item) => ({ id: item.wall.id, tone: item.tone }))) : undefined}
+      data-locked-walls={lockedWallIds ? JSON.stringify([...lockedWallIds]) : undefined}
       data-wall-connections={JSON.stringify(displayedConnections)}
       data-wall-intersections={JSON.stringify(displayedIntersections)}
       data-door-collisions={JSON.stringify(displayedDoorCollisions)}
@@ -769,8 +784,10 @@ export default function PlanCanvas({
                   interactive={tool === "select"}
                   showDimensions={showDimensions}
                   onSelect={onSelect}
+                  {...(wallTones?.get(wall.id) ? { tone: wallTones.get(wall.id) } : {})}
                 />
               ))}
+              {removedWalls.map((item) => <RemovedWallShape key={`removed:${item.wall.id}`} wall={item.wall} tone={item.tone} scale={scale} />)}
               {wallCandidates.length > 0 && (
                 <WallCandidateOverlay
                   candidates={wallCandidates}
@@ -814,7 +831,7 @@ export default function PlanCanvas({
                 collisions={displayedDoorPairCollisions}
                 scale={scale}
               />
-              {tool === "select" && selectedWall &&
+              {tool === "select" && selectedWall && !selectedLocked &&
                 (["start", "end"] as const).map((endpoint) => {
                   const point =
                     wallNodePreview?.wallId === selectedWall.id &&

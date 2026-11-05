@@ -199,6 +199,30 @@ export function ManualRoomShape({
 }
 
 /** A wall in its local frame (x along the wall) with door and window symbols. */
+/** How a wall is marked for a buyer: by the verdict on its change, or as theirs to change. */
+export type WallTone = "danger" | "warn" | "ok" | "unknown" | "editable";
+export const WALL_TONE_COLORS: Readonly<Record<WallTone, string>> = {
+  danger: "#c0392b",
+  warn: "#c27c0e",
+  ok: "#2e8b57",
+  unknown: "#6b7785",
+  editable: "#3d8f6a",
+};
+
+/** A wall the buyer took away, drawn where it was, in the colour of the verdict on it. */
+export function RemovedWallShape({ wall, tone, scale }: { wall: Wall; tone: WallTone; scale: number }) {
+  return (
+    <Line
+      points={[wall.start.x, wall.start.y, wall.end.x, wall.end.y]}
+      stroke={WALL_TONE_COLORS[tone]}
+      strokeWidth={Math.max(wall.thickness, 4 / scale)}
+      opacity={0.45}
+      dash={[8 / scale, 6 / scale]}
+      listening={false}
+    />
+  );
+}
+
 export function WallShape({
   wall,
   openings,
@@ -207,7 +231,10 @@ export function WallShape({
   interactive,
   showDimensions,
   onSelect,
+  tone,
 }: {
+  /** A mark around the wall; none outside the buyer's mode. */
+  tone?: WallTone;
   wall: Wall;
   /** Openings on this wall. */
   openings: readonly Opening[];
@@ -242,6 +269,18 @@ export function WallShape({
         height={Math.max(wall.thickness, 14 / scale)}
         fill="rgba(0,0,0,0)"
       />
+      {tone && (
+        <Rect
+          x={-3 / scale}
+          y={-wall.thickness / 2 - 3 / scale}
+          width={length + 6 / scale}
+          height={wall.thickness + 6 / scale}
+          stroke={WALL_TONE_COLORS[tone]}
+          strokeWidth={2 / scale}
+          dash={tone === "editable" ? [5 / scale, 4 / scale] : undefined}
+          listening={false}
+        />
+      )}
       {segments.map((segment, index) => (
         <Rect
           key={index}

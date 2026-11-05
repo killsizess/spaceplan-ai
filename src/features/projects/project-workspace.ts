@@ -494,6 +494,30 @@ export class ProjectWorkspace {
       ...(this.services ? { origin: createPlanOrigin(source, this.services.now()) } : {}),
     });
   };
+  /**
+   * A buyer's copy of the open template: the template as it stands becomes its origin, so
+   * every change the buyer makes is measured against it and can be undone on its own.
+   */
+  createPurchase = (suffix: string) => {
+    const template = this.snapshot.editor.plan;
+    if (!template.template || !this.services) return Promise.resolve(false);
+    const at = this.services.now();
+    const { origin: _origin, recognition: _recognition, purchase: _purchase, ...rest } = template;
+    void _origin;
+    void _recognition;
+    void _purchase;
+    return this.createFrom({
+      ...rest,
+      name: `${template.name.slice(0, 80)} · ${suffix}`,
+      origin: createPlanOrigin(template, at),
+      purchase: {
+        templateId: template.id,
+        templateName: template.name,
+        startedAt: at,
+        ...(template.buildingFacts ? { templateFacts: structuredClone(template.buildingFacts) } : {}),
+      },
+    });
+  };
   saveCopy = () =>
     this.createFrom(
       {

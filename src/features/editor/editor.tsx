@@ -28,6 +28,7 @@ import {
   FileImage,
   GitBranch,
   GitCompare,
+  Lock,
 } from "lucide-react";
 import {
   createDefaultRoom,
@@ -93,6 +94,13 @@ import { DoorCollisionsPanel } from "./components/door-collisions-panel";
 import { CalibrationDialog } from "./components/calibration-dialog";
 import { readUnderlayImage } from "./underlay-image";
 import type { EditorTool } from "./editor-tools";
+import { TemplatePanel } from "../template/template-panel";
+import { BuyerPanel } from "../buyer/buyer-panel";
+import { buildBuyerReview, buyerHighlights } from "../buyer/buyer-review";
+import { WALL_TONE_COLORS, type WallTone } from "./components/canvas-shapes";
+import { buyerBase } from "@/domain/template/buyer-guard";
+import { entranceDoorIds, lockedWallIds, wallLock } from "@/domain/template/locks";
+import "../xray/plan-xray.css";
 import "./editor-construction.css";
 import "./wall-rooms.css";
 import "./plan-export.css";
@@ -167,7 +175,7 @@ export default function Editor() {
   const activeExport = exportPlan === state.plan ? exportPlan : null;
   const [tool, setTool] = useState<EditorTool>("select");
   const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
-  const [sidebar, setSidebar] = useState<"rooms" | "source" | "structure">(
+  const [sidebar, setSidebar] = useState<"rooms" | "source" | "structure" | "template" | "buyer">(
     "rooms",
   );
   const [imageBusy, setImageBusy] = useState(false);
@@ -475,6 +483,43 @@ export default function Editor() {
   const selectedOpening = state.plan.openings.find(
     (opening) => opening.id === state.selectedId,
   );
+
+  // The buyer's mode: a copy of a developer's template, changed only where allowed.
+  const buyer = useMemo(() => {
+    const base = buyerBase(state.plan);
+    const template = state.plan.template;
+    if (!base || !template) return null;
+    const review = buildBuyerReview(state.plan, { generatedAt: new Date().toISOString(), appVersion: APP_VERSION });
+    if (!review) return null;
+    const marks = buyerHighlights(state.plan, review);
+    const locked = lockedWallIds(state.plan, base, template);
+    const tones = new Map<string, WallTone>();
+    for (const wall of state.plan.walls) if (!locked.has(wall.id)) tones.set(wall.id, "editable");
+    for (const [id, tone] of marks.walls) tones.set(id, tone);
+    return { base, template, review, tones, removed: marks.removed, locked };
+  }, [state.plan]);
+  // A buyer's copy opens on the journal; leaving one goes back to the rooms.
+  const isBuyer = Boolean(buyer);
+  const [modeOf, setModeOf] = useState({ id: state.plan.id, buyer: isBuyer });
+  if (modeOf.id !== state.plan.id || modeOf.buyer !== isBuyer) {
+    setModeOf({ id: state.plan.id, buyer: isBuyer });
+    setSidebar((current) => (isBuyer ? "buyer" : current === "buyer" ? "rooms" : current));
+  }
+  const wallColors = useMemo(
+    () => (buyer ? new Map([...buyer.tones].filter(([, tone]) => tone !== "editable").map(([id, tone]) => [id, WALL_TONE_COLORS[tone]])) : undefined),
+    [buyer],
+  );
+  const lockReason = (() => {
+    if (!buyer) return "";
+    if (selectedWall) return wallLock(buyer.template, buyer.base, selectedWall).reason;
+    if (selectedOpening) {
+      if (entranceDoorIds(buyer.template).has(selectedOpening.id)) return tr`Входную дверь застройщик зафиксировал: её нельзя перенести, изменить или убрать.`;
+      const host = state.plan.walls.find((wall) => wall.id === selectedOpening.wallId);
+      if (selectedOpening.kind === "window") return tr`Окна меняет только застройщик: они в наружных стенах и на фасаде.`;
+      return host ? wallLock(buyer.template, buyer.base, host).reason : "";
+    }
+    return "";
+  })();
   const totalArea = wallMode
     ? wallRooms.filter((room) => countsInTotal(room.kind)).reduce((sum, room) => sum + room.area, 0)
     : getTotalArea(state.plan);
@@ -870,7 +915,16 @@ export default function Editor() {
         <WelcomeStrip onExample={() => void createRulesExample()} onUpload={() => setSidebar("source")} />
       )}
       <section className="project-header">
-        <ScenarioRail steps={scenario} onOpen={openScenarioStep} />
+        {buyer ? (
+          <div className="buyer-bar" data-testid="buyer-bar">
+            <strong>{tr`Режим покупателя`}</strong>
+            <span>{tr`шаблон «${buyer.review.templateName}»`}</span>
+            <span>{tr`изменений: ${buyer.review.changes.length}`}</span>
+            <span className={`xray-chip procedure-${buyer.review.proof.answer.procedure ?? "unknown"}`}>{buyer.review.proof.answer.label}</span>
+          </div>
+        ) : (
+          <ScenarioRail steps={scenario} onOpen={openScenarioStep} />
+        )}
         <div className="project-header-right">
           <div className="project-variant-actions">
             <button
@@ -959,6 +1013,15 @@ export default function Editor() {
             role="tablist"
             aria-label={tr`Разделы плана`}
           >
+            {buyer && (
+              <button
+                role="tab"
+                aria-selected={sidebar === "buyer"}
+                aria-controls="buyer-tab-panel"
+                id="buyer-tab"
+                onClick={() => setSidebar("buyer")}
+              >{tr`Изменения`}</button>
+            )}
             <button
               role="tab"
               aria-selected={sidebar === "rooms"}
@@ -973,14 +1036,57 @@ export default function Editor() {
               id="structure-tab"
               onClick={() => setSidebar("structure")}
             >{tr`Стены`}</button>
-            <button
-              role="tab"
-              aria-selected={sidebar === "source"}
-              aria-controls="source-tab-panel"
-              id="source-tab"
-              onClick={() => setSidebar("source")}
-            >{tr`Подложка`}</button>
+            {!buyer && (
+              <button
+                role="tab"
+                aria-selected={sidebar === "source"}
+                aria-controls="source-tab-panel"
+                id="source-tab"
+                onClick={() => setSidebar("source")}
+              >{tr`Подложка`}</button>
+            )}
+            {!buyer && (
+              <button
+                role="tab"
+                aria-selected={sidebar === "template"}
+                aria-controls="template-tab-panel"
+                id="template-tab"
+                onClick={() => setSidebar("template")}
+              >{tr`Шаблон`}</button>
+            )}
           </div>
+          {sidebar === "template" && !buyer && (
+            <div className="sidebar-content" role="tabpanel" id="template-tab-panel" aria-labelledby="template-tab">
+              <TemplatePanel
+                plan={state.plan}
+                busy={!snapshot.ready || snapshot.busy}
+                onSet={(template) => dispatch({ type: "template:set", template })}
+                onShow={(id) => {
+                  enter2D();
+                  dispatch({ type: "select", id });
+                }}
+                onWallsTab={() => setSidebar("structure")}
+                onOpenAsBuyer={() => void workspace.createPurchase(tr`покупатель`).then((created) => {
+                  if (created) setSidebar("buyer");
+                })}
+              />
+            </div>
+          )}
+          {sidebar === "buyer" && buyer && (
+            <div className="sidebar-content" role="tabpanel" id="buyer-tab-panel" aria-labelledby="buyer-tab">
+              <BuyerPanel
+                review={buyer.review}
+                facts={state.plan.buildingFacts}
+                busy={!snapshot.ready || snapshot.busy}
+                onShow={(id) => {
+                  enter2D();
+                  dispatch({ type: "select", id });
+                }}
+                onRevert={(changeId) => dispatch({ type: "buyer:revert", changeId })}
+                onAnswer={(facts) => dispatch({ type: "facts:set", facts })}
+              />
+            </div>
+          )}
           {sidebar === "source" && (
             <div
               className="sidebar-content"
@@ -1351,6 +1457,7 @@ export default function Editor() {
                 plan={state.plan}
                 wallRooms={wallRooms}
                 selectedId={state.selectedId}
+                {...(wallColors ? { wallTones: wallColors } : {})}
                 onSelect={(id) => dispatch({ type: "select", id })}
                 onReturnTo2D={() => enter2D()}
                 onCreateExample={() => {
@@ -1365,6 +1472,7 @@ export default function Editor() {
                   rooms={wallMode ? [] : state.plan.rooms}
                   wallRooms={wallRooms}
                   flaggedRoomIds={flaggedRoomIds}
+                  {...(buyer ? { wallTones: buyer.tones, removedWalls: buyer.removed, lockedWallIds: buyer.locked } : {})}
                   openingCandidates={activeOpeningSuggestion?.candidates.map((candidate, index) => ({
                     from: candidate.from,
                     to: candidate.to,
@@ -1414,9 +1522,11 @@ export default function Editor() {
                         start,
                         end,
                         ...defaultWallSize(),
+                        // A buyer may add partitions only; the check says so if anything else.
+                        ...(buyer ? { kind: "partition" as const } : {}),
                       },
                     });
-                    setSidebar("structure");
+                    if (!buyer) setSidebar("structure");
                   }}
                   onPlaceOpening={placeOpening}
                   onCalibration={(start, end) => {
@@ -1505,7 +1615,13 @@ export default function Editor() {
           </div>
         </section>
         <aside className="properties-panel">
+          {lockReason && (
+            <p className="buyer-lock" role="note" data-testid="buyer-lock">
+              <Lock size={14} aria-hidden="true" /> {lockReason}
+            </p>
+          )}
           {selectedWall || selectedOpening ? (
+            <fieldset className="locked-fieldset" disabled={Boolean(lockReason)}>
             <ConstructionProperties
               key={JSON.stringify(selectedWall ?? selectedOpening)}
               wall={selectedWall}
@@ -1526,6 +1642,7 @@ export default function Editor() {
               }}
               error={state.error}
             />
+            </fieldset>
           ) : selectedWallRoom ? (
             <WallRoomProperties
               key={JSON.stringify([selectedWallRoom.id, selectedWallRoom.labelId, selectedWallRoom.name, selectedWallRoom.kind, selectedWallRoom.color, editableRectangle?.width ?? null, editableRectangle?.depth ?? null])}

@@ -43,6 +43,8 @@ export type RendererStatus = "loading" | "ready" | "error";
 export interface ThreeScene {
   updatePlan: (plan: FloorPlan, wallRooms?: readonly WallRoom[]) => void;
   select: (id: string | null) => void;
+  /** Buyer's mode: tints walls by the verdict on their change; null clears. */
+  highlight: (tones: ReadonlyMap<string, string> | null) => void;
   fit: () => void;
   top: () => void;
   zoom: (factor: number) => void;
@@ -200,13 +202,15 @@ export function createThreeScene(
     requestRender();
   };
 
+  let tones: ReadonlyMap<string, string> | null = null;
   const select = (id: string | null) => {
     selectedId = id;
     for (const entry of selectionMaterials) {
       const isSelected = entry.id === id;
       if (entry.material instanceof MeshStandardMaterial) {
-        entry.material.emissive.set(isSelected ? "#4d8064" : "#000000");
-        entry.material.emissiveIntensity = isSelected ? 0.25 : 0;
+        const tone = isSelected ? null : tones?.get(entry.id);
+        entry.material.emissive.set(isSelected ? "#4d8064" : tone ?? "#000000");
+        entry.material.emissiveIntensity = isSelected ? 0.25 : tone ? 0.45 : 0;
       } else {
         entry.material.color.copy(
           isSelected ? new Color("#1f6d4c") : entry.color,
@@ -612,8 +616,17 @@ export function createThreeScene(
   canvas.addEventListener("webglcontextlost", contextLost);
   host.addEventListener("keydown", keyDown);
 
+  const highlight = (next: ReadonlyMap<string, string> | null) => {
+
+    tones = next;
+
+    select(selectedId);
+
+  };
+
   return {
     updatePlan,
+    highlight,
     select,
     fit: () => fit(),
     top: () => fit(true),

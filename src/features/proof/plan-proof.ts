@@ -9,6 +9,8 @@ import { openingChanges, wallChanges } from "@/domain/rules/plan-changes";
 import { isPerimeterWall, roomsOfPlan, type RuleRoom } from "@/domain/rules/rule-rooms";
 import type { ConfidenceLevel, Procedure, RuleFinding, RuleReport } from "@/domain/rules/types";
 import { sha256 } from "@/lib/sha256";
+import { labelledRooms } from "@/domain/template/locks";
+import { ROOM_KINDS } from "../editor/room-kinds";
 import { buildPlanReport, type ReportFinding } from "../report/plan-report";
 
 /**
@@ -140,6 +142,8 @@ interface Draft {
   text: string;
   wallIds: string[];
   openingIds: string[];
+  /** Rooms of the plan the change is about, for findings that name rooms. */
+  roomIds: string[];
 }
 
 function draftDecisions(source: FloorPlan, plan: FloorPlan, roomsBefore: readonly RuleRoom[]): Draft[] {
@@ -163,6 +167,7 @@ function draftDecisions(source: FloorPlan, plan: FloorPlan, roomsBefore: readonl
       text: tr`Убрать стену ${number(source, wall.id)} (${WALL_KIND_NAMES[kindOf(wall)]})${between(wall)}`,
       wallIds: [wall.id],
       openingIds: own.map((item) => item.id),
+      roomIds: [],
     });
   }
   for (const wall of walls.added) {
@@ -172,6 +177,7 @@ function draftDecisions(source: FloorPlan, plan: FloorPlan, roomsBefore: readonl
       text: tr`Поставить новую стену ${number(plan, wall.id)} (${WALL_KIND_NAMES[kindOf(wall)]})${own.length ? tr`: ${own.map(openingName).join(", ")} в ней` : ""}`,
       wallIds: [wall.id],
       openingIds: own.map((item) => item.id),
+      roomIds: [],
     });
   }
   for (const { before } of walls.moved) {
@@ -180,6 +186,7 @@ function draftDecisions(source: FloorPlan, plan: FloorPlan, roomsBefore: readonl
       text: tr`Перенести стену ${number(source, before.id)} или изменить её длину (${WALL_KIND_NAMES[kindOf(before)]})`,
       wallIds: [before.id],
       openingIds: [],
+      roomIds: [],
     });
   }
   for (const { before, after } of walls.thickened) {
@@ -188,6 +195,7 @@ function draftDecisions(source: FloorPlan, plan: FloorPlan, roomsBefore: readonl
       text: tr`Изменить толщину стены ${number(source, before.id)}: ${lengthText(before.thickness)} → ${lengthText(after.thickness)}`,
       wallIds: [before.id],
       openingIds: [],
+      roomIds: [],
     });
   }
   for (const { before, after } of walls.retyped) {
@@ -196,6 +204,7 @@ function draftDecisions(source: FloorPlan, plan: FloorPlan, roomsBefore: readonl
       text: tr`Сменить тип стены ${number(source, before.id)}: ${WALL_KIND_NAMES[kindOf(before)]} → ${WALL_KIND_NAMES[kindOf(after)]}`,
       wallIds: [before.id],
       openingIds: [],
+      roomIds: [],
     });
   }
   const single = (verb: string, opening: Opening, owner: FloorPlan) => drafts.push({
@@ -203,10 +212,27 @@ function draftDecisions(source: FloorPlan, plan: FloorPlan, roomsBefore: readonl
     text: tr`${verb} ${openingName(opening)} в стене ${number(owner, opening.wallId)}`,
     wallIds: [],
     openingIds: [opening.id],
+    roomIds: [],
   });
   for (const opening of openings.removed) if (!removed.has(opening.wallId)) single(tr`Убрать`, opening, source);
   for (const opening of openings.added) if (!added.has(opening.wallId)) single(tr`Сделать`, opening, plan);
   for (const { after } of openings.moved) single(tr`Перенести`, after, plan);
+
+  // A room renamed or put to another use; a room the buyer named after dividing one.
+  const roomOf = (labelId: string) => labelledRooms(plan).find((room) => room.labelId === labelId)?.id;
+  const before = new Map(source.wallRoomLabels.map((label) => [label.id, label]));
+  for (const label of plan.wallRoomLabels) {
+    const old = before.get(label.id);
+    const parts: string[] = [];
+    if (!old) parts.push(tr`Назвать новое помещение «${label.name}» (${ROOM_KINDS[label.kind].label.toLowerCase()})`);
+    else {
+      if (old.kind !== label.kind) parts.push(tr`Сменить назначение «${old.name}»: ${ROOM_KINDS[old.kind].label.toLowerCase()} → ${ROOM_KINDS[label.kind].label.toLowerCase()}`);
+      if (old.name !== label.name) parts.push(tr`Переименовать «${old.name}» в «${label.name}»`);
+    }
+    if (!parts.length) continue;
+    const room = roomOf(label.id);
+    drafts.push({ id: `room:${label.id}`, text: parts.join("; "), wallIds: [], openingIds: [], roomIds: room ? [room] : [] });
+  }
   return drafts;
 }
 
@@ -353,7 +379,8 @@ export function buildPlanProof(
   const tied = new Set<RuleFinding>();
   const decisions = drafts.map((draft): ProofDecision => {
     const own = findings.filter((finding) =>
-      finding.wallIds?.some((id) => draft.wallIds.includes(id)) || finding.openingIds?.some((id) => draft.openingIds.includes(id)));
+      finding.wallIds?.some((id) => draft.wallIds.includes(id)) || finding.openingIds?.some((id) => draft.openingIds.includes(id)) ||
+      finding.roomIds?.some((id) => draft.roomIds.includes(id)));
     own.forEach((finding) => tied.add(finding));
     const reasons = own.map(reasonOf);
     const procedure = heaviest(reasons);

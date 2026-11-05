@@ -101,7 +101,12 @@ test("a proposal of the generator is explained over the list, which stays", asyn
   await card.getByRole("button", { name: "Почему такой вывод" }).click();
 
   const dialog = page.getByTestId("proof-dialog");
-  await expect(page.getByTestId("proof-decision")).toContainText("Поставить новую стену 12 (перегородка): дверь в ней");
+  const decisions = page.getByTestId("proof-decision");
+  await expect(decisions).toHaveCount(2);
+  await expect(decisions.first()).toContainText("Поставить новую стену 12 (перегородка): дверь в ней");
+  // Naming the new room is a step of its own. The old room keeps its name, so it is one step:
+  // two would mean both halves were named anew.
+  await expect(decisions.nth(1)).toContainText("Назвать новое помещение «Спальня 2» (спальня)");
   await expect(page.getByTestId("proof-label")).toHaveText("Упрощённый порядок");
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
@@ -121,7 +126,8 @@ test("with no rules chosen it says so, and shows what the plan itself shows", as
   await page.getByTestId("variants-dialog").getByRole("button", { name: "Подобрать варианты" }).click();
   await page.getByTestId("variant-card").first().getByRole("button", { name: "Почему такой вывод" }).click();
   await expect(page.getByTestId("proof-label")).toHaveText("Нормы не проверялись");
-  await expect(page.getByTestId("proof-silent")).toHaveText("Правила не проверялись.");
+  // The new wall and the new room's name: both said to be unchecked.
+  await expect(page.getByTestId("proof-silent")).toHaveText(["Правила не проверялись.", "Правила не проверялись."]);
   await expect(page.getByTestId("proof-alternatives")).toHaveCount(0);
   await expect(page.getByTestId("proof-area")).toContainText("→");
 });
