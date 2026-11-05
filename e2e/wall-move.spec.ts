@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import type { FloorPlan, Opening, Wall } from "../src/domain/floor-plan/types";
+import { settleFrames } from "./frames";
 
 const wall = (id: string, x1: number, y1: number, x2: number, y2: number): Wall => ({
   id,
@@ -97,6 +98,8 @@ async function selectPartition(page: Page) {
   await page.getByRole("tab", { name: "Стены", exact: true }).click();
   await page.getByRole("button", { name: "Выбрать стену 5", exact: true }).click();
   await page.getByRole("button", { name: "Показать весь план", exact: true }).click();
+  // The camera moves on the next frame; a point read before that is off the wall.
+  await settleFrames(page);
   await expect(page.getByLabel("Начало X", { exact: true })).toBeVisible();
 }
 
@@ -225,6 +228,8 @@ test("keeping directions lengthens a trapezoid's top wall; the plain move turns 
   await page.getByRole("tab", { name: "Стены", exact: true }).click();
   await page.getByRole("button", { name: "Выбрать стену 1", exact: true }).click();
   await page.getByRole("button", { name: "Показать весь план", exact: true }).click();
+  // The camera moves on the next frame; a point read before that is off the wall.
+  await settleFrames(page);
   const canvas = page.getByTestId("plan-canvas");
   await expect(canvas).toHaveAttribute("data-wall-move-mode", "offset");
   await expect(canvas).toHaveAttribute("data-wall-move-direction", "0,1");
