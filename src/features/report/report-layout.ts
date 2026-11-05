@@ -18,7 +18,7 @@ export interface ReportPage {
 /** Width of a text in millimetres at a font size in millimetres. */
 export type MeasureText = (text: string, size: number, weight: number) => number;
 
-const INK = "#10231c", MUTED = "#55635b", LINE = "#dfdccf", PAPER = "#f6f4ec", WHITE = "#ffffff";
+export const INK = "#10231c", MUTED = "#55635b", LINE = "#dfdccf", PAPER = "#f6f4ec", WHITE = "#ffffff";
 
 export const REPORT_LEVEL_COLORS: Readonly<Record<ReportLevel | "clear", { fg: string; bg: string }>> = {
   specialist: { fg: "#a82a14", bg: "#fbe6e0" },
@@ -55,7 +55,7 @@ export function wrapText(text: string, width: number, size: number, weight: numb
   return lines.length ? lines : [""];
 }
 
-class Flow {
+export class Flow {
   readonly pages: ReportPage[] = [{ ops: [] }];
   y: number = REPORT_PAGE.margin;
   readonly left = REPORT_PAGE.margin;
@@ -96,7 +96,7 @@ class Flow {
 }
 
 /** The moment in the reader's own time zone: a report is read by a person, not a server. */
-function formatDate(iso: string): string {
+export function formatDate(iso: string): string {
   return new Intl.DateTimeFormat("ru-RU", { dateStyle: "short", timeStyle: "short" }).format(new Date(iso));
 }
 
@@ -236,13 +236,18 @@ export function layoutPlanReport(report: PlanReport, measure: MeasureText): Repo
   }
   flow.y = top + limitHeight;
 
-  // Footers, now that the page count is known.
+  addReportFooters(flow, report.appVersion);
+  return flow.pages;
+}
+
+/** Footers, once the page count is known. */
+export function addReportFooters(flow: Flow, appVersion: string) {
+  const { left, width } = flow;
   const total = flow.pages.length;
   flow.pages.forEach((page, index) => {
     const y = REPORT_PAGE.height - REPORT_PAGE.footer + 4;
     page.ops.push({ kind: "rect", x: left, y: y - 4.5, width, height: 0.2, fill: LINE });
-    page.ops.push({ kind: "text", x: left, y, text: `SpacePlan AI ${report.appVersion} · не заменяет проект и согласование`, size: 2.6, weight: 400, color: MUTED });
+    page.ops.push({ kind: "text", x: left, y, text: `SpacePlan AI ${appVersion} · не заменяет проект и согласование`, size: 2.6, weight: 400, color: MUTED });
     page.ops.push({ kind: "text", x: left + width, y, text: `Стр. ${index + 1} из ${total}`, size: 2.6, weight: 400, color: MUTED, align: "right" });
   });
-  return flow.pages;
 }

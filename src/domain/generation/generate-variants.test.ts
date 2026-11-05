@@ -6,7 +6,7 @@ import { resolveWallRoomLabels } from "@/domain/floor-plan/wall-room-labels";
 import { interpretPrompt } from "@/domain/rules/prompt-rules";
 import { apartment, labelled, wall, window_ } from "@/domain/rules/rules.fixtures";
 import { createVariantsExamplePlan } from "./example-flat";
-import { generateVariants, variantSummary, type GenerationGoal } from "./generate-variants";
+import { generateVariants, planAskingToRemove, variantSummary, type GenerationGoal } from "./generate-variants";
 
 const AT = "2026-11-05T10:00:00.000Z";
 
@@ -252,5 +252,38 @@ describe("the example for trying the generator", () => {
         expect(new Set(variant.moves.map((move) => move.subject)).size, variant.title).toBe(variant.moves.length);
       }
     }
+  });
+});
+
+describe("asking what if a wall went", () => {
+  const plan = createVariantsExamplePlan();
+
+  it("gives a variant of any wall without touching the plan, bearing ones included", () => {
+    const before = structuredClone(plan);
+    for (const wallId of ["living-bedroom", "top", "hall-bath"]) {
+      const asked = planAskingToRemove(plan, wallId, AT);
+      expect(asked?.walls.some((item) => item.id === wallId), wallId).toBe(false);
+      expect(asked?.origin?.planName, wallId).toBe(plan.name);
+    }
+    expect(plan).toEqual(before);
+  });
+
+  it("measures against the plan as it stands, not against a plan before it", () => {
+    const variant = planAskingToRemove(plan, "living-bedroom", AT);
+    const asked = variant && planAskingToRemove(variant, "living-kitchen", AT);
+    expect(asked?.origin?.snapshot.walls.map((item) => item.id)).toEqual(variant?.walls.map((item) => item.id));
+  });
+
+  it("answers null when there is no such wall", () => {
+    expect(planAskingToRemove(plan, "nothing", AT)).toBeNull();
+  });
+});
+
+describe("outer walls", () => {
+  it("does not offer to join two rooms along an outer wall marked as a partition", () => {
+    const plan = createVariantsExamplePlan();
+    const marked = { ...plan, walls: plan.walls.map((item) => (item.id === "top" ? { ...item, kind: "partition" as const } : item)) };
+    const { variants } = generateVariants(marked, { goal: "larger-rooms", at: AT });
+    expect(variants.every((variant) => variant.plan.walls.some((item) => item.id === "top"))).toBe(true);
   });
 });

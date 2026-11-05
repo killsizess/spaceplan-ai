@@ -43,6 +43,8 @@ import type { WallOverlapDiagnostic } from "@/domain/floor-plan/wall-overlaps";
 import { createSpatialExamplePlan } from "@/domain/floor-plan/examples";
 import { rulesForPlan } from "@/domain/rules/engine";
 import { createVariantsExamplePlan } from "@/domain/generation/example-flat";
+import { planAskingToRemove } from "@/domain/generation/generate-variants";
+import { createPlanOrigin } from "@/domain/floor-plan/plan-origin";
 import { createRulesExamplePlan } from "@/domain/rules/example-apartment";
 import { startedAsExample, WelcomeStrip } from "./components/welcome-strip";
 import { getRectangularRoomWalls, type RectangularWallRoomInput } from "@/domain/floor-plan/rectangular-wall-room";
@@ -122,6 +124,9 @@ const PlanCheckDialog = dynamic(() => import("./components/plan-check-dialog"), 
 const PlanCompareDialog = dynamic(() => import("./components/plan-compare-dialog"), {
   ssr: false,
 });
+const PlanProofDialog = dynamic(() => import("../proof/plan-proof-dialog"), {
+  ssr: false,
+});
 const PlanVariantsDialog = dynamic(() => import("../generation/plan-variants-dialog"), {
   ssr: false,
 });
@@ -150,6 +155,8 @@ export default function Editor() {
   const [reportOpen, setReportOpen] = useState(false);
   const [xrayOpen, setXrayOpen] = useState(false);
   const [variantsOpen, setVariantsOpen] = useState(false);
+  /** `label` marks a plan nobody has saved yet, and names it if someone does. */
+  const [proof, setProof] = useState<{ plan: FloorPlan; question?: string; label?: string } | null>(null);
   const [importBusy, setImportBusy] = useState(false);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
   const [exportPlan, setExportPlan] = useState<FloorPlan | null>(null);
@@ -370,6 +377,24 @@ export default function Editor() {
       fit();
       setXrayOpen(true);
     }
+  };
+  /** Saves a proposal that exists only on a screen, and leaves every screen for the plan. */
+  const saveProposal = (plan: FloorPlan, label: string) => {
+    setProof(null);
+    setVariantsOpen(false);
+    setXrayOpen(false);
+    void workspace.createGeneratedVariant(plan, label).then((saved) => {
+      if (saved) {
+        setSidebar("rooms");
+        enter2D();
+        fit();
+      }
+    });
+  };
+  const askAboutWall = (wallId: string) => {
+    const asked = planAskingToRemove(state.plan, wallId, new Date().toISOString());
+    const number = state.plan.walls.findIndex((wall) => wall.id === wallId) + 1;
+    if (asked) setProof({ plan: asked, question: `Что, если убрать стену ${number}`, label: `без стены ${number}` });
   };
   const createVariantsExample = async () => {
     setVariantsOpen(false);
@@ -1570,16 +1595,12 @@ export default function Editor() {
       {variantsOpen && (
         <PlanVariantsDialog
           plan={state.plan}
-          onSave={(variant, index) => {
-            setVariantsOpen(false);
-            void workspace.createGeneratedVariant(variant.plan, index).then((saved) => {
-              if (saved) {
-                setSidebar("rooms");
-                enter2D();
-                fit();
-              }
-            });
-          }}
+          onSave={(variant, index) => saveProposal(variant.plan, `подбор ${index}`)}
+          onProof={(variant, index) => setProof({
+            plan: { ...variant.plan, origin: createPlanOrigin(state.plan, new Date().toISOString()) },
+            question: variant.title,
+            label: `подбор ${index}`,
+          })}
           onCompare={() => {
             setVariantsOpen(false);
             setCompareOpen(true);
@@ -1605,6 +1626,8 @@ export default function Editor() {
             setXrayOpen(false);
             setVariantsOpen(true);
           }}
+          onProofPlan={() => setProof({ plan: state.plan })}
+          onProofWall={askAboutWall}
           onClose={() => setXrayOpen(false)}
         />
       )}
@@ -1612,7 +1635,17 @@ export default function Editor() {
         <PlanReportDialog
           plan={state.plan}
           appVersion={APP_VERSION}
+          {...(state.plan.origin ? { onProof: () => setProof({ plan: state.plan }) } : {})}
           onClose={() => setReportOpen(false)}
+        />
+      )}
+      {proof && (
+        <PlanProofDialog
+          plan={proof.plan}
+          appVersion={APP_VERSION}
+          {...(proof.question ? { question: proof.question } : {})}
+          {...(proof.label ? { onSave: () => saveProposal(proof.plan, proof.label as string) } : {})}
+          onClose={() => setProof(null)}
         />
       )}
       {compareOpen && (

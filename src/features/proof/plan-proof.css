@@ -1,0 +1,130 @@
+.proof-source,
+.proof-note,
+.proof-silent {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-3);
+}
+.proof-answer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--line-1);
+  border-radius: 10px;
+  background: var(--paper);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.proof-answer p {
+  margin: 0;
+}
+.proof-answer small {
+  color: var(--text-3);
+}
+.proof-answer .xray-chip {
+  font-size: 14px;
+  padding: 4px 12px;
+}
+/* The neutral chip is the colour of this card: without an edge it reads as plain text. */
+.proof-answer .procedure-unknown {
+  background: var(--line-1);
+}
+.proof-draft {
+  font-size: 13px;
+  color: var(--warn-700);
+}
+.proof-decisions,
+.proof-general,
+.proof-alternatives,
+.proof-decision ul,
+.proof-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.proof-decision {
+  padding: 12px 14px;
+  border: 1px solid var(--line-1);
+  border-radius: 10px;
+}
+.proof-decision-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.proof-reason {
+  padding-left: 12px;
+  border-left: 2px solid var(--line-1);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.proof-reason[data-decisive="true"] {
+  border-left-color: var(--accent-500, var(--accent-700));
+}
+.proof-reason p {
+  margin: 2px 0 0;
+  color: var(--text-3);
+}
+.proof-reason dl {
+  margin: 4px 0 0;
+}
+.proof-reason dl div {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 8px;
+  font-size: 12.5px;
+}
+.proof-reason dt {
+  color: var(--text-4);
+}
+.proof-reason dd {
+  margin: 0;
+}
+.proof-reason em {
+  font-style: normal;
+  font-weight: 600;
+}
+.proof-alternatives li {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line-1);
+}
+.proof-alternatives small {
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+.proof-checks {
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-3);
+}
+.proof-checks li[data-state="problem"] {
+  color: var(--danger-700);
+}
+.proof-passed summary {
+  font-size: 13px;
+  cursor: pointer;
+}
+@media (max-width: 620px) {
+  .plan-proof-dialog .plan-report-footer > button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .proof-reason dl div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}

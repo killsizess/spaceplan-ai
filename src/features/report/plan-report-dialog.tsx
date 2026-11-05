@@ -14,10 +14,13 @@ const STATE_LABEL: Readonly<Record<ReportState, string>> = { problem: "Заме�
 export default function PlanReportDialog({
   plan,
   appVersion,
+  onProof,
   onClose,
 }: {
   plan: FloorPlan;
   appVersion: string;
+  /** Only a variant is a decision to explain. */
+  onProof?: () => void;
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -173,6 +176,7 @@ export default function PlanReportDialog({
 
       <footer className="plan-report-footer">
         <p role="status" data-testid="report-message">{message}</p>
+        {onProof && <button type="button" className="secondary-button" onClick={onProof}>Почему такой вывод</button>}
         <button type="button" className="primary-button" disabled={busy} onClick={() => void download()}>
           {busy ? <LoaderCircle className="pdf-loading-icon" size={16} aria-hidden="true" /> : <Download size={16} aria-hidden="true" />}
           {busy ? "Готовим PDF…" : "Скачать PDF"}

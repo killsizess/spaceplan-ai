@@ -72,3 +72,13 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+.variant-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.plan-variants-dialog .variant-actions .primary-button {
+  width: auto;
+  flex: 0 0 auto;
+  padding-inline: 16px;
+}

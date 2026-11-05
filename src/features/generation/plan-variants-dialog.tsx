@@ -26,7 +26,7 @@ const REJECTIONS: Readonly<Record<RejectionReason, string>> = {
   "not-buildable": "не получилось построить",
 };
 
-function VariantCard({ variant, onSave }: { variant: GeneratedVariant; onSave: () => void }) {
+function VariantCard({ variant, onSave, onProof }: { variant: GeneratedVariant; onSave: () => void; onProof: () => void }) {
   const { rules, overall } = variant;
   const notes = (rules?.findings ?? []).filter((finding) => finding.procedure);
   return (
@@ -53,7 +53,10 @@ function VariantCard({ variant, onSave }: { variant: GeneratedVariant; onSave: (
             </ul>
           </details>
         )}
-        <button type="button" className="primary-button" onClick={onSave}>Сохранить как вариант</button>
+        <div className="variant-actions">
+          <button type="button" className="primary-button" onClick={onSave}>Сохранить как вариант</button>
+          <button type="button" className="secondary-button" onClick={onProof}>Почему такой вывод</button>
+        </div>
       </div>
     </li>
   );
@@ -62,10 +65,12 @@ function VariantCard({ variant, onSave }: { variant: GeneratedVariant; onSave: (
 function Outcome({
   result,
   onSave,
+  onProof,
   onOpenExample,
 }: {
   result: GenerationResult;
   onSave: (variant: GeneratedVariant, index: number) => void;
+  onProof: (variant: GeneratedVariant, index: number) => void;
   onOpenExample: () => void;
 }) {
   const example = (
@@ -97,7 +102,7 @@ function Outcome({
       )}
       <ul className="variant-list">
         {result.variants.map((variant, index) => (
-          <VariantCard key={variant.key} variant={variant} onSave={() => onSave(variant, index + 1)} />
+          <VariantCard key={variant.key} variant={variant} onSave={() => onSave(variant, index + 1)} onProof={() => onProof(variant, index + 1)} />
         ))}
       </ul>
     </>
@@ -107,12 +112,14 @@ function Outcome({
 export default function PlanVariantsDialog({
   plan,
   onSave,
+  onProof,
   onCompare,
   onOpenExample,
   onClose,
 }: {
   plan: FloorPlan;
   onSave: (variant: GeneratedVariant, index: number) => void;
+  onProof: (variant: GeneratedVariant, index: number) => void;
   onCompare: () => void;
   onOpenExample: () => void;
   onClose: () => void;
@@ -173,7 +180,7 @@ export default function PlanVariantsDialog({
           </button>
           <button type="button" className="secondary-button" onClick={onCompare}>Сравнить с другим проектом</button>
         </div>
-        {result && <Outcome result={result} onSave={onSave} onOpenExample={onOpenExample} />}
+        {result && <Outcome result={result} onSave={onSave} onProof={onProof} onOpenExample={onOpenExample} />}
       </div>
     </dialog>
   );

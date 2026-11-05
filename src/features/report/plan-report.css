@@ -241,3 +241,15 @@ li[data-state="ok"] > .plan-report-mark {
   font-weight: 600;
   text-align: right;
 }
+/* Two actions must wrap rather than widen the dialog: everything above takes its width from here. */
+.plan-report-footer {
+  flex-wrap: wrap;
+  align-items: center;
+}
+.plan-report-footer > .primary-button,
+.plan-report-footer > .secondary-button {
+  margin-block: 0;
+}
+.plan-report-footer p:empty {
+  display: none;
+}

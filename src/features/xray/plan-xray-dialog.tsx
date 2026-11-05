@@ -188,7 +188,12 @@ function ShowButton({ id, onShow }: { id: string; onShow: (id: string) => void }
   return <button type="button" className="xray-show" onClick={() => onShow(id)}>Показать на плане</button>;
 }
 
-function WallCard({ wall, rules, onShow }: { wall: WallPotential; rules: RuleReport; onShow: (wallId: string) => void }) {
+function WallCard({ wall, rules, onShow, onProof }: {
+  wall: WallPotential;
+  rules: RuleReport;
+  onShow: (wallId: string) => void;
+  onProof: (wallId: string) => void;
+}) {
   return (
     <li className="xray-wall" data-testid="xray-wall" data-wall={wall.wallId} data-procedure={wall.removal.procedure}>
       <strong>
@@ -196,15 +201,19 @@ function WallCard({ wall, rules, onShow }: { wall: WallPotential; rules: RuleRep
       </strong>
       <WallAnswer label="Снос или перенос" answer={wall.removal} rules={rules} />
       <WallAnswer label="Новый проём" answer={wall.opening} rules={rules} />
-      <ShowButton id={wall.wallId} onShow={onShow} />
+      <span className="xray-wall-actions">
+        <ShowButton id={wall.wallId} onShow={onShow} />
+        <button type="button" className="xray-show" onClick={() => onProof(wall.wallId)}>Что, если убрать</button>
+      </span>
     </li>
   );
 }
 
-function Potential({ xray, rules, onShow, onOpenExample }: {
+function Potential({ xray, rules, onShow, onProofWall, onOpenExample }: {
   xray: PlanXray;
   rules: RuleReport;
   onShow: (id: string) => void;
+  onProofWall: (wallId: string) => void;
   onOpenExample: () => void;
 }) {
   return (
@@ -232,7 +241,7 @@ function Potential({ xray, rules, onShow, onOpenExample }: {
         return (
           <details key={procedure} open={xray.walls.length <= 12} className="xray-group">
             <summary>{rules.procedures[procedure].label}: стен {walls.length}. <small>{rules.procedures[procedure].meaning}</small></summary>
-            <ul>{walls.map((wall) => <WallCard key={wall.wallId} wall={wall} rules={rules} onShow={onShow} />)}</ul>
+            <ul>{walls.map((wall) => <WallCard key={wall.wallId} wall={wall} rules={rules} onShow={onShow} onProof={onProofWall} />)}</ul>
           </details>
         );
       })}
@@ -296,6 +305,8 @@ export default function PlanXrayDialog({
   onShow,
   onOpenExample,
   onGenerate,
+  onProofPlan,
+  onProofWall,
   onClose,
 }: {
   plan: FloorPlan;
@@ -305,6 +316,10 @@ export default function PlanXrayDialog({
   onShow: (id: string) => void;
   onOpenExample: () => void;
   onGenerate: () => void;
+  /** Explains the variant open now. */
+  onProofPlan: () => void;
+  /** Explains what would follow from taking this wall down, without changing anything. */
+  onProofWall: (wallId: string) => void;
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -396,10 +411,11 @@ export default function PlanXrayDialog({
                 {rules.procedures[rules.overall].sources.length > 0 && (
                   <small>{sourcesText(rules, rules.procedures[rules.overall].sources)}</small>
                 )}
+                <button type="button" className="xray-show" onClick={onProofPlan}>Почему такой вывод</button>
               </section>
             )}
             <Findings rules={rules} targetOf={targetOf} onShow={onShow} />
-            <Potential xray={xray} rules={rules} onShow={onShow} onOpenExample={onOpenExample} />
+            <Potential xray={xray} rules={rules} onShow={onShow} onProofWall={onProofWall} onOpenExample={onOpenExample} />
             <section className="xray-documents" data-testid="xray-documents" aria-labelledby="xray-documents-title">
               <h3 id="xray-documents-title">Документы и редакции</h3>
               <ul>

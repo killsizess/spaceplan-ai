@@ -19,7 +19,7 @@ import {
   type ResolvedWallRoom,
 } from "@/domain/floor-plan/wall-room-labels";
 import { rulesForPlan } from "@/domain/rules/engine";
-import { hasOutsideWindow, type RuleRoom } from "@/domain/rules/rule-rooms";
+import { hasOutsideWindow, isPerimeterWall, type RuleRoom } from "@/domain/rules/rule-rooms";
 import type { Procedure, RuleReport } from "@/domain/rules/types";
 import { formatArea, formatLength } from "@/lib/format";
 
@@ -107,6 +107,30 @@ function freshId(plan: FloorPlan, prefix: string): string {
   }
 }
 
+/** The merged room keeps the name of the larger one; the other label would be left over. */
+function planWithoutWall(plan: FloorPlan, wallId: string, rooms: readonly ResolvedWallRoom[]): FloorPlan {
+  const sides = rooms.filter((room) => room.boundaryWallIds.includes(wallId));
+  const smaller = sides.length === 2 ? (sides[0].area <= sides[1].area ? sides[0] : sides[1]) : null;
+  const without = smaller?.labelId ? removeWallRoomLabel(plan, smaller.labelId) : plan;
+  return reconcileWallRoomLabels(without, deleteObject(without, wallId));
+}
+
+/**
+ * The question "what if this wall went?" as a variant nobody has saved: any wall, of any
+ * type, since a bearing one is exactly what people ask about. Null when no plan results.
+ */
+export function planAskingToRemove(plan: FloorPlan, wallId: string, at: string): FloorPlan | null {
+  if (!plan.walls.some((wall) => wall.id === wallId)) return null;
+  try {
+    const { origin: _previous, ...base } = plan;
+    void _previous;
+    const next = planWithoutWall(base as FloorPlan, wallId, plan.roomMode === "walls" ? roomsOf(plan) : []);
+    return { ...next, origin: createPlanOrigin(base as FloorPlan, at) };
+  } catch {
+    return null;
+  }
+}
+
 function removals(plan: FloorPlan): Step[] {
   const rooms = roomsOf(plan);
   const steps: Step[] = [];
@@ -114,12 +138,12 @@ function removals(plan: FloorPlan): Step[] {
     if (wall.kind !== "partition") continue;
     const sides = beside(rooms, wall);
     if (sides.length !== 2 || sides.some((room) => PROTECTED_KINDS.includes(room.kind))) continue;
+    // Two rooms along an outer wall are not two rooms to join, whatever the wall is marked as.
+    if (isPerimeterWall(wall, rooms)) continue;
     try {
-      // The merged room keeps the name of the larger one; the other label would be left over.
       const smaller = sides[0].area <= sides[1].area ? sides[0] : sides[1];
       const larger = smaller === sides[0] ? sides[1] : sides[0];
-      const without = smaller.labelId ? removeWallRoomLabel(plan, smaller.labelId) : plan;
-      const next = reconcileWallRoomLabels(without, deleteObject(without, wall.id));
+      const next = planWithoutWall(plan, wall.id, rooms);
       steps.push({ plan: next, move: { kind: "remove-partition", subject: wall.id, text: `Убрать стену ${wallNumber(plan, wall)} между «${larger.name}» и «${smaller.name}»` } });
     } catch {
       // A plan this would break is simply not a candidate.

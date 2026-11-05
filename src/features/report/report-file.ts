@@ -3,7 +3,7 @@ import { createRasterPdfDocument, type RasterPdfInput } from "@/lib/raster-pdf";
 import { createPlanExportLayout, DEFAULT_EXPORT_OPTIONS } from "../editor/export-layout";
 import { blobBytes, canvasBlob, rasterizePlanExport, releaseCanvas } from "../editor/export-files";
 import type { PlanReport } from "./plan-report";
-import { layoutPlanReport, REPORT_PAGE, type ReportPage } from "./report-layout";
+import { layoutPlanReport, REPORT_PAGE, type MeasureText, type ReportPage } from "./report-layout";
 
 const REPORT_DPI = 200;
 export const REPORT_FONT = '"Onest Variable", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
@@ -33,7 +33,12 @@ function drawPage(context: CanvasRenderingContext2D, page: ReportPage) {
  * The report as a PDF: its pages and, when the plan is valid, the drawing as a last page.
  * Text is rendered into page images, so it reads and prints correctly but cannot be selected.
  */
-export async function createPlanReportPdf(plan: FloorPlan, report: PlanReport, signal: AbortSignal): Promise<Blob> {
+export function createPlanReportPdf(plan: FloorPlan, report: PlanReport, signal: AbortSignal): Promise<Blob> {
+  return createPagedPdf(plan, (measure) => layoutPlanReport(report, measure), signal);
+}
+
+/** Any document laid out in report pages, with the drawing of the plan after them. */
+export async function createPagedPdf(plan: FloorPlan, layOut: (measure: MeasureText) => ReportPage[], signal: AbortSignal): Promise<Blob> {
   await document.fonts.ready;
   signal.throwIfAborted();
   const measuring = document.createElement("canvas").getContext("2d");
@@ -43,7 +48,7 @@ export async function createPlanReportPdf(plan: FloorPlan, report: PlanReport, s
     measuring.font = fontOf(size * 20, weight);
     return measuring.measureText(text).width / 20;
   };
-  const pages = layoutPlanReport(report, measure);
+  const pages = layOut(measure);
   const scale = REPORT_DPI / 25.4;
   const output: RasterPdfInput[] = [];
   for (const page of pages) {

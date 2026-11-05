@@ -485,11 +485,11 @@ export class ProjectWorkspace {
     });
   };
   /** Saves a generated plan as a variant of the open plan, the same way a hand-made one is. */
-  createGeneratedVariant = (plan: FloorPlan, index: number) => {
+  createGeneratedVariant = (plan: FloorPlan, suffix: string) => {
     const source = this.snapshot.editor.plan;
     return this.createFrom({
       ...plan,
-      name: `${source.name.slice(0, 80)} · подбор ${index}`,
+      name: `${source.name.slice(0, 80)} · ${suffix}`,
       ...(this.services ? { origin: createPlanOrigin(source, this.services.now()) } : {}),
     });
   };
