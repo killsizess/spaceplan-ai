@@ -1,9 +1,10 @@
+import { gridSpacing, snapToGrid } from "@/lib/units";
 import type { Opening, Underlay, Wall } from "@/domain/floor-plan/types";
 import { doorSwingWorld } from "@/domain/floor-plan/door-swing";
 import { sameWallNode } from "@/domain/floor-plan/wall-nodes";
 import type { Point, Rectangle } from "@/domain/geometry";
 
-export const snapToGrid = (value: number) => Math.round(value * 10) / 10;
+export { snapToGrid };
 
 export interface GridLine {
   /** Screen coordinate across the line's axis. */
@@ -23,11 +24,13 @@ export function gridLines(
 ): { vertical: GridLine[]; horizontal: GridLine[] } {
   const vertical: GridLine[] = [], horizontal: GridLine[] = [];
   if (!(size.width > 0) || !(scale > 0)) return { vertical, horizontal };
-  const step = scale * 0.5 * 10 ** Math.max(0, Math.ceil(Math.log10(16 / (scale * 0.5))));
+  // Half a metre with a line each metre, or a foot with a line each five feet.
+  const { step: unit, major: every } = gridSpacing();
+  const step = scale * unit * 10 ** Math.max(0, Math.ceil(Math.log10(16 / (scale * unit))));
   const axis = (origin: number, extent: number, out: GridLine[]) => {
     for (let position = ((origin % step) + step) % step; position < extent; position += step) {
-      const metres = (position - origin) / scale;
-      out.push({ position, major: Math.abs(metres - Math.round(metres)) < 0.01 });
+      const majors = (position - origin) / scale / (unit * every);
+      out.push({ position, major: Math.abs(majors - Math.round(majors)) < 0.01 });
     }
   };
   axis(camera.x, size.width, vertical);

@@ -1,8 +1,8 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { lengthText } from "@/lib/units";
 import { BrickWall, Check, X } from "lucide-react";
-import { formatLength } from "@/lib/format";
 
 export interface SuggestedWall {
   length: number;
@@ -64,7 +64,7 @@ export function PdfWallSuggestions({
                       onChange={() => onToggle(index)}
                     />{tr`Стена `}{index + 1}
                     <small>
-                      {formatLength(wall.length)}{tr` м · `}{formatLength(wall.thickness)}{tr` м`}</small>
+                      {lengthText(wall.length)}{" · "}{lengthText(wall.thickness)}</small>
                   </label>
                 </li>
               ))}

@@ -22,8 +22,10 @@ const TARGETS: readonly { target: ProfileTarget; pattern: RegExp }[] = [
 const NUMBER = String.raw`(\d+(?:[.,]\d+)?)`;
 const MAX_WORDS = String.raw`не\s+больше|не\s+более|максимум|at\s+most|no\s+more\s+than|not\s+more\s+than|maximum|max|<=|≤|(?:^|[^а-я])до(?=\s)`;
 const MIN_WORDS = String.raw`не\s+меньше|не\s+менее|не\s+ниже|как\s+минимум|минимум|больше|at\s+least|no\s+less\s+than|not\s+less\s+than|more\s+than|minimum|min|>=|≥|(?:^|[^а-я])от(?=\s)`;
-const MAX_VALUE = new RegExp(`(?:${MAX_WORDS})\\D{0,12}?${NUMBER}`);
-const MIN_VALUE = new RegExp(`(?:${MIN_WORDS})\\D{0,12}?${NUMBER}`);
+/** A unit after a number. Feet are converted; anything else is taken as metres. */
+const UNIT = String.raw`\s*(sq\.?\s*ft|ft2|ft²|square\s+fe?et|кв\.?\s*фут\S*|feet|foot|ft|'|фут\S*)?`;
+const MAX_VALUE = new RegExp(`(?:${MAX_WORDS})\\D{0,12}?${NUMBER}${UNIT}`);
+const MIN_VALUE = new RegExp(`(?:${MIN_WORDS})\\D{0,12}?${NUMBER}${UNIT}`);
 const MIN_BEFORE = /минимальн|наименьш|minimum|smallest/;
 const MAX_BEFORE = /максимальн|наибольш|maximum|largest/;
 const FORBID = /нельзя|запрещ|не\s+допуск|не\s+надо|не\s+должн|do\s+not|don'?t|must\s+not|should\s+not|not\s+allowed|forbidden|prohibited|never/;
@@ -36,6 +38,11 @@ const COUNT = new RegExp(
 );
 
 const number = (text: string) => Number(text.replace(",", "."));
+const SQUARE_FEET = /sq|ft2|ft²|square|кв/;
+/** An area in square metres, from square metres or square feet. */
+const area = (value: string, unit: string | undefined) => number(value) * (unit && SQUARE_FEET.test(unit) ? 0.09290304 : 1);
+/** A height in metres, from metres or feet. */
+const height = (value: string, unit: string | undefined) => number(value) * (unit && !SQUARE_FEET.test(unit) ? 0.3048 : 1);
 
 interface FoundTarget {
   target: ProfileTarget;
@@ -64,7 +71,7 @@ function readClause(clause: string): RuleDraft[] {
   // Ceiling height.
   if (/высот|потолк|ceiling|height/.test(clause)) {
     const value = clause.match(MIN_VALUE);
-    return value ? [{ type: "min-height", value: number(value[1]) }] : [];
+    return value ? [{ type: "min-height", value: height(value[1], value[2]) }] : [];
   }
 
   // A window in a room.
@@ -123,11 +130,11 @@ function readClause(clause: string): RuleDraft[] {
     const lead = clause.slice(0, item.start);
     const upper = after.match(MAX_VALUE);
     const lower = upper ? null : after.match(MIN_VALUE);
-    const bare = after.match(new RegExp(NUMBER));
-    if (upper) rules.push({ type: "room-max-area", target: item.target, value: number(upper[1]) });
-    else if (lower) rules.push({ type: "room-min-area", target: item.target, value: number(lower[1]) });
-    else if (bare && MIN_BEFORE.test(lead)) rules.push({ type: "room-min-area", target: item.target, value: number(bare[1]) });
-    else if (bare && MAX_BEFORE.test(lead)) rules.push({ type: "room-max-area", target: item.target, value: number(bare[1]) });
+    const bare = after.match(new RegExp(NUMBER + UNIT));
+    if (upper) rules.push({ type: "room-max-area", target: item.target, value: area(upper[1], upper[2]) });
+    else if (lower) rules.push({ type: "room-min-area", target: item.target, value: area(lower[1], lower[2]) });
+    else if (bare && MIN_BEFORE.test(lead)) rules.push({ type: "room-min-area", target: item.target, value: area(bare[1], bare[2]) });
+    else if (bare && MAX_BEFORE.test(lead)) rules.push({ type: "room-max-area", target: item.target, value: area(bare[1], bare[2]) });
   });
   return rules;
 }

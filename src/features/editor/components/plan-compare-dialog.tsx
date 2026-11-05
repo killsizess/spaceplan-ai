@@ -1,6 +1,7 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { lengthText } from "@/lib/units";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GitCompare, X } from "lucide-react";
 import { diffPlans, type CollectionDiff, type PlanMetrics } from "@/domain/floor-plan/plan-diff";
@@ -8,7 +9,7 @@ import { originNote, originStatus, planFromOrigin } from "@/domain/floor-plan/pl
 import type { FloorPlan, RoomKind } from "@/domain/floor-plan/types";
 import { rulesForPlan } from "@/domain/rules/engine";
 import { PROCEDURES } from "@/domain/rules/moscow";
-import { formatLength } from "@/lib/format";
+import { formatArea, formatLength } from "@/lib/format";
 import { ROOM_KINDS } from "../room-kinds";
 import "../plan-check.css";
 import "../plan-compare.css";
@@ -17,27 +18,29 @@ interface CompareRow {
   label: string;
   before: number;
   after: number;
-  unit: string;
+  kind: "area" | "length" | "count";
 }
 
-const number = (value: number) => formatLength(Math.abs(value) < 5e-10 ? 0 : value);
-function signed(value: number, unit: string) {
+const clean = (value: number) => (Math.abs(value) < 5e-10 ? 0 : value);
+const number = (value: number, kind: CompareRow["kind"]) =>
+  kind === "area" ? formatArea(clean(value)) : kind === "length" ? lengthText(clean(value)) : formatLength(clean(value));
+function signed(value: number, kind: CompareRow["kind"]) {
   if (Math.abs(value) < 5e-10) return "—";
-  return `${value > 0 ? "+" : "−"}${formatLength(Math.abs(value))}${unit ? ` ${unit}` : ""}`;
+  return `${value > 0 ? "+" : "−"}${number(Math.abs(value), kind)}`;
 }
 
 function rows(before: PlanMetrics, after: PlanMetrics): CompareRow[] {
   const kinds = (Object.keys(ROOM_KINDS) as RoomKind[]).filter((kind) => before.roomsByKind[kind] || after.roomsByKind[kind]);
   return [
-    { label: tr`Площадь помещений`, before: before.totalArea, after: after.totalArea, unit: tr`м²` },
-    { label: tr`Помещений`, before: before.roomCount, after: after.roomCount, unit: "" },
+    { label: tr`Площадь помещений`, before: before.totalArea, after: after.totalArea, kind: "area" },
+    { label: tr`Помещений`, before: before.roomCount, after: after.roomCount, kind: "count" },
     ...kinds.map((kind) => ({
-      label: tr`${ROOM_KINDS[kind].label}: площадь`, before: before.areaByKind[kind], after: after.areaByKind[kind], unit: tr`м²`,
+      label: tr`${ROOM_KINDS[kind].label}: площадь`, before: before.areaByKind[kind], after: after.areaByKind[kind], kind: "area" as const,
     })),
-    { label: tr`Стен`, before: before.wallCount, after: after.wallCount, unit: "" },
-    { label: tr`Длина стен по осям`, before: before.wallLength, after: after.wallLength, unit: tr`м` },
-    { label: tr`Дверей`, before: before.doorCount, after: after.doorCount, unit: "" },
-    { label: tr`Окон`, before: before.windowCount, after: after.windowCount, unit: "" },
+    { label: tr`Стен`, before: before.wallCount, after: after.wallCount, kind: "count" },
+    { label: tr`Длина стен по осям`, before: before.wallLength, after: after.wallLength, kind: "length" },
+    { label: tr`Дверей`, before: before.doorCount, after: after.doorCount, kind: "count" },
+    { label: tr`Окон`, before: before.windowCount, after: after.windowCount, kind: "count" },
   ];
 }
 
@@ -144,9 +147,9 @@ export default function PlanCompareDialog({
                 {rows(diff.before, diff.after).map((row) => (
                   <tr key={row.label}>
                     <th scope="row">{row.label}</th>
-                    <td>{number(row.before)}{row.unit && ` ${row.unit}`}</td>
-                    <td>{number(row.after)}{row.unit && ` ${row.unit}`}</td>
-                    <td data-sign={Math.sign(Math.abs(row.after - row.before) < 5e-10 ? 0 : row.after - row.before)}>{signed(row.after - row.before, row.unit)}</td>
+                    <td>{number(row.before, row.kind)}</td>
+                    <td>{number(row.after, row.kind)}</td>
+                    <td data-sign={Math.sign(Math.abs(row.after - row.before) < 5e-10 ? 0 : row.after - row.before)}>{signed(row.after - row.before, row.kind)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -155,7 +158,7 @@ export default function PlanCompareDialog({
           <h3>{tr`Изменения от выбранного к текущему`}</h3>
           <ul className="plan-compare-changes" data-testid="plan-compare-changes">
             <li>{tr`Стены: `}{counts(diff.walls)}</li>
-            <li>{tr`Объём работ по стенам: `}{formatLength(diff.changedWallLength)}{tr` м`}</li>
+            <li>{tr`Объём работ по стенам: `}{lengthText(diff.changedWallLength)}</li>
             <li>{tr`Проёмы: `}{counts(diff.openings)}{tr`; перенесено на плане: `}{diff.movedOpenings.length}</li>
             <li>{tr`Параметры помещений: `}{counts(diff.wallRoomLabels)}</li>
             <li>{tr`Требования: `}{counts(diff.requirements)}</li>

@@ -33,7 +33,6 @@
 "{0}: ровно {1}":"{0}: exactly {1}",
 "{0}: не меньше {1}":"{0}: at least {1}",
 "{0}: не больше {1}":"{0}: at most {1}",
-"Высота помещений не ниже {0} м":"Room height at least {0} m",
 "{0}: должно быть окно наружу":"{0}: must have an outside window",
 "Нельзя объединять: {0} и {1}":"Must not be joined: {0} and {1}",
 "Несущие стены не меняются":"Bearing walls stay unchanged",

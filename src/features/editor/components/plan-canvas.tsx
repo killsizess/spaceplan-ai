@@ -1,6 +1,7 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { sizeText } from "@/lib/units";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KonvaEventObject, Node as KonvaNode } from "konva/lib/Node";
 import {
@@ -29,7 +30,6 @@ import {
   wallMoveContext,
   type WallMoveContext,
 } from "@/domain/floor-plan/move-wall";
-import { formatLength } from "@/lib/format";
 import { BASE_SCALE, clampZoom, fitViewport } from "../viewport";
 import type { EditorTool } from "../editor-tools";
 import { useUnderlayImage } from "../use-underlay-image";
@@ -897,7 +897,7 @@ export default function PlanCanvas({
           <ul className="plan-dimensions-accessible" aria-label={tr`Внутренние размеры помещений`}>
             {internalDimensions.map(({ room, layout }) => (
               <li key={room.id}>
-                {room.name}: {formatLength(layout.width)} × {formatLength(layout.depth)}{tr` м внутри`}</li>
+                {room.name}: {sizeText(layout.width, layout.depth)}{tr` внутри`}</li>
             ))}
           </ul>
         </>

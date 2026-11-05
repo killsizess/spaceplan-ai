@@ -1,6 +1,7 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { byUnits, lengthInputMode, lengthUnitLabel, parseLength, roughLengthText } from "@/lib/units";
 import { useEffect, useRef, useState } from "react";
 import { Ruler, X } from "lucide-react";
 import type { Point } from "@/domain/geometry";
@@ -58,9 +59,9 @@ export function CalibrationDialog({
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
-          const meters = value.trim() ? Number(value.replace(",", ".")) : NaN;
+          const meters = parseLength(value);
           if (!Number.isFinite(meters) || meters < 0.1 || meters > 100) {
-            setValidationError(tr`Укажите длину от 0,1 до 100 м.`);
+            setValidationError(byUnits(tr`Укажите длину от 0,1 до 100 м.`, () => tr`Укажите длину от ${roughLengthText(0.1)} до ${roughLengthText(100)}.`));
             return;
           }
           if (start.x === end.x && start.y === end.y) {
@@ -73,16 +74,16 @@ export function CalibrationDialog({
           onApply(meters);
         }}
       >
-        <label htmlFor="calibration-length">{tr`Известная длина, м`}</label>
+        <label htmlFor="calibration-length">{tr`Известная длина, ${lengthUnitLabel()}`}</label>
         <input
           id="calibration-length"
-          inputMode="decimal"
+          inputMode={lengthInputMode()}
           value={value}
           onChange={(event) => {
             setValue(event.target.value);
             setValidationError(null);
           }}
-          placeholder={tr`Например, 4`}
+          placeholder={tr`Например, ${byUnits("4", () => "12' 6\"")}`}
           autoFocus
         />
         {(validationError || error) && (

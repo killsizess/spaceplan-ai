@@ -1,4 +1,5 @@
 import { tr } from "@/lib/i18n";
+import { lengthText } from "@/lib/units";
 import { planFromOrigin } from "@/domain/floor-plan/plan-origin";
 import { countsInTotal, type FloorPlan, type Opening, type Wall, type WallKind } from "@/domain/floor-plan/types";
 import { citation, packForPlan, rulesForPlan } from "@/domain/rules/engine";
@@ -7,7 +8,6 @@ import { PROCEDURE_ORDER } from "@/domain/rules/moscow";
 import { openingChanges, wallChanges } from "@/domain/rules/plan-changes";
 import { isPerimeterWall, roomsOfPlan, type RuleRoom } from "@/domain/rules/rule-rooms";
 import type { ConfidenceLevel, Procedure, RuleFinding, RuleReport } from "@/domain/rules/types";
-import { formatLength } from "@/lib/format";
 import { sha256 } from "@/lib/sha256";
 import { buildPlanReport, type ReportFinding } from "../report/plan-report";
 
@@ -183,7 +183,7 @@ function draftDecisions(source: FloorPlan, plan: FloorPlan, roomsBefore: readonl
   for (const { before, after } of walls.thickened) {
     drafts.push({
       id: `wall:${before.id}`,
-      text: tr`Изменить толщину стены ${number(source, before.id)}: ${formatLength(before.thickness)} м → ${formatLength(after.thickness)} м`,
+      text: tr`Изменить толщину стены ${number(source, before.id)}: ${lengthText(before.thickness)} → ${lengthText(after.thickness)}`,
       wallIds: [before.id],
       openingIds: [],
     });

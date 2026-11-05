@@ -1,11 +1,11 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { lengthText } from "@/lib/units";
 import { useState } from "react";
 import { Check, ChevronRight, Focus } from "lucide-react";
 import type { Wall } from "@/domain/floor-plan/types";
 import type { WallIntersectionDiagnostic } from "@/domain/floor-plan/wall-intersections";
-import { formatLength } from "@/lib/format";
 import "../wall-connections.css";
 
 export function WallIntersectionsPanel({
@@ -61,7 +61,7 @@ export function WallIntersectionsPanel({
                     <span className="connection-dot is-intersection" />
                     <span>
                       <strong>{tr`Стены `}{first}{tr` и `}{second}</strong>
-                      <small>X: {formatLength(diagnostic.point.x)}{tr` м · Y: `}{formatLength(diagnostic.point.y)}{tr` м`}</small>
+                      <small>X: {lengthText(diagnostic.point.x)}{" · Y: "}{lengthText(diagnostic.point.y)}</small>
                     </span>
                     <ChevronRight size={12} />
                   </button>

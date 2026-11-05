@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { FOOT, setUnits } from "@/lib/units";
 import { createEmptyPlan, createExamplePlan } from "@/domain/floor-plan/operations";
 import type { Point } from "@/domain/geometry";
 import { createSpatialExamplePlan } from "@/domain/floor-plan/examples";
@@ -423,5 +424,22 @@ describe("physical A4 plan export", () => {
     const window = { ...plan, openings: [{ id: "window", wallId: "wall", kind: "window" as const, offset: 1, width: 3, height: 1.2, sillHeight: 0.9 }] };
     expect(createPlanExportLayout(window, DEFAULT_EXPORT_OPTIONS).svg).not.toContain('data-door-leaf="true"');
     expect(createPlanExportLayout(window, DEFAULT_EXPORT_OPTIONS).scaleDenominator).toBe(20);
+  });
+});
+
+describe("a sheet in feet and inches", () => {
+  afterEach(() => setUnits("metric"));
+
+  it("says so, measures in feet, and draws the scale bar in round feet", () => {
+    setUnits("imperial");
+    const result = createPlanExportLayout(walls(), DEFAULT_EXPORT_OPTIONS);
+    expect(result.svg).toContain("помещ. · футы и дюймы");
+    expect(result.svg).toContain("Размеры внутри помещений, фт, дюйм");
+    expect(result.svg).toMatch(/кв\. фт/);
+    const bar = result.svg.match(/data-scale-bar="true" d="M([\d.]+) [\d.]+ V[\d.]+ M[\d.]+ [\d.]+ H([\d.]+)/);
+    const label = result.svg.match(/>([\d.,]+) фт</);
+    expect(bar && label).toBeTruthy();
+    const mmPerMeter = Number(result.svg.match(/data-mm-per-meter="([\d.]+)"/)?.[1]);
+    expect(Number(bar![2]) - Number(bar![1])).toBeCloseTo(Number(label![1].replace(",", ".")) * FOOT * mmPerMeter, 3);
   });
 });

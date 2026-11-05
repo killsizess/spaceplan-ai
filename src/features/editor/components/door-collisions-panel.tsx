@@ -1,12 +1,12 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { lengthText } from "@/lib/units";
 import { useState } from "react";
 import { Check, ChevronRight, DoorOpen } from "lucide-react";
 import type { DoorWallCollision } from "@/domain/floor-plan/door-collisions";
 import type { DoorPairCollision } from "@/domain/floor-plan/door-pair-collisions";
 import type { Opening, Wall } from "@/domain/floor-plan/types";
-import { formatLength } from "@/lib/format";
 import "../door-collisions.css";
 
 export function DoorCollisionsPanel({
@@ -77,7 +77,7 @@ export function DoorCollisionsPanel({
                     <span className="door-collision-dot" aria-hidden="true" />
                     <span>
                       <strong>{tr`Дверь `}{doorNumber}{tr` · стена `}{wallNumber}</strong>
-                      <small>X: {formatLength(collision.point.x)}{tr` м · Y: `}{formatLength(collision.point.y)}{tr` м`}</small>
+                      <small>X: {lengthText(collision.point.x)}{" · Y: "}{lengthText(collision.point.y)}</small>
                     </span>
                     <ChevronRight size={12} />
                   </button>
@@ -120,7 +120,7 @@ export function DoorCollisionsPanel({
                     <span className="door-pair-collision-dot" aria-hidden="true" />
                     <span>
                       <strong>{tr`Двери `}{first}{tr` и `}{second}</strong>
-                      <small>X: {formatLength(pair.point.x)}{tr` м · Y: `}{formatLength(pair.point.y)}{tr` м`}</small>
+                      <small>X: {lengthText(pair.point.x)}{" · Y: "}{lengthText(pair.point.y)}</small>
                     </span>
                     <ChevronRight size={12} />
                   </button>

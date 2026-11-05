@@ -1,6 +1,7 @@
 import { tr } from "@/lib/i18n";
+import { lengthText } from "@/lib/units";
 import { planFromOrigin } from "@/domain/floor-plan/plan-origin";
-import { formatArea, formatLength } from "@/lib/format";
+import { formatArea } from "@/lib/format";
 import type { FloorPlan, Opening, RoomKind, Wall } from "@/domain/floor-plan/types";
 import { openingChanges, roomKindChanges, wallChanges } from "./plan-changes";
 import {
@@ -308,7 +309,7 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       ruleId: "moscow.pp47.22",
       level: "verified",
       state: "problem",
-      title: tr`${room.name}: высота ${formatLength(round(heightOf(room)))} м при минимуме ${room.kind === "hall" ? "2,1" : "2,5"} м`,
+      title: tr`${room.name}: высота ${lengthText(round(heightOf(room)))} при минимуме ${lengthText(room.kind === "hall" ? 2.1 : 2.5)}`,
       detail: tr`Высота взята по самой низкой стене помещения. В отдельных климатических районах минимум 2,7 м; район Москвы по СП 131 не сверялся.`,
       roomIds: [room.id],
       sources: [fromPp47("22")],

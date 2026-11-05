@@ -1,11 +1,11 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { lengthText } from "@/lib/units";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronRight, ClipboardCheck, DoorOpen, Focus, Layers2, Link2, X } from "lucide-react";
 import type { PlanDiagnosticItem, PlanDiagnosticKind, PlanDiagnosticReport } from "@/domain/floor-plan/plan-diagnostics";
 import type { Opening, Wall } from "@/domain/floor-plan/types";
-import { formatLength } from "@/lib/format";
 import "../plan-check.css";
 
 const CATEGORIES: readonly { kind: PlanDiagnosticKind; label: string }[] = [
@@ -35,7 +35,7 @@ function itemText(item: PlanDiagnosticItem, walls: ReadonlyMap<string, number>, 
         const numbers = [walls.get(diagnostic.wallId) ?? 0, walls.get(diagnostic.target.wallId) ?? 0].sort((a, b) => a - b);
         return {
           title: tr`Концы стен ${numbers[0]} и ${numbers[1]} рядом`,
-          reason: tr`Между концами ${formatLength(diagnostic.distance)} м по осям. Общий узел пока не создан.`,
+          reason: tr`Между концами ${lengthText(diagnostic.distance)} по осям. Общий узел пока не создан.`,
         };
       }
       if (diagnostic.kind === "junction") return {
@@ -44,7 +44,7 @@ function itemText(item: PlanDiagnosticItem, walls: ReadonlyMap<string, number>, 
       };
       return {
         title: tr`Конец стены ${wall} рядом со стеной ${target}`,
-        reason: tr`До оси стены ${target} — ${formatLength(diagnostic.distance)} м. Конец ещё не соединён с ней.`,
+        reason: tr`До оси стены ${target} — ${lengthText(diagnostic.distance)}. Конец ещё не соединён с ней.`,
       };
     }
     case "intersections": {
@@ -58,7 +58,7 @@ function itemText(item: PlanDiagnosticItem, walls: ReadonlyMap<string, number>, 
       const numbers = item.diagnostic.wallIds.map((id) => walls.get(id) ?? 0).sort((a, b) => a - b);
       return {
         title: tr`Стены ${numbers[0]} и ${numbers[1]} лежат друг на друге`,
-        reason: tr`Оси совпадают на участке ${formatLength(item.diagnostic.length)} м. Площадь не удваивается, но в 3D одна стена может закрыть проёмы другой. Удалите лишнюю стену или сдвиньте её.`,
+        reason: tr`Оси совпадают на участке ${lengthText(item.diagnostic.length)}. Площадь не удваивается, но в 3D одна стена может закрыть проёмы другой. Удалите лишнюю стену или сдвиньте её.`,
       };
     }
     case "door-wall": return {
@@ -179,7 +179,7 @@ export default function PlanCheckDialog({
                         <small className="plan-check-kind-label">{category.label}</small>
                         <strong>{title}</strong>
                         <span className="plan-check-reason">{reason}</span>
-                        <small className="plan-check-coordinate">X: {formatLength(point.x)}{tr` м · Y: `}{formatLength(point.y)}{tr` м`}</small>
+                        <small className="plan-check-coordinate">X: {lengthText(point.x)}{" · Y: "}{lengthText(point.y)}</small>
                       </span>
                       <ChevronRight className="plan-check-row-arrow" size={15} aria-hidden="true" />
                     </button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { byUnits, lengthInput, lengthInputMode, lengthUnitLabel, parseLength, roughLengthText } from "@/lib/units";
 import { useState } from "react";
 import { ArrowDownRight, Check, SlidersHorizontal, Trash2 } from "lucide-react";
 import type { Room, RoomKind } from "@/domain/floor-plan/types";
@@ -19,27 +20,26 @@ export function RoomProperties({
 }) {
   const [name, setName] = useState(room.name);
   const [kind, setKind] = useState(room.kind);
-  const [width, setWidth] = useState(String(room.width));
-  const [height, setHeight] = useState(String(room.height));
-  const [x, setX] = useState(String(room.x));
-  const [y, setY] = useState(String(room.y));
+  const [width, setWidth] = useState(lengthInput(room.width));
+  const [height, setHeight] = useState(lengthInput(room.height));
+  const [x, setX] = useState(lengthInput(room.x));
+  const [y, setY] = useState(lengthInput(room.y));
   const [color, setColor] = useState(room.color);
-  const parse = (value: string) =>
-    value.trim() ? Number(value.replace(",", ".")) : NaN;
+  const parse = (value: string, original?: number) => parseLength(value, original);
   const changed =
     name !== room.name ||
     kind !== room.kind ||
-    parse(width) !== room.width ||
-    parse(height) !== room.height ||
-    parse(x) !== room.x ||
-    parse(y) !== room.y ||
+    parse(width, room.width) !== room.width ||
+    parse(height, room.height) !== room.height ||
+    parse(x, room.x) !== room.x ||
+    parse(y, room.y) !== room.y ||
     color !== room.color;
   return (
     <>
       <div className="properties-heading">
         <span>
           <SlidersHorizontal size={15} />{tr` Свойства комнаты`}</span>
-        <span className="small-tag">{tr`м`}</span>
+        <span className="small-tag">{lengthUnitLabel()}</span>
       </div>
       <div className="selected-preview">
         <div className="room-preview" style={{ backgroundColor: color }}>
@@ -60,10 +60,10 @@ export function RoomProperties({
             name,
             kind,
             color,
-            width: parse(width),
-            height: parse(height),
-            x: parse(x),
-            y: parse(y),
+            width: parse(width, room.width),
+            height: parse(height, room.height),
+            x: parse(x, room.x),
+            y: parse(y, room.y),
           });
         }}
       >
@@ -93,11 +93,11 @@ export function RoomProperties({
             <div className="unit-input">
               <input
                 id="room-width"
-                inputMode="decimal"
+                inputMode={lengthInputMode()}
                 value={width}
                 onChange={(event) => setWidth(event.target.value)}
               />
-              <span>{tr`м`}</span>
+              <span>{lengthUnitLabel()}</span>
             </div>
           </div>
           <div>
@@ -105,11 +105,11 @@ export function RoomProperties({
             <div className="unit-input">
               <input
                 id="room-height"
-                inputMode="decimal"
+                inputMode={lengthInputMode()}
                 value={height}
                 onChange={(event) => setHeight(event.target.value)}
               />
-              <span>{tr`м`}</span>
+              <span>{lengthUnitLabel()}</span>
             </div>
           </div>
         </div>
@@ -126,11 +126,11 @@ export function RoomProperties({
             <div className="unit-input">
               <input
                 id="room-x"
-                inputMode="decimal"
+                inputMode={lengthInputMode()}
                 value={x}
                 onChange={(event) => setX(event.target.value)}
               />
-              <span>{tr`м`}</span>
+              <span>{lengthUnitLabel()}</span>
             </div>
           </div>
           <div>
@@ -138,11 +138,11 @@ export function RoomProperties({
             <div className="unit-input">
               <input
                 id="room-y"
-                inputMode="decimal"
+                inputMode={lengthInputMode()}
                 value={y}
                 onChange={(event) => setY(event.target.value)}
               />
-              <span>{tr`м`}</span>
+              <span>{lengthUnitLabel()}</span>
             </div>
           </div>
         </div>
@@ -168,7 +168,7 @@ export function RoomProperties({
           disabled={!changed}
         >
           <Check size={15} />{tr` Применить изменения`}</button>
-        <p className="field-note">{tr`Размеры: от 0,5 до 100 м. Площадь обновится после применения.`}</p>
+        <p className="field-note">{byUnits(tr`Размеры: от 0,5 до 100 м. Площадь обновится после применения.`, () => tr`Размеры: от ${roughLengthText(0.5)} до ${roughLengthText(100)}. Площадь обновится после применения.`)}</p>
       </form>
       <div className="properties-footer">
         <button className="danger-button" onClick={onDelete}>

@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { prepareLanguage } from "@/lib/i18n";
+import { detectUnits, setUnits } from "@/lib/units";
 
 /**
  * The language is settled before the app is imported, since its constants read it as they are
@@ -11,6 +12,7 @@ import { prepareLanguage } from "@/lib/i18n";
 const Editor = dynamic(
   async () => {
     await prepareLanguage();
+    setUnits(detectUnits());
     return import("./editor");
   },
   { ssr: false, loading: () => <div className="app-loading" aria-busy="true">SpacePlan AI</div> },

@@ -1,4 +1,5 @@
 import { tr } from "@/lib/i18n";
+import { byUnits, roughLengthText } from "@/lib/units";
 import { ArrowUpRight, BrickWall, ImageUp, MousePointer2, Plus, Ruler, SquareDashed, X } from "lucide-react";
 import type { EditorTool } from "../editor-tools";
 
@@ -81,13 +82,13 @@ export function ToolInstruction({ tool }: { tool: EditorTool }) {
 export function workspaceHint(viewMode: "2d" | "3d", tool: EditorTool, wallSelected: boolean): string {
   if (viewMode === "3d") return tr`Выберите объект в модели или списке, чтобы изменить размеры`;
   return {
-    room: tr`Потяните по сетке, чтобы создать комнату от 0,5 × 0,5 м`,
+    room: byUnits(tr`Потяните по сетке, чтобы создать комнату от 0,5 × 0,5 м`, () => tr`Потяните по сетке, чтобы создать комнату от ${roughLengthText(0.5)} в каждую сторону`),
     pan: tr`Потяните по плану, чтобы переместить вид`,
     select: wallSelected ? tr`Угол стены меняет соседние стены; круглая ручка сбоку переносит стену вместе с примыканиями` : tr`Выберите комнату, стену или проём`,
     wall: tr`Стены: привязка к сетке и концам соседних стен`,
     door: tr`Дверь: нажмите на существующую стену`,
     window: tr`Окно: нажмите на существующую стену`,
-    calibrate: tr`Две точки на подложке → известная длина в метрах`,
+    calibrate: byUnits(tr`Две точки на подложке → известная длина в метрах`, () => tr`Две точки на подложке → известная длина в футах и дюймах`),
     underlay: tr`Перемещение подложки не двигает стены и комнаты`,
   }[tool];
 }
@@ -102,7 +103,7 @@ export function NothingSelected() {
       <h2>{tr`Каждая деталь важна`}</h2>
       <p>{tr`Выберите комнату, стену или проём`}<br />{tr`или в списке, чтобы настроить`}<br />{tr`точные размеры.`}</p>
       <span>
-        <Ruler size={14} />{tr` Все размеры — в метрах`}</span>
+        <Ruler size={14} />{" "}{byUnits(tr`Все размеры — в метрах`, () => tr`Все размеры — в футах и дюймах`)}</span>
     </div>
   );
 }

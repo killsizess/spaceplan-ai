@@ -1,6 +1,7 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { sizeText } from "@/lib/units";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, DraftingCompass, Layers, LoaderCircle, X } from "lucide-react";
 import {
@@ -13,7 +14,6 @@ import {
   type DxfGeometry,
 } from "@/domain/floor-plan/dxf";
 import type { Underlay } from "@/domain/floor-plan/types";
-import { formatLength } from "@/lib/format";
 import { createDxfUnderlay, drawDxfGeometry, dxfCanvasSize } from "../dxf-underlay";
 import type { PdfLines } from "../pdf-vector-lines";
 import "../pdf-import.css";
@@ -176,7 +176,7 @@ export default function DxfImportDialog({
             </p>
             {preview.geometry && (
               <p className="dxf-import-size" data-testid="dxf-size">
-                {formatLength(preview.geometry.width)} × {formatLength(preview.geometry.height)}{tr` м`}<small>{tr`Проверьте: это похоже на размер плана?`}</small>
+                {sizeText(preview.geometry.width, preview.geometry.height)}<small>{tr`Проверьте: это похоже на размер плана?`}</small>
               </p>
             )}
             <h3>

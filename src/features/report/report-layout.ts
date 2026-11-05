@@ -1,5 +1,5 @@
 import { currentLocale, tr } from "@/lib/i18n";
-import { formatArea, formatLength } from "@/lib/format";
+import { formatArea } from "@/lib/format";
 import { REPORT_LEVEL_ORDER, REPORT_LEVELS, type PlanReport, type ReportFinding, type ReportLevel, type ReportState } from "./plan-report";
 
 /**
@@ -203,7 +203,7 @@ export function layoutPlanReport(report: PlanReport, measure: MeasureText): Repo
       flow.y += 1.1;
       flow.lines(left, nameWidth, room.name, 3.3, 500, INK);
       flow.text(left + nameWidth + 2, flow.y + 3.3, room.kind, 3.1, 400, MUTED);
-      flow.text(left + width, flow.y + 3.3, tr`${formatLength(Math.round(room.area * 100) / 100)} м²`, 3.3, 600, INK, "right");
+      flow.text(left + width, flow.y + 3.3, formatArea(Math.round(room.area * 100) / 100), 3.3, 600, INK, "right");
       flow.y += height + 1.2;
     }
     flow.y += 3;

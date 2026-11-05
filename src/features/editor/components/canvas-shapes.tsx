@@ -1,6 +1,7 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { lengthText, sizeText } from "@/lib/units";
 import type { RefObject } from "react";
 import { Circle, Group, Line, Rect, Text } from "react-konva";
 import type { Opening, Room, Wall } from "@/domain/floor-plan/types";
@@ -8,7 +9,7 @@ import type { Point } from "@/domain/geometry";
 import { rectangleArea } from "@/domain/geometry";
 import { doorSwingLocal } from "@/domain/floor-plan/door-swing";
 import { wallKindOf } from "@/domain/floor-plan/wall-kind";
-import { formatArea, formatLength } from "@/lib/format";
+import { formatArea } from "@/lib/format";
 import { gridLines, snapToGrid as snap, wallSolidSegments } from "../canvas-geometry";
 import { CANVAS_FONT } from "../canvas-geometry";
 
@@ -158,7 +159,7 @@ export function ManualRoomShape({
               x={0}
               y={9 / scale}
               width={room.width}
-              text={tr`${formatLength(room.width)} м`}
+              text={lengthText(room.width)}
               fontSize={10 / scale}
               fontFamily={CANVAS_FONT}
               fill="#5f6c65"
@@ -167,7 +168,7 @@ export function ManualRoomShape({
             <Text
               x={9 / scale}
               y={room.height / 2 + 20 / scale}
-              text={tr`${formatLength(room.height)} м`}
+              text={lengthText(room.height)}
               fontSize={10 / scale}
               fontFamily={CANVAS_FONT}
               fill="#5f6c65"
@@ -256,7 +257,7 @@ export function WallShape({
           x={0}
           y={-wall.thickness / 2 - 19 / scale}
           width={length}
-          text={tr`${formatLength(length)} м`}
+          text={lengthText(length)}
           align="center"
           fontSize={11 / scale}
           fontFamily={CANVAS_FONT}
@@ -491,7 +492,7 @@ export function WallDraftOverlay({ draft, scale }: { draft: Segment; scale: numb
       <Text
         x={(draft.start.x + draft.end.x) / 2 + 10 / scale}
         y={(draft.start.y + draft.end.y) / 2 - 24 / scale}
-        text={tr`${formatLength(Math.hypot(draft.end.x - draft.start.x, draft.end.y - draft.start.y))} м`}
+        text={lengthText(Math.hypot(draft.end.x - draft.start.x, draft.end.y - draft.start.y))}
         fontSize={12 / scale}
         fontFamily={CANVAS_FONT}
         fill="#1a7353"
@@ -553,7 +554,7 @@ export function RoomDraftOverlay({
       <Text
         x={draft.x}
         y={draft.y - 24 / scale}
-        text={tr`${formatLength(draft.width)} × ${formatLength(draft.height)} м`}
+        text={sizeText(draft.width, draft.height)}
         fontSize={12 / scale}
         fontFamily={CANVAS_FONT}
         fill="#1a7353"

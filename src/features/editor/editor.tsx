@@ -1,6 +1,7 @@
 "use client";
 
 import { chooseLanguage, currentLanguage, tr, untranslated } from "@/lib/i18n";
+import { byUnits, chooseUnits, currentUnits, defaultWallSize, lengthText, snapLabel } from "@/lib/units";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -50,7 +51,7 @@ import { createRulesExamplePlan } from "@/domain/rules/example-apartment";
 import { startedAsExample, WelcomeStrip } from "./components/welcome-strip";
 import { getRectangularRoomWalls, type RectangularWallRoomInput } from "@/domain/floor-plan/rectangular-wall-room";
 import { wallLength, type Point } from "@/domain/geometry";
-import { formatLength, pluralRu } from "@/lib/format";
+import { pluralRu } from "@/lib/format";
 import { NewProjectDialog } from "@/features/projects/new-project-dialog";
 import { ProjectsDialog } from "@/features/projects/projects-dialog";
 import { useProjectWorkspace } from "@/features/projects/use-project-workspace";
@@ -598,7 +599,7 @@ export default function Editor() {
         start: candidate.start,
         end: candidate.end,
         thickness: candidate.thickness,
-        height: 2.7,
+        height: defaultWallSize().height,
       })),
     });
     if (!workspace.getSnapshot().editor.error) setWallSuggestion(null);
@@ -648,7 +649,7 @@ export default function Editor() {
     const width = kind === "door" ? 0.9 : 1.2;
     if (length < width) {
       workspace.reportNotice(
-        tr`Для этого проёма нужна стена длиной от ${formatLength(width)} м.`,
+        tr`Для этого проёма нужна стена длиной от ${lengthText(width)}.`,
       );
       return;
     }
@@ -1389,8 +1390,7 @@ export default function Editor() {
                         id: crypto.randomUUID(),
                         start,
                         end,
-                        thickness: 0.2,
-                        height: 2.7,
+                        ...defaultWallSize(),
                       },
                     });
                     setSidebar("structure");
@@ -1477,7 +1477,7 @@ export default function Editor() {
             </span>
             <span>
               <Focus size={12} />{" "}
-              {viewMode === "3d" ? tr`Размеры в метрах` : tr`Привязка 0,1 м`}
+              {viewMode === "3d" ? byUnits(tr`Размеры в метрах`, () => tr`Размеры в футах и дюймах`) : snapLabel()}
             </span>
           </div>
         </section>
@@ -1557,6 +1557,15 @@ export default function Editor() {
             onClick={() => void workspace.flush().then(() => chooseLanguage(currentLanguage() === "en" ? "ru" : "en"))}
           >
             {currentLanguage() === "en" ? untranslated("Русский") : "English"}
+          </button>
+          <span className="footer-dot">·</span>
+          <button
+            type="button"
+            className="language-switch"
+            data-testid="units-switch"
+            onClick={() => void workspace.flush().then(() => chooseUnits(currentUnits() === "imperial" ? "metric" : "imperial"))}
+          >
+            {currentUnits() === "imperial" ? tr`Метры` : tr`Футы`}
           </button>
           <span className="footer-dot">·</span>
           {tr`Решения о конструктиве принимает специалист`}

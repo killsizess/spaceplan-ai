@@ -1,8 +1,8 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { lengthText } from "@/lib/units";
 import { Check, DoorOpen, X } from "lucide-react";
-import { formatLength } from "@/lib/format";
 
 export interface SuggestedOpening {
   kind: "door" | "window";
@@ -71,7 +71,7 @@ export function PdfOpeningSuggestions({
                     <input type="checkbox" checked={item.selected} disabled={busy} onChange={() => onToggle(index)} />
                     {item.kind === "door" ? tr`Дверь` : tr`Окно`} {index + 1}
                     <small>
-                      {formatLength(item.width)}{tr` м · `}{item.place}
+                      {lengthText(item.width)}{" · "}{item.place}
                     </small>
                     {item.confidence === "low" && <span className="opening-doubt">{tr`неуверенно`}</span>}
                   </label>

@@ -1,8 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { FOOT, INCH, setUnits } from "@/lib/units";
 import type { Underlay, Wall } from "@/domain/floor-plan/types";
 import {
   findWallAt,
   gridLines,
+  snapToGrid,
   moveHandleOffset,
   planBounds,
   snapWallPoint,
@@ -171,5 +173,21 @@ describe("canvas construction coordinates", () => {
     expect(planBounds([], [horizontal], undefined, [opening])).toContainEqual({ x: 1, y: -1, width: 1, height: 1 });
     expect(planBounds([], [horizontal], undefined, [{ ...opening, kind: "window" }])).toHaveLength(1);
     expect(planBounds([], [horizontal], undefined, [{ ...opening, door: { hinge: "end", side: "right" } }])).toContainEqual({ x: 1, y: 0, width: 1, height: 1 });
+  });
+});
+
+describe("in feet", () => {
+  afterEach(() => setUnits("metric"));
+
+  it("draws a line each foot and marks every five feet", () => {
+    setUnits("imperial");
+    const { vertical } = gridLines({ x: 0, y: 0 }, 100, { width: 400, height: 100 });
+    expect(vertical[1].position).toBeCloseTo(100 * FOOT, 6);
+    expect(vertical.filter((line) => line.major).map((line) => Math.round(line.position))).toEqual([0, 152, 305]);
+  });
+
+  it("snaps the pointer to three inches", () => {
+    setUnits("imperial");
+    expect(snapToGrid(1)).toBeCloseTo(39 * INCH, 10);
   });
 });

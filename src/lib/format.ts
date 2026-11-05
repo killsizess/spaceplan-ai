@@ -1,13 +1,12 @@
-import { currentLanguage, currentLocale, tr } from "@/lib/i18n";
-const areaFormatter = new Intl.NumberFormat(currentLocale(), {
-  maximumFractionDigits: 2,
-});
+import { currentLanguage, currentLocale } from "@/lib/i18n";
+import { areaText } from "@/lib/units";
 const lengthFormatter = new Intl.NumberFormat(currentLocale(), {
   maximumFractionDigits: 2,
 });
 
+/** An area with its unit, in square metres or square feet. */
 export function formatArea(value: number): string {
-  return tr`${areaFormatter.format(value)} м²`;
+  return areaText(value);
 }
 
 export function formatLength(value: number): string {

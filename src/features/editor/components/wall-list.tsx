@@ -1,9 +1,9 @@
 import { tr } from "@/lib/i18n";
+import { lengthText, sizeText } from "@/lib/units";
 import { BrickWall, DoorOpen, RectangleHorizontal } from "lucide-react";
 import type { Opening, Wall, WallKind } from "@/domain/floor-plan/types";
 import { WALL_KIND_LABELS, wallKindOf } from "@/domain/floor-plan/wall-kind";
 import { wallLength } from "@/domain/geometry";
-import { formatLength } from "@/lib/format";
 
 const QUICK_KINDS: readonly { kind: WallKind; mark: string }[] = [
   { kind: "bearing", mark: tr`Н` },
@@ -89,8 +89,8 @@ export function WallList({
           <BrickWall size={16} />
           <span>{tr`Стена `}{index + 1}
             <small>
-              {formatLength(wallLength(wall.start, wall.end))}{tr` м ·`}{" "}
-              {formatLength(wall.thickness)}{tr` м`}{wallKindOf(wall) !== "unknown" && <> · {WALL_KIND_LABELS[wallKindOf(wall)].toLowerCase()}</>}
+              {lengthText(wallLength(wall.start, wall.end))}{" ·"}{" "}
+              {lengthText(wall.thickness)}{wallKindOf(wall) !== "unknown" && <> · {WALL_KIND_LABELS[wallKindOf(wall)].toLowerCase()}</>}
             </small>
           </span>
         </button>
@@ -130,8 +130,7 @@ export function WallList({
             <span>
               {opening.doorless ? tr`Проём без двери` : opening.kind === "door" ? tr`Дверь` : tr`Окно`}
               <small>
-                {formatLength(opening.width)} ×{" "}
-                {formatLength(opening.height)}{tr` м`}</small>
+                {sizeText(opening.width, opening.height)}</small>
             </span>
           </button>
         ))}

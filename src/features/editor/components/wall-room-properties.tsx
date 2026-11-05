@@ -1,16 +1,16 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { lengthInput, lengthInputMode, lengthText, lengthUnitLabel, parseLength } from "@/lib/units";
 import { BrickWall, Check, Ruler, ScanLine } from "lucide-react";
 import { useState } from "react";
 import type { RoomKind } from "@/domain/floor-plan/types";
 import type { ResolvedWallRoom, WallRoomLabelValues } from "@/domain/floor-plan/wall-room-labels";
-import { formatArea, formatLength } from "@/lib/format";
+import { formatArea } from "@/lib/format";
 import { ROOM_KINDS } from "../room-kinds";
 
-const inputMeters = (value: number) => String(Number(value.toFixed(12)));
-const parse = (value: string) =>
-  value.trim() ? Number(value.replace(",", ".")) : NaN;
+const inputMeters = lengthInput;
+const parse = (value: string, original?: number) => parseLength(value, original);
 
 export interface RoomNeighbour {
   id: string;
@@ -58,9 +58,9 @@ export function WallRoomProperties({
   const [color, setColor] = useState(room.color);
   const labelChanged = !room.labelId || name !== room.name || kind !== room.kind || color !== room.color;
   const unchanged = editableRectangle &&
-    Number.isFinite(parse(width)) && Number.isFinite(parse(depth)) &&
-    Math.abs(parse(width) - editableRectangle.width) <= 1e-9 &&
-    Math.abs(parse(depth) - editableRectangle.depth) <= 1e-9;
+    Number.isFinite(parse(width, editableRectangle.width)) && Number.isFinite(parse(depth, editableRectangle.depth)) &&
+    Math.abs(parse(width, editableRectangle.width) - editableRectangle.width) <= 1e-9 &&
+    Math.abs(parse(depth, editableRectangle.depth) - editableRectangle.depth) <= 1e-9;
   return (
     <>
       <div className="properties-heading">
@@ -121,22 +121,22 @@ export function WallRoomProperties({
             noValidate
             onSubmit={(event) => {
               event.preventDefault();
-              onResize(parse(width), parse(depth));
+              onResize(parse(width, editableRectangle?.width), parse(depth, editableRectangle?.depth));
             }}
           >
             <div className="field-pair">
               <div>
                 <label htmlFor="rectangle-resize-width">{tr`Внутренняя ширина`}</label>
                 <div className="unit-input">
-                  <input id="rectangle-resize-width" inputMode="decimal" value={width} onChange={(event) => setWidth(event.target.value)} />
-                  <span>{tr`м`}</span>
+                  <input id="rectangle-resize-width" inputMode={lengthInputMode()} value={width} onChange={(event) => setWidth(event.target.value)} />
+                  <span>{lengthUnitLabel()}</span>
                 </div>
               </div>
               <div>
                 <label htmlFor="rectangle-resize-depth">{tr`Внутренняя глубина`}</label>
                 <div className="unit-input">
-                  <input id="rectangle-resize-depth" inputMode="decimal" value={depth} onChange={(event) => setDepth(event.target.value)} />
-                  <span>{tr`м`}</span>
+                  <input id="rectangle-resize-depth" inputMode={lengthInputMode()} value={depth} onChange={(event) => setDepth(event.target.value)} />
+                  <span>{lengthUnitLabel()}</span>
                 </div>
               </div>
             </div>
@@ -148,15 +148,15 @@ export function WallRoomProperties({
           <div>
             <dt>{tr`Периметр`}</dt>
             <dd data-testid="wall-room-perimeter">
-              {formatLength(room.perimeter)}{tr` м`}</dd>
+              {lengthText(room.perimeter)}</dd>
           </div>
           <div>
             <dt>{tr`Габарит по X`}</dt>
-            <dd>{formatLength(room.bounds.maxX - room.bounds.minX)}{tr` м`}</dd>
+            <dd>{lengthText(room.bounds.maxX - room.bounds.minX)}</dd>
           </div>
           <div>
             <dt>{tr`Габарит по Y`}</dt>
-            <dd>{formatLength(room.bounds.maxY - room.bounds.minY)}{tr` м`}</dd>
+            <dd>{lengthText(room.bounds.maxY - room.bounds.minY)}</dd>
           </div>
           <div>
             <dt>{tr`Внутренние исключения`}</dt>
@@ -177,7 +177,7 @@ export function WallRoomProperties({
                     aria-label={tr`Выбрать соседнее помещение ${neighbour.name}`}
                   >
                     <span>{neighbour.name}</span>
-                    <small>{tr`общая стена `}{formatLength(neighbour.length)}{tr` м · `}{doorsText(neighbour.doors)}
+                    <small>{tr`общая стена `}{lengthText(neighbour.length)}{" · "}{doorsText(neighbour.doors)}
                     </small>
                   </button>
                 </li>

@@ -1,7 +1,8 @@
 import { tr } from "@/lib/i18n";
+import { lengthText } from "@/lib/units";
 import { planFromOrigin } from "@/domain/floor-plan/plan-origin";
 import type { FloorPlan, ProfileRule, ProfileTarget, RoomKind, RuleProfile, Wall } from "@/domain/floor-plan/types";
-import { formatArea, formatLength } from "@/lib/format";
+import { formatArea } from "@/lib/format";
 import { openingChanges, roomKindChanges, wallChanges } from "./plan-changes";
 import { hasOutsideWindow, overlapArea, roomHeight, roomsOfPlan } from "./rule-rooms";
 import type { Procedure, ProcedureTexts, RegulationDocument, RuleFinding, RulePack, RuleSource } from "./types";
@@ -38,7 +39,7 @@ export function describeProfileRule(rule: ProfileRule): string {
       if (rule.min !== undefined) return tr`${label}: не меньше ${rule.min}`;
       return tr`${label}: не больше ${rule.max}`;
     }
-    case "min-height": return tr`Высота помещений не ниже ${formatLength(rule.value)} м`;
+    case "min-height": return tr`Высота помещений не ниже ${lengthText(rule.value)}`;
     case "window-required": return tr`${TARGET_LABELS[rule.target]}: должно быть окно наружу`;
     case "no-merge": return tr`Нельзя объединять: ${TARGET_LABELS[rule.target].toLowerCase()} и ${TARGET_LABELS[rule.other].toLowerCase()}`;
     case "keep-bearing": return tr`Несущие стены не меняются`;
@@ -123,7 +124,7 @@ function statesFindings(plan: FloorPlan, profile: RuleProfile): RuleFinding[] {
     }
     const low = rooms.filter((room) => room.kind !== "shaft" && roomHeight(plan, room) < rule.value - 1e-9);
     for (const room of low) {
-      findings.push(finding(rule, "problem", tr`${room.name}: высота ${formatLength(Math.round(roomHeight(plan, room) * 100) / 100)} м при минимуме ${formatLength(rule.value)} м`, { roomIds: [room.id] }));
+      findings.push(finding(rule, "problem", tr`${room.name}: высота ${lengthText(Math.round(roomHeight(plan, room) * 100) / 100)} при минимуме ${lengthText(rule.value)}`, { roomIds: [room.id] }));
     }
     if (!low.length) findings.push(finding(rule, "ok", tr`Выполнено: ${describeProfileRule(rule)}`));
   }

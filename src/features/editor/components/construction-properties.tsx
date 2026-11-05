@@ -1,6 +1,7 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { byUnits, currentUnits, lengthInput, lengthInputMode, lengthUnitLabel, parseLength } from "@/lib/units";
 import { useMemo, useState } from "react";
 import {
   Check,
@@ -35,9 +36,8 @@ interface ConstructionPropertiesProps {
   error?: string | null;
 }
 
-const parse = (value: string) =>
-  value.trim() ? Number(value.replace(",", ".")) : NaN;
-const lengthInput = (value: number) => String(Number(value.toFixed(12)));
+/** With the value a field was filled from, an untouched field reads back as exactly that. */
+const parse = (value: string, original?: number) => parseLength(value, original);
 
 function MeterField({
   id,
@@ -56,11 +56,11 @@ function MeterField({
       <div className="unit-input">
         <input
           id={id}
-          inputMode="decimal"
+          inputMode={lengthInputMode()}
           value={value}
           onChange={(event) => onChange(event.target.value)}
         />
-        <span>{tr`м`}</span>
+        <span>{lengthUnitLabel()}</span>
       </div>
     </div>
   );
@@ -94,7 +94,7 @@ function PropertiesHeader({ opening }: { opening?: Opening }) {
           <SlidersHorizontal size={15} />
           {opening ? tr`Свойства проёма` : tr`Свойства стены`}
         </span>
-        <span className="small-tag">{tr`м`}</span>
+        <span className="small-tag">{lengthUnitLabel()}</span>
       </div>
       <div className="construction-selected">
         <div className="construction-symbol">
@@ -247,12 +247,12 @@ function WallProperties({
   error,
 }: ConstructionPropertiesProps & { wall: Wall }) {
   const [draft, setDraft] = useState({
-    startX: String(wall.start.x),
-    startY: String(wall.start.y),
-    endX: String(wall.end.x),
-    endY: String(wall.end.y),
-    thickness: String(wall.thickness),
-    height: String(wall.height),
+    startX: lengthInput(wall.start.x),
+    startY: lengthInput(wall.start.y),
+    endX: lengthInput(wall.end.x),
+    endY: lengthInput(wall.end.y),
+    thickness: lengthInput(wall.thickness),
+    height: lengthInput(wall.height),
   });
   const [localError, setLocalError] = useState<string | null>(null);
   const [connectEndpoints, setConnectEndpoints] = useState(true);
@@ -268,22 +268,22 @@ function WallProperties({
     setDraft(next);
     if (field !== "thickness" && field !== "height") {
       const distance = Math.hypot(
-        parse(next.endX) - parse(next.startX),
-        parse(next.endY) - parse(next.startY),
+        parse(next.endX, wall.end.x) - parse(next.startX, wall.start.x),
+        parse(next.endY, wall.end.y) - parse(next.startY, wall.start.y),
       );
       setLength(Number.isFinite(distance) ? lengthInput(distance) : "");
     }
     setLocalError(null);
   };
   const changed =
-    parse(draft.startX) !== wall.start.x ||
-    parse(draft.startY) !== wall.start.y ||
-    parse(draft.endX) !== wall.end.x ||
-    parse(draft.endY) !== wall.end.y ||
-    parse(draft.thickness) !== wall.thickness ||
-    parse(draft.height) !== wall.height ||
-    !Number.isFinite(parse(length)) ||
-    Math.abs(parse(length) - wallLength(wall.start, wall.end)) > 1e-9;
+    parse(draft.startX, wall.start.x) !== wall.start.x ||
+    parse(draft.startY, wall.start.y) !== wall.start.y ||
+    parse(draft.endX, wall.end.x) !== wall.end.x ||
+    parse(draft.endY, wall.end.y) !== wall.end.y ||
+    parse(draft.thickness, wall.thickness) !== wall.thickness ||
+    parse(draft.height, wall.height) !== wall.height ||
+    !Number.isFinite(parse(length, wallLength(wall.start, wall.end))) ||
+    Math.abs(parse(length, wallLength(wall.start, wall.end)) - wallLength(wall.start, wall.end)) > 1e-9;
   return (
     <>
       <PropertiesHeader />
@@ -294,8 +294,8 @@ function WallProperties({
           event.preventDefault();
           if (
             Object.values(draft).some((value) => !Number.isFinite(parse(value))) ||
-            !Number.isFinite(parse(length)) ||
-            parse(length) <= 0
+            !Number.isFinite(parse(length, wallLength(wall.start, wall.end))) ||
+            parse(length, wallLength(wall.start, wall.end)) <= 0
           ) {
             setLocalError(tr`Заполните все размеры и координаты числами.`);
             return;
@@ -304,10 +304,10 @@ function WallProperties({
           onUpdateWall(
             {
               ...wall,
-              start: { x: parse(draft.startX), y: parse(draft.startY) },
-              end: { x: parse(draft.endX), y: parse(draft.endY) },
-              thickness: parse(draft.thickness),
-              height: parse(draft.height),
+              start: { x: parse(draft.startX, wall.start.x), y: parse(draft.startY, wall.start.y) },
+              end: { x: parse(draft.endX, wall.end.x), y: parse(draft.endY, wall.end.y) },
+              thickness: parse(draft.thickness, wall.thickness),
+              height: parse(draft.height, wall.height),
             },
             connectEndpoints,
           );
@@ -370,15 +370,16 @@ function WallProperties({
             setLength(value);
             setLocalError(null);
             const distance = parse(value);
-            const start = { x: parse(draft.startX), y: parse(draft.startY) };
-            const dx = parse(draft.endX) - start.x;
-            const dy = parse(draft.endY) - start.y;
+            const start = { x: parse(draft.startX, wall.start.x), y: parse(draft.startY, wall.start.y) };
+            const dx = parse(draft.endX, wall.end.x) - start.x;
+            const dy = parse(draft.endY, wall.end.y) - start.y;
             const current = Math.hypot(dx, dy);
             if (
               Number.isFinite(distance) && distance > 0 &&
               current > 0 && Number.isFinite(current)
             ) {
-              const rounded = (coordinate: number) => String(Math.round(coordinate * 1e12) / 1e12);
+              const rounded = (coordinate: number) =>
+                currentUnits() === "imperial" ? lengthInput(coordinate) : String(Math.round(coordinate * 1e12) / 1e12);
               setDraft({
                 ...draft,
                 endX: rounded(start.x + dx / current * distance),
@@ -421,7 +422,7 @@ function WallProperties({
           disabled={!changed}
         >
           <Check size={15} />{tr`Применить свойства`}</button>
-        <p className="field-note">{tr`Размеры — в метрах, длина — по оси стены. Начало и направление сохраняются при вводе длины. Если проём перестанет помещаться в стене, изменение будет отклонено.`}</p>
+        <p className="field-note">{byUnits(tr`Размеры — в метрах, длина — по оси стены. Начало и направление сохраняются при вводе длины. Если проём перестанет помещаться в стене, изменение будет отклонено.`, () => tr`Размеры — в футах и дюймах, длина — по оси стены. Начало и направление сохраняются при вводе длины. Если проём перестанет помещаться в стене, изменение будет отклонено.`)}</p>
       </form>
       <WallMoveForm
         wall={wall}
@@ -467,10 +468,10 @@ function OpeningProperties({
   const [door, setDoor] = useState<DoorSwing>(opening.door ?? DEFAULT_DOOR_SWING);
   const [doorless, setDoorless] = useState(Boolean(opening.doorless));
   const [draft, setDraft] = useState({
-    offset: String(opening.offset),
-    width: String(opening.width),
-    height: String(opening.height),
-    sillHeight: String(opening.sillHeight),
+    offset: lengthInput(opening.offset),
+    width: lengthInput(opening.width),
+    height: lengthInput(opening.height),
+    sillHeight: lengthInput(opening.sillHeight),
   });
   const [localError, setLocalError] = useState<string | null>(null);
   const change = (field: keyof typeof draft) => (value: string) => {
@@ -480,10 +481,10 @@ function OpeningProperties({
   const changed =
     kind !== opening.kind ||
     wallId !== opening.wallId ||
-    parse(draft.offset) !== opening.offset ||
-    parse(draft.width) !== opening.width ||
-    parse(draft.height) !== opening.height ||
-    parse(draft.sillHeight) !== opening.sillHeight ||
+    parse(draft.offset, opening.offset) !== opening.offset ||
+    parse(draft.width, opening.width) !== opening.width ||
+    parse(draft.height, opening.height) !== opening.height ||
+    parse(draft.sillHeight, opening.sillHeight) !== opening.sillHeight ||
     (kind === "door" && (
       doorless !== Boolean(opening.doorless) ||
       door.hinge !== (opening.door ?? DEFAULT_DOOR_SWING).hinge ||
@@ -508,10 +509,10 @@ function OpeningProperties({
             ...opening,
             kind,
             wallId,
-            offset: parse(draft.offset),
-            width: parse(draft.width),
-            height: parse(draft.height),
-            sillHeight: parse(draft.sillHeight),
+            offset: parse(draft.offset, opening.offset),
+            width: parse(draft.width, opening.width),
+            height: parse(draft.height, opening.height),
+            sillHeight: parse(draft.sillHeight, opening.sillHeight),
           };
           if (kind === "door") next.door = { ...door };
           else delete next.door;

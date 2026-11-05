@@ -1,4 +1,5 @@
 import { tr } from "@/lib/i18n";
+import { currentUnits, scaleBarLength } from "@/lib/units";
 import {
   BrickWall,
   DoorOpen,
@@ -140,12 +141,15 @@ export function CanvasBottom({
   onZoom: (zoom: number) => void;
   onFit: () => void;
 }) {
-  const scaleMeters = scaleBarMeters(zoom);
+  const metres = scaleBarMeters(zoom);
+  const bar = currentUnits() === "imperial"
+    ? scaleBarLength(30 / (BASE_SCALE * zoom))
+    : { meters: metres, label: tr`${metres} м` };
   return (
     <div className="canvas-bottom">
       <div className="scale-indicator">
-        <span style={{ width: scaleMeters * BASE_SCALE * zoom }} />
-        <small>{scaleMeters}{tr` м`}</small>
+        <span style={{ width: bar.meters * BASE_SCALE * zoom }} />
+        <small>{bar.label}</small>
       </div>
       <div className="zoom-controls">
         <button

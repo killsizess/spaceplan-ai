@@ -1,7 +1,7 @@
 import { tr } from "@/lib/i18n";
+import { lengthText, sizeText } from "@/lib/units";
 import type { Point } from "@/domain/geometry";
 import type { WallRoom } from "@/domain/floor-plan/wall-rooms";
-import { formatLength } from "@/lib/format";
 
 const EPSILON = 1e-7;
 type RoomContour = Pick<WallRoom, "outer" | "holes" | "bounds" | "area">;
@@ -108,10 +108,10 @@ export function getRoomDimensionLayout(
   const centerX = minX + width / 2;
   const centerY = minY + depth / 2;
   const px = (value: number) => value / scale;
-  const widthText = tr`${formatLength(width)} м`;
-  const depthText = tr`${formatLength(depth)} м`;
+  const widthText = lengthText(width);
+  const depthText = lengthText(depth);
   if (screenWidth < 160 || screenDepth < 120) {
-    const text = tr`${formatLength(width)} × ${formatLength(depth)} м внутри`;
+    const text = tr`${sizeText(width, depth)} внутри`;
     // A conservative text width avoids wrapping/cutting a dimension at small zoom.
     if (text.length * 6 > screenWidth - 12) return null;
     return {

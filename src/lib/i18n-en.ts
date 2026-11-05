@@ -5,6 +5,7 @@ import plan from "./i18n-en/plan.json";
 import rulesMoscow from "./i18n-en/rules-moscow.json";
 import rulesOther from "./i18n-en/rules-other.json";
 import screens from "./i18n-en/screens.json";
+import units from "./i18n-en/units.json";
 
 /** Keyed by the Russian text in the code; `{0}` stands for the values, in the order they appear there. */
 export const EN: Readonly<Record<string, string>> = {
@@ -15,4 +16,5 @@ export const EN: Readonly<Record<string, string>> = {
   ...editor1,
   ...editor2,
   ...editor3,
+  ...units,
 };

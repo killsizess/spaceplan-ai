@@ -1,4 +1,5 @@
 import { currentLocale, tr } from "@/lib/i18n";
+import { FOOT, currentUnits, lengthUnitLabel, unitsName } from "@/lib/units";
 import type { Point } from "@/domain/geometry";
 import { floorPlanSchema } from "@/domain/floor-plan/schema";
 import type { FloorPlan, Opening, Room, Wall } from "@/domain/floor-plan/types";
@@ -405,23 +406,29 @@ export function createPlanExportLayout(plan: FloorPlan, options: PlanExportOptio
   const scaleTarget = 38 / mmPerMeter;
   const scalePower = 10 ** Math.floor(Math.log10(scaleTarget));
   const scaleMeters = [1, 2, 2.5, 5, 10].filter((step) => step * scalePower <= scaleTarget + EPSILON).at(-1)! * scalePower;
-  const barWidth = scaleMeters * mmPerMeter;
+  // The same rule in feet: the longest round length that fits the 38 mm the bar has.
+  const footTarget = scaleTarget / FOOT;
+  const footPower = 10 ** Math.floor(Math.log10(footTarget));
+  const scaleFeet = [1, 2, 2.5, 5, 10].filter((step) => step * footPower <= footTarget + EPSILON).at(-1)! * footPower;
+  const imperial = currentUnits() === "imperial";
+  const barWidth = (imperial ? scaleFeet * FOOT : scaleMeters) * mmPerMeter;
+  const barLabel = imperial ? tr`${preciseNumber.format(scaleFeet)} фт` : tr`${preciseNumber.format(scaleMeters)} м`;
   const barX = widthMm - 78, barY = heightMm - 20;
   const footerLeftWidth = widthMm - 104;
   const svg = tr`<svg xmlns="http://www.w3.org/2000/svg" width="${widthMm}mm" height="${heightMm}mm" viewBox="0 0 ${widthMm} ${heightMm}" role="img" aria-label="План помещений на листе A4">` +
     `<rect width="${widthMm}" height="${heightMm}" fill="#ffffff"/><g font-family="Arial, Helvetica, sans-serif" fill="${INK}">` +
     text(12, 18, title, 5, 'font-weight="700"') +
-    text(12, 25, tr`SpacePlan AI · ${mode} · ${rooms.length} помещ. · метры`, 3) +
+    text(12, 25, tr`SpacePlan AI · ${mode} · ${rooms.length} помещ. · ${unitsName()}`, 3) +
     `<path d="M12 30 H${widthMm - 12} M12 ${heightMm - 32} H${widthMm - 12}" stroke="#c6d1cd" stroke-width="0.25"/>` +
     `<g data-plan="true" data-mm-per-meter="${n(mmPerMeter)}">${fills}${openings}${walls}${annotations}</g>` +
     text(12, heightMm - 25, fitText(tr`Общая площадь: ${formatArea(totalArea)}`, footerLeftWidth, 3.5), 3.5, 'font-weight="600"') +
     text(12, heightMm - 19, fitText(mode, footerLeftWidth, 2.7), 2.7) +
-    text(12, heightMm - 13, options.dimensions ? tr`Размеры внутри помещений, м` : tr`Размеры скрыты`, 2.7) +
+    text(12, heightMm - 13, options.dimensions ? tr`Размеры внутри помещений, ${lengthUnitLabel()}` : tr`Размеры скрыты`, 2.7) +
     `<path d="M12 ${heightMm - 7} v-3 M12 ${heightMm - 10} A3 3 0 0 1 15 ${heightMm - 7}" fill="none" stroke="#8f6748" stroke-width="0.3"/>` + text(19, heightMm - 6, tr`дверь`, 2.5) +
     `<path d="M35 ${heightMm - 7.5} h5 M35 ${heightMm - 6.5} h5" stroke="#377a93" stroke-width="0.3"/>` + text(42, heightMm - 6, tr`окно`, 2.5) +
     text(barX, heightMm - 26, tr`Масштаб 1:${preciseNumber.format(scaleDenominator)}`, 3, 'font-weight="600"') +
     `<path data-scale-bar="true" d="M${n(barX)} ${n(barY - 1.5)} V${n(barY + 1.5)} M${n(barX)} ${n(barY)} H${n(barX + barWidth)} M${n(barX + barWidth)} ${n(barY - 1.5)} V${n(barY + 1.5)}" stroke="${INK}" stroke-width="0.35"/>` +
-    text(barX, barY + 5, "0", 2.5) + text(barX + barWidth, barY + 5, tr`${preciseNumber.format(scaleMeters)} м`, 2.5, 'text-anchor="end"') +
+    text(barX, barY + 5, "0", 2.5) + text(barX + barWidth, barY + 5, barLabel, 2.5, 'text-anchor="end"') +
     text(barX, heightMm - 8, tr`Печатать A4, масштаб 100%`, 2.5) + "</g></svg>";
   return { svg, widthMm, heightMm, scaleDenominator, roomCount: rooms.length, totalArea, warnings: [...new Set(warnings)] };
 }

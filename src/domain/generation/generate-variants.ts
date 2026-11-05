@@ -1,4 +1,5 @@
 import { tr } from "@/lib/i18n";
+import { lengthText } from "@/lib/units";
 import { deleteObject, addWallsAndOpenings } from "@/domain/floor-plan/construction";
 import { analyzeDoorWallCollisions } from "@/domain/floor-plan/door-collisions";
 import { analyzeDoorPairCollisions } from "@/domain/floor-plan/door-pair-collisions";
@@ -22,7 +23,7 @@ import {
 import { rulesForPlan } from "@/domain/rules/engine";
 import { hasOutsideWindow, isPerimeterWall, type RuleRoom } from "@/domain/rules/rule-rooms";
 import type { Procedure, RuleReport } from "@/domain/rules/types";
-import { formatArea, formatLength } from "@/lib/format";
+import { formatArea } from "@/lib/format";
 
 /**
  * Limited variant generation. It is a search, not a model, and it is limited on purpose:
@@ -169,8 +170,8 @@ function shifts(plan: FloorPlan): Step[] {
           return same && same.area > room.area;
         });
         const text = grown
-          ? tr`Сдвинуть стену ${wallNumber(plan, wall)} на ${formatLength(Math.abs(distance))} м, чтобы увеличить «${grown.name}»`
-          : tr`Сдвинуть стену ${wallNumber(plan, wall)} на ${formatLength(Math.abs(distance))} м`;
+          ? tr`Сдвинуть стену ${wallNumber(plan, wall)} на ${lengthText(Math.abs(distance))}, чтобы увеличить «${grown.name}»`
+          : tr`Сдвинуть стену ${wallNumber(plan, wall)} на ${lengthText(Math.abs(distance))}`;
         steps.push({ plan: next, move: { kind: "shift-partition", subject: wall.id, text } });
       } catch {
         // A shift that collapses a neighbour or loses a joint is not a candidate.

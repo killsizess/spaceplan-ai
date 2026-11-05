@@ -1,6 +1,7 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { areaUnitLabel, byUnits, parseArea } from "@/lib/units";
 import { ListChecks, Plus, Trash2, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import type { PlanRequirement, RoomKind, Wall } from "@/domain/floor-plan/types";
@@ -16,7 +17,7 @@ import "../requirements.css";
 
 type RequirementType = PlanRequirement["type"];
 
-const parse = (value: string) => (value.trim() ? Number(value.replace(",", ".")) : NaN);
+const parse = (value: string) => parseArea(value);
 
 /** A room with saved parameters that a requirement can target. */
 export interface NamedRoom {
@@ -50,7 +51,8 @@ export function RequirementsPanel({
   const [type, setType] = useState<RequirementType>("room-min-area");
   const [kind, setKind] = useState<RoomKind>("kitchen");
   const [otherKind, setOtherKind] = useState<RoomKind>("hall");
-  const [area, setArea] = useState("8");
+  // 8 m², or a round 100 sq ft.
+  const [area, setArea] = useState(byUnits("8", () => "100"));
   const [byDoor, setByDoor] = useState(true);
   const [wallId, setWallId] = useState(walls[0]?.id ?? "");
   const [labelId, setLabelId] = useState("");
@@ -192,7 +194,7 @@ export function RequirementsPanel({
         )}
         {(type === "room-min-area" || type === "room-max-area") && (
           <>
-            <label htmlFor="requirement-area">{type === "room-min-area" ? tr`Площадь не меньше, м²` : tr`Площадь не больше, м²`}</label>
+            <label htmlFor="requirement-area">{type === "room-min-area" ? tr`Площадь не меньше, ${areaUnitLabel()}` : tr`Площадь не больше, ${areaUnitLabel()}`}</label>
             <input id="requirement-area" inputMode="decimal" value={area} onChange={(event) => { setArea(event.target.value); setLocalError(null); }} />
           </>
         )}

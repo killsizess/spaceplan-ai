@@ -1,4 +1,5 @@
-import { currentLocale, tr } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { lengthText } from "@/lib/units";
 import type { Point } from "@/domain/geometry";
 import type { DoorSwing, Opening, Wall } from "./types";
 import type { LineSegment } from "./wall-candidates";
@@ -298,7 +299,7 @@ interface Classified {
   reasons: string[];
 }
 
-const widthText = (width: number) => tr`${(Math.round(width * 100) / 100).toLocaleString(currentLocale())} м`;
+const widthText = (width: number) => lengthText(Math.round(width * 100) / 100);
 
 function classify(evidence: Evidence, width: number, structure: string): Classified {
   const reasons = [structure];

@@ -206,8 +206,6 @@
 "Пример для подбора вариантов":"Example for suggesting variants",
 "Санузел":"Bathroom",
 "Убрать стену {0} между «{1}» и «{2}»":"Remove wall {0} between “{1}” and “{2}”",
-"Сдвинуть стену {0} на {1} м, чтобы увеличить «{2}»":"Shift wall {0} by {1} m to enlarge “{2}”",
-"Сдвинуть стену {0} на {1} м":"Shift wall {0} by {1} m",
 "Спальня {0}":"Bedroom {0}",
 "Разделить «{0}» на {1} перегородкой с дверью{2}":"Split “{0}” into {1} with a partition and a door{2}",
 "и":"and",

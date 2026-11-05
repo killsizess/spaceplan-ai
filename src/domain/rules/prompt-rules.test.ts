@@ -100,3 +100,22 @@ describe("reading a developer's text", () => {
     expect(profile.notUnderstood).toEqual(["La cocina debe tener al menos 9 m2"]);
   });
 });
+
+describe("feet in a developer's text", () => {
+  const valueOf = (text: string, type: string, target?: string) =>
+    interpretPrompt(text).rules.find((rule) => rule.type === type && (!target || ("target" in rule && rule.target === target)));
+
+  it("reads areas in square feet and heights in feet, and keeps them in metres", () => {
+    expect(valueOf("Kitchen at least 100 sq ft.", "room-min-area", "kitchen")).toMatchObject({ value: expect.closeTo(9.290304, 6) });
+    expect(valueOf("Bedroom at most 200 square feet.", "room-max-area", "bedroom")).toMatchObject({ value: expect.closeTo(18.580608, 6) });
+    expect(valueOf("Kitchen at least 100 ft2.", "room-min-area", "kitchen")).toMatchObject({ value: expect.closeTo(9.290304, 6) });
+    expect(valueOf("Ceilings at least 8 ft.", "min-height")).toMatchObject({ value: expect.closeTo(2.4384, 6) });
+    expect(valueOf("Ceilings at least 9'.", "min-height")).toMatchObject({ value: expect.closeTo(2.7432, 6) });
+  });
+
+  it("leaves metres alone", () => {
+    expect(valueOf("Kitchen at least 9 m2.", "room-min-area", "kitchen")).toMatchObject({ value: 9 });
+    expect(valueOf("Кухня не меньше 9 м².", "room-min-area", "kitchen")).toMatchObject({ value: 9 });
+    expect(valueOf("Потолки не ниже 2,6 м.", "min-height")).toMatchObject({ value: 2.6 });
+  });
+});

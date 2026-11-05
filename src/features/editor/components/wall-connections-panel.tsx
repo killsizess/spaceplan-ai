@@ -1,19 +1,20 @@
 "use client";
 
 import { currentLocale, tr } from "@/lib/i18n";
+import { INCH, currentUnits, lengthText } from "@/lib/units";
 import { useState } from "react";
 import { Check, ChevronRight, Focus } from "lucide-react";
 import type { Wall } from "@/domain/floor-plan/types";
 import type { WallConnectionDiagnostic } from "@/domain/floor-plan/wall-diagnostics";
-import { formatLength } from "@/lib/format";
 import "../wall-connections.css";
 
 function distanceLabel(distance: number): string {
+  if (currentUnits() === "imperial") return distance < INCH / 16 ? tr`меньше 1/16 дюйма` : lengthText(distance);
   if (distance < 0.0001) return tr`меньше 0,1 мм`;
   if (distance < 0.01) {
     return tr`${new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 }).format(distance * 1000)} мм`;
   }
-  return tr`${formatLength(distance)} м`;
+  return lengthText(distance);
 }
 
 export function WallConnectionsPanel({
@@ -65,7 +66,7 @@ export function WallConnectionsPanel({
                     className="connection-locate"
                     type="button"
                     aria-label={tr`Показать конец стены ${number}: ${endpoint}`}
-                    title={tr`X: ${formatLength(diagnostic.point.x)} м; Y: ${formatLength(diagnostic.point.y)} м`}
+                    title={tr`X: ${lengthText(diagnostic.point.x)}; Y: ${lengthText(diagnostic.point.y)}`}
                     disabled={busy}
                     onClick={() => onLocate(diagnostic)}
                   >

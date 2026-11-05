@@ -1,13 +1,13 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { currentUnits, defaultWallSize, lengthInput, lengthInputMode, lengthUnitLabel, parseLength } from "@/lib/units";
 import { useEffect, useRef, useState } from "react";
 import { BrickWall, X } from "lucide-react";
 import type { RectangularWallRoomInput } from "@/domain/floor-plan/rectangular-wall-room";
 import { formatArea } from "@/lib/format";
 
-const parse = (value: string) =>
-  value.trim() ? Number(value.replace(",", ".")) : NaN;
+const parse = (value: string) => parseLength(value);
 
 export function RectangularRoomDialog({
   x,
@@ -24,8 +24,10 @@ export function RectangularRoomDialog({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [draft, setDraft] = useState({
-    x: String(x), y: "0", width: "5", depth: "4",
-    thickness: "0.2", wallHeight: "2.7",
+    x: lengthInput(x), y: lengthInput(0),
+    // Round numbers in the units on the screen: 5 × 4 m, or 16 × 12 ft.
+    width: currentUnits() === "imperial" ? "16'" : "5", depth: currentUnits() === "imperial" ? "12'" : "4",
+    thickness: lengthInput(defaultWallSize().thickness), wallHeight: lengthInput(defaultWallSize().height),
   });
   useEffect(() => {
     ref.current?.showModal();
@@ -37,11 +39,11 @@ export function RectangularRoomDialog({
       <div className="unit-input">
         <input
           id={`rectangle-${key}`}
-          inputMode="decimal"
+          inputMode={lengthInputMode()}
           value={draft[key]}
           onChange={(event) => setDraft({ ...draft, [key]: event.target.value })}
         />
-        <span>{tr`м`}</span>
+        <span>{lengthUnitLabel()}</span>
       </div>
     </div>
   );

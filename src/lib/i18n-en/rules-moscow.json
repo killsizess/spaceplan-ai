@@ -57,7 +57,6 @@
 "Проём без двери между жилой комнатой и газифицированной кухней: не допускается":"A doorless opening between a living room and a gas kitchen: not permitted",
 "Проём без двери между кухней и жилой комнатой, но неизвестно, есть ли газ":"A doorless opening between a kitchen and a living room, but whether there is gas is unknown",
 "С газифицированной кухней такой проём не допускается. Ответьте на вопрос о газе.":"Such an opening is not permitted with a gas kitchen. Answer the question about gas.",
-"{0}: высота {1} м при минимуме {2} м":"{0}: height {1} m, minimum {2} m",
 "Высота взята по самой низкой стене помещения. В отдельных климатических районах минимум 2,7 м; район Москвы по СП 131 не сверялся.":"The height is taken from the room's lowest wall. In some climate zones the minimum is 2.7 m; the Moscow zone was not checked against SP 131.",
 "Затронута несущая стена: стена {0} исходного плана {1}":"A bearing wall is affected: wall {0} of the source plan {1}",
 "Не допускается нарушение прочности и устойчивости несущих конструкций и нагрузка на них сверх допустимой. Определить это по плану нельзя: нужно заключение специалиста.":"Weakening bearing structures or overloading them is not permitted. A plan cannot show this: a specialist's opinion is needed.",
