@@ -13,7 +13,7 @@ import { formatArea, pluralRu } from "@/lib/format";
 import type { SavedProject, TrashedProject } from "./project-repository";
 import "./projects-dialog.css";
 
-function PlanThumbnail({
+export function PlanThumbnail({
   plan,
   wallRooms,
 }: {

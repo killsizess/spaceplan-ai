@@ -295,6 +295,7 @@ export default function PlanXrayDialog({
   onProfile,
   onShow,
   onOpenExample,
+  onGenerate,
   onClose,
 }: {
   plan: FloorPlan;
@@ -303,6 +304,7 @@ export default function PlanXrayDialog({
   /** Closes the dialog with this wall, opening or room selected on the plan. */
   onShow: (id: string) => void;
   onOpenExample: () => void;
+  onGenerate: () => void;
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -382,6 +384,8 @@ export default function PlanXrayDialog({
             {!rules.checkedChanges && (
               <p className="xray-hint" data-testid="xray-variant-hint">
                 Чтобы проверить изменения, нажмите «Вариант», измените план и откройте X-Ray снова: он сравнит вариант с исходным планом.
+                Или{" "}
+                <button type="button" className="xray-show" onClick={onGenerate}>подберите варианты автоматически</button>.
               </p>
             )}
             {rules.checkedChanges && rules.overall && (

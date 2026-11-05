@@ -121,6 +121,9 @@ const PlanCheckDialog = dynamic(() => import("./components/plan-check-dialog"), 
 const PlanCompareDialog = dynamic(() => import("./components/plan-compare-dialog"), {
   ssr: false,
 });
+const PlanVariantsDialog = dynamic(() => import("../generation/plan-variants-dialog"), {
+  ssr: false,
+});
 const PlanXrayDialog = dynamic(() => import("../xray/plan-xray-dialog"), {
   ssr: false,
 });
@@ -145,6 +148,7 @@ export default function Editor() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [xrayOpen, setXrayOpen] = useState(false);
+  const [variantsOpen, setVariantsOpen] = useState(false);
   const [importBusy, setImportBusy] = useState(false);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
   const [exportPlan, setExportPlan] = useState<FloorPlan | null>(null);
@@ -458,7 +462,7 @@ export default function Editor() {
       // After the tab is shown: the panel lives further down the list.
       requestAnimationFrame(() => document.querySelector(".requirements-panel")?.scrollIntoView({ block: "start" }));
     } else if (id === "norms") setXrayOpen(true);
-    else if (id === "variants") setCompareOpen(true);
+    else if (id === "variants") setVariantsOpen(true);
     else setReportOpen(true);
   };
   const changeRoomMode = (mode: "manual" | "walls") => {
@@ -1553,6 +1557,26 @@ export default function Editor() {
           </span>
         </span>
       </footer>
+      {variantsOpen && (
+        <PlanVariantsDialog
+          plan={state.plan}
+          onSave={(variant, index) => {
+            setVariantsOpen(false);
+            void workspace.createGeneratedVariant(variant.plan, index).then((saved) => {
+              if (saved) {
+                setSidebar("rooms");
+                enter2D();
+                fit();
+              }
+            });
+          }}
+          onCompare={() => {
+            setVariantsOpen(false);
+            setCompareOpen(true);
+          }}
+          onClose={() => setVariantsOpen(false)}
+        />
+      )}
       {xrayOpen && (
         <PlanXrayDialog
           plan={state.plan}
@@ -1566,6 +1590,10 @@ export default function Editor() {
             dispatch({ type: "select", id });
           }}
           onOpenExample={() => void createRulesExample()}
+          onGenerate={() => {
+            setXrayOpen(false);
+            setVariantsOpen(true);
+          }}
           onClose={() => setXrayOpen(false)}
         />
       )}

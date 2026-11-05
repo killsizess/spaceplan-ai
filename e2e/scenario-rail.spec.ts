@@ -50,6 +50,7 @@ test("the route follows the plan and each step opens its place", async ({ page }
   await expect(page.getByRole("tab", { name: "Комнаты", exact: true })).toHaveAttribute("aria-selected", "true");
   await expect(page.locator(".requirements-panel")).toBeInViewport();
   await step(page, "variants").getByRole("button").click();
+  await page.getByTestId("variants-dialog").getByRole("button", { name: "Сравнить с другим проектом" }).click();
   const compare = page.getByRole("dialog", { name: "Сравнение планов" });
   await expect(compare).toBeVisible();
   await compare.getByRole("button", { name: "Закрыть сравнение" }).click();

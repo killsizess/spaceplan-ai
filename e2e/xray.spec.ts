@@ -416,3 +416,75 @@ test("a developer anywhere writes rules in their own words, and the plan is chec
   await expect(page.getByLabel("Правила своими словами")).toHaveValue(/Кухня не меньше 12/);
   expect(errors).toEqual([]);
 });
+
+/** 12 × 6 m: a large living room with two windows, a bedroom with one, a partition between. */
+function roomyFlat(facts: FloorPlan["buildingFacts"]): FloorPlan {
+  const base = apartment({});
+  const make = (id: string, x1: number, y1: number, x2: number, y2: number, kind: "bearing" | "partition") =>
+    ({ id, start: { x: x1, y: y1 }, end: { x: x2, y: y2 }, thickness: 0.2, height: 2.7, kind });
+  return {
+    ...base,
+    name: "Квартира для подбора",
+    wallRoomLabels: [],
+    buildingFacts: facts,
+    walls: [
+      make("top", 0, 0, 12, 0, "bearing"),
+      make("right", 12, 0, 12, 6, "bearing"),
+      make("bottom", 12, 6, 0, 6, "bearing"),
+      make("left", 0, 6, 0, 0, "bearing"),
+      make("p1", 7, 0, 7, 6, "partition"),
+    ],
+    openings: ["1", "4.8", "9"].map((offset, index) => ({ id: `w${index}`, wallId: "top", kind: "window" as const, offset: Number(offset), width: 1.2, height: 1.2, sillHeight: 0.9 })),
+  };
+}
+
+test("variants are proposed from the route, each checked, and one becomes a real variant", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  const facts = { region: "moscow" as const, gasified: false, woodenFloors: false, heritage: false, emergency: false, below: "no-dwelling" as const, above: "no-dwelling" as const };
+  await importPlan(page, roomyFlat(facts));
+  await page.locator('.scenario-rail [data-step="variants"]').getByRole("button").click();
+  const dialog = page.getByTestId("variants-dialog");
+  await expect(dialog).toContainText("Это перебор, а не нейросеть");
+  await page.getByLabel("Что важнее").selectOption("more-rooms");
+  await dialog.getByRole("button", { name: "Подобрать варианты" }).click();
+  await expect(page.getByTestId("variants-count")).toContainText("Проверено вариантов:");
+  const cards = page.getByTestId("variant-card");
+  await expect(cards.first()).toBeVisible();
+  await expect(cards.first()).toContainText("Разделить");
+  await expect(cards.first().getByTestId("variant-procedure")).not.toHaveText("Не допускается");
+  const before = await saved(page);
+
+  await cards.first().getByRole("button", { name: "Сохранить как вариант" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: /подбор 1/ })).toBeVisible();
+  const variant = await saved(page);
+  expect(variant.id).not.toBe(before.id);
+  expect(variant.origin?.planName).toBe("Квартира для подбора");
+  expect(variant.walls.some((item) => item.id.startsWith("generated-wall"))).toBe(true);
+  expect(variant.walls.filter((item) => item.kind === "bearing")).toEqual(before.walls.filter((item) => item.kind === "bearing"));
+
+  // A saved proposal is a variant like any other: X-Ray and the library see it.
+  await page.getByRole("button", { name: "X-Ray", exact: true }).click();
+  await expect(page.getByTestId("xray-overall")).toBeVisible();
+  await page.getByRole("button", { name: "Закрыть X-Ray" }).click();
+  await page.getByRole("button", { name: "Мои проекты", exact: true }).click();
+  await expect(page.getByTestId("project-procedure")).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("the generator says why it cannot start, and leads back to comparing", async ({ page }) => {
+  await page.goto("/");
+  await saved(page);
+  await page.locator('.scenario-rail [data-step="variants"]').getByRole("button").click();
+  await page.getByTestId("variants-dialog").getByRole("button", { name: "Подобрать варианты" }).click();
+  await expect(page.getByTestId("variants-blocker")).toContainText("По стенам");
+});
+
+test("the generator follows a developer's rules, and works from X-Ray", async ({ page }) => {
+  await importPlan(page, { ...roomyFlat({ region: "other" }), ruleProfile: { prompt: "x", notUnderstood: [], rules: [{ id: "r1", phrase: "несущие не трогать", type: "keep-bearing" }, { id: "r2", phrase: "комнаты минимум 15 м²", type: "room-min-area", target: "any-living", value: 15 }] } });
+  await page.getByRole("button", { name: "X-Ray", exact: true }).click();
+  await page.getByRole("button", { name: "подберите варианты автоматически" }).click();
+  await page.getByTestId("variants-dialog").getByRole("button", { name: "Подобрать варианты" }).click();
+  await expect(page.getByTestId("variants-count")).toContainText("появились новые замечания");
+});
