@@ -104,6 +104,35 @@ describe("what it proposes", () => {
     expect(split.title).toContain("Разделить «Гостиная»");
   });
 
+  it("keeps the room's name when the new wall runs through it, and never gives two rooms one name", () => {
+    // An even split runs through the middle of the room, where its name is pinned. Before the
+    // fix neither half kept the name: both were called «Спальня 2» and «Гостиная» was left over,
+    // so the minimum for a living room was never checked either.
+    for (const source of [flat(), createVariantsExamplePlan()]) {
+      const result = run(source, "more-rooms");
+      for (const variant of result.variants) {
+        const resolved = resolveWallRoomLabels(variant.plan);
+        expect(resolved.unassigned.map((label) => label.name)).toEqual([]);
+        const names = resolved.rooms.map((room) => room.name);
+        expect(new Set(names).size).toBe(names.length);
+      }
+      const singles = result.variants.filter((item) => item.moves.length === 1 && item.moves[0].kind === "split-room");
+      expect(singles.length).toBeGreaterThan(0);
+      for (const variant of singles) {
+        const rooms = resolveWallRoomLabels(variant.plan).rooms;
+        const living = rooms.find((room) => room.name === "Гостиная")!;
+        const added = rooms.find((room) => room.name === "Спальня 2")!;
+        expect(living.kind).toBe("living");
+        expect(added.kind).toBe("bedroom");
+        // The larger half keeps the name; on a tie either may.
+        expect(living.area).toBeGreaterThanOrEqual(added.area - 1e-6);
+      }
+    }
+    // The example's even split leaves a living room under the minimum, so it is not offered.
+    const example = run(createVariantsExamplePlan(), "more-rooms");
+    expect(example.variants.some((item) => item.title.includes("15,84 м² и 15,84 м²"))).toBe(false);
+  });
+
   it("does not offer a room without daylight", () => {
     // One window in the living room: whichever way it is split, one part stays dark.
     const dark = { ...flat(), openings: [window_("w1", "top", 1), window_("w3", "top", 9)] };

@@ -210,6 +210,7 @@
 "Разделить «{0}» на {1} перегородкой с дверью{2}":"Split “{0}” into {1} with a partition and a door{2}",
 "и":"and",
 ": появится «{0}»":": this adds “{0}”",
+": появятся «{0}» и «{1}»":": this adds “{0}” and “{1}”",
 "Варианты подбираются по стенам. Сейчас помещения заданы вручную: включите режим «По стенам» и нарисуйте стены.":"Variants are suggested from walls. Rooms are entered by hand now: turn on the “From walls” mode and draw the walls.",
 "На плане нет стен. Нарисуйте их или загрузите чертёж.":"The plan has no walls. Draw them or upload a drawing.",
 "Нет ни одной стены с отметкой «перегородка», а менять можно только их. Отметьте типы стен.":"No wall is marked as a partition, and only those can be changed. Mark the wall types.",

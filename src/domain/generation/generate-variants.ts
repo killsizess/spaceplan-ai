@@ -14,6 +14,7 @@ import { analyzeWallConnections } from "@/domain/floor-plan/wall-diagnostics";
 import { analyzeWallIntersections } from "@/domain/floor-plan/wall-intersections";
 import { analyzeWallOverlaps } from "@/domain/floor-plan/wall-overlaps";
 import {
+  assignWallRoomLabel,
   reconcileWallRoomLabels,
   removeWallRoomLabel,
   resolveWallRoomLabels,
@@ -247,17 +248,30 @@ function splits(plan: FloorPlan): Step[] {
           };
           try {
             let next = reconcileWallRoomLabels(plan, addWallsAndOpenings(plan, [wall], [door]));
-            const parts = roomsOf(next).filter((item) => item.boundaryWallIds.includes(wallId));
+            let parts = roomsOf(next).filter((item) => item.boundaryWallIds.includes(wallId));
             if (parts.length !== 2) continue;
             // Both parts need daylight: a room without a window is no room to offer.
             if (parts.some((item) => !hasOutsideWindow(next, item as RuleRoom, roomsOf(next)))) continue;
-            const number = roomsOf(next).filter((item) => item.kind === "bedroom").length + 1;
-            let newName = "";
-            for (const unnamed of parts.filter((item) => !item.labelId)) {
-              newName = tr`Спальня ${number}`;
-              next = setWallRoomLabel(next, unnamed, { name: newName, kind: "bedroom", color: NEW_ROOM_COLOR }, freshId(next, "generated-room"));
+            // A wall through the middle crosses the point the room's name is pinned to, and then
+            // neither half has it: the name would be left over and both halves called anew. The
+            // larger half keeps it, the first one on a tie.
+            if (room.labelId && !parts.some((item) => item.labelId === room.labelId)) {
+              const keeper = parts.reduce((best, item) => (item.area > best.area + 1e-6 ? item : best));
+              next = assignWallRoomLabel(next, room.labelId, keeper);
+              parts = roomsOf(next).filter((item) => item.boundaryWallIds.includes(wallId));
             }
-            steps.push({ plan: next, move: { kind: "split-room", subject: room.labelId ?? room.id, text: tr`Разделить «${room.name}» на ${parts.map((item) => formatArea(item.area)).join(tr` и `)} перегородкой с дверью${newName ? tr`: появится «${newName}»` : ""}` } });
+            const taken = new Set(next.wallRoomLabels.map((label) => label.name));
+            let number = roomsOf(next).filter((item) => item.kind === "bedroom").length + 1;
+            const names: string[] = [];
+            for (const unnamed of parts.filter((item) => !item.labelId)) {
+              while (taken.has(tr`Спальня ${number}`)) number += 1;
+              const name = tr`Спальня ${number}`;
+              taken.add(name);
+              names.push(name);
+              next = setWallRoomLabel(next, unnamed, { name, kind: "bedroom", color: NEW_ROOM_COLOR }, freshId(next, "generated-room"));
+            }
+            const appears = names.length === 2 ? tr`: появятся «${names[0]}» и «${names[1]}»` : names.length ? tr`: появится «${names[0]}»` : "";
+            steps.push({ plan: next, move: { kind: "split-room", subject: room.labelId ?? room.id, text: tr`Разделить «${room.name}» на ${parts.map((item) => formatArea(item.area)).join(tr` и `)} перегородкой с дверью${appears}` } });
             // The door's swing is not a different layout: one working side is enough.
             break;
           } catch {
