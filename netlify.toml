@@ -1,0 +1,21 @@
+# Hosting: plain static files, no server functions. Plans stay in the visitor's browser.
+[build]
+  command = "npm run build"
+  publish = "out"
+
+[build.environment]
+  STATIC_EXPORT = "1"
+  NODE_VERSION = "26.13.0"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    X-Frame-Options = "DENY"
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
