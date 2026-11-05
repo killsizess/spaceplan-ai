@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import type { FloorPlan, Wall } from "../src/domain/floor-plan/types";
+import { fitPlan } from "./frames";
 
 interface ConnectionMarker {
   id: string;
@@ -171,8 +172,7 @@ test("warning visibility changes canvas pixels without altering saves, history o
   page,
 }) => {
   const original = await importPlan(page, rectangle(0.1));
-  await page.getByRole("button", { name: "Показать весь план", exact: true })
-    .click();
+  await fitPlan(page);
   await expectGapMarkers(page);
   const record = await savedRecord(page);
   const visiblePixels = await pixels(page);
@@ -204,8 +204,7 @@ test("a diagnostic item selects its wall and centers its endpoint without fittin
   page,
 }) => {
   const original = await importPlan(page, rectangle(0.1));
-  await page.getByRole("button", { name: "Показать весь план", exact: true })
-    .click();
+  await fitPlan(page);
   const record = await savedRecord(page);
   const canvas = page.getByTestId("plan-canvas");
   const scale = Number(await canvas.getAttribute("data-scale"));

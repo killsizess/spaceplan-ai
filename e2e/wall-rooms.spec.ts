@@ -4,7 +4,7 @@ import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import { detectWallRooms } from "../src/domain/floor-plan/wall-rooms";
 import type { FloorPlan, Wall } from "../src/domain/floor-plan/types";
 import { PerspectiveCamera, Vector3 } from "three";
-import { settleFrames } from "./frames";
+import { fitPlan, settleFrames } from "./frames";
 
 const wall = (
   id: string,
@@ -112,9 +112,7 @@ test("wall rooms show true internal area, select in 2D/3D and persist the chosen
     "data-wall-room-count",
     "1",
   );
-  await page
-    .getByRole("button", { name: "Показать весь план", exact: true })
-    .click();
+  await fitPlan(page);
   await worldClick(page, 2, 2);
   await expect(page.getByTestId("wall-room-area")).toHaveText("18,24 м²");
   await expect(page.getByTestId("wall-room-perimeter")).toHaveText("17,2 м");

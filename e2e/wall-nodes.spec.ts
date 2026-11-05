@@ -4,6 +4,7 @@ import { PerspectiveCamera, Vector3 } from "three";
 import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import { spatialBounds } from "../src/domain/floor-plan/spatial";
 import type { FloorPlan, Wall } from "../src/domain/floor-plan/types";
+import { fitPlan } from "./frames";
 
 const wall = (
   id: string,
@@ -279,8 +280,7 @@ test("a shared 2D handle supports repeated drags and one undo per gesture", asyn
 }) => {
   const original = await importPlan(page);
   await selectTop(page);
-  await page.getByRole("button", { name: "Показать весь план", exact: true })
-    .click();
+  await fitPlan(page);
   await startCornerDrag(page, { x: 5, y: 0 }, { x: 6, y: 0 });
   await page.mouse.up();
   const first = withCorner(original, 6, 0);
@@ -308,8 +308,7 @@ test("Escape and window blur cancel node drags without saving or history", async
 }) => {
   const original = await importPlan(page);
   await selectTop(page);
-  await page.getByRole("button", { name: "Показать весь план", exact: true })
-    .click();
+  await fitPlan(page);
   const record = await savedRecord(page);
   for (const cancel of ["Escape", "blur"] as const) {
     await test.step(`cancel with ${cancel}`, async () => {
@@ -340,8 +339,7 @@ test("invalid connected edits preserve the saved plan and independent editing is
   page.on("pageerror", (error) => errors.push(error.message));
   const original = await importPlan(page);
   await selectTop(page);
-  await page.getByRole("button", { name: "Показать весь план", exact: true })
-    .click();
+  await fitPlan(page);
   const record = await savedRecord(page);
   const alert = page
     .getByRole("region", { name: "Рабочая область редактора", exact: true })

@@ -5,7 +5,7 @@ import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import { spatialBounds } from "../src/domain/floor-plan/spatial";
 import type { FloorPlan, Wall } from "../src/domain/floor-plan/types";
 import { detectWallRooms } from "../src/domain/floor-plan/wall-rooms";
-import { settleFrames } from "./frames";
+import { fitPlan, settleFrames } from "./frames";
 
 const RED = "#d84646";
 const BLUE = "#4477dd";
@@ -176,7 +176,7 @@ test("room labels apply atomically, change real 2D/3D floor colors and preserve 
   await expect(page.getByTestId("total-area")).toHaveText("18,24 м²");
 
   await page.getByRole("button", { name: "Режим 2D", exact: true }).click();
-  await page.getByRole("button", { name: "Показать весь план", exact: true }).click();
+  await fitPlan(page);
   const [r, g, b] = await pixel(page, await worldPoint(page, 1.17, 1.33));
   expect(r).toBeGreaterThan(g + 20);
   expect(r).toBeGreaterThan(b + 20);

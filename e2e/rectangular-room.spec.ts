@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import type { FloorPlan } from "../src/domain/floor-plan/types";
+import { fitPlan } from "./frames";
 
 async function saved(page: Page): Promise<FloorPlan> {
   await expect(page.getByTestId("save-status")).toHaveText(
@@ -133,8 +134,7 @@ test("a room created from internal dimensions has four walls, resizes atomically
     .toHaveValue("6");
   await expect(page.getByLabel("Внутренняя глубина", { exact: true }))
     .toHaveValue("4");
-  await page.getByRole("button", { name: "Показать весь план", exact: true })
-    .click();
+  await fitPlan(page);
   await page.screenshot({
     path: "../SpacePlan-AI-rectangular-room.png",
     fullPage: true,

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createEmptyPlan } from "../src/domain/floor-plan/operations";
 import type { FloorPlan, Wall } from "../src/domain/floor-plan/types";
+import { fitPlan } from "./frames";
 
 interface InternalDimension {
   id: string;
@@ -91,8 +92,7 @@ async function createMeasuredRoom(page: Page): Promise<FloorPlan> {
   await expect(dialog).not.toBeVisible();
   await expect(page.getByTestId("total-area")).toHaveText("20 м²");
   await expect(page.getByTestId("wall-room-area")).toHaveText("20 м²");
-  await page.getByRole("button", { name: "Показать весь план", exact: true })
-    .click();
+  await fitPlan(page);
   return saved(page);
 }
 
@@ -196,8 +196,7 @@ test("dimension visibility changes actual pixels and camera controls leave saves
   page,
 }) => {
   const original = await importPlan(page, interiorRectangle());
-  await page.getByRole("button", { name: "Показать весь план", exact: true })
-    .click();
+  await fitPlan(page);
   await expectDimensions(page, 5, 4);
   const record = await savedRecord(page);
   const pixelsWithDimensions = await objectCanvasPixels(page);
@@ -244,8 +243,7 @@ test("390 px view stays within the screen and dimensions compact then hide at lo
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const original = await importPlan(page, interiorRectangle());
-  await page.getByRole("button", { name: "Показать весь план", exact: true })
-    .click();
+  await fitPlan(page);
   await expectDimensions(page, 5, 4);
   const record = await savedRecord(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth))
