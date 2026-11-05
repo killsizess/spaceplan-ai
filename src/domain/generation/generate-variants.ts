@@ -35,6 +35,8 @@ export type GenerationGoal = "any" | "more-rooms" | "larger-rooms";
 export interface VariantMove {
   kind: "remove-partition" | "split-room" | "shift-partition";
   text: string;
+  /** The wall or room it works on: the same subject in three places is one idea. */
+  subject: string;
 }
 
 export interface GeneratedVariant {
@@ -55,7 +57,7 @@ export interface GeneratedVariant {
   violatedRequirements: number;
 }
 
-export type RejectionReason = "forbidden" | "new-problem" | "geometry" | "requirement" | "not-buildable";
+export type RejectionReason = "forbidden" | "new-problem" | "geometry" | "requirement" | "bathroom-entrance" | "not-buildable";
 
 export interface GenerationResult {
   variants: GeneratedVariant[];
@@ -118,7 +120,7 @@ function removals(plan: FloorPlan): Step[] {
       const larger = smaller === sides[0] ? sides[1] : sides[0];
       const without = smaller.labelId ? removeWallRoomLabel(plan, smaller.labelId) : plan;
       const next = reconcileWallRoomLabels(without, deleteObject(without, wall.id));
-      steps.push({ plan: next, move: { kind: "remove-partition", text: `Убрать стену ${wallNumber(plan, wall)} между «${larger.name}» и «${smaller.name}»` } });
+      steps.push({ plan: next, move: { kind: "remove-partition", subject: wall.id, text: `Убрать стену ${wallNumber(plan, wall)} между «${larger.name}» и «${smaller.name}»` } });
     } catch {
       // A plan this would break is simply not a candidate.
     }
@@ -144,7 +146,7 @@ function shifts(plan: FloorPlan): Step[] {
         const text = grown
           ? `Сдвинуть стену ${wallNumber(plan, wall)} на ${formatLength(Math.abs(distance))} м, чтобы увеличить «${grown.name}»`
           : `Сдвинуть стену ${wallNumber(plan, wall)} на ${formatLength(Math.abs(distance))} м`;
-        steps.push({ plan: next, move: { kind: "shift-partition", text } });
+        steps.push({ plan: next, move: { kind: "shift-partition", subject: wall.id, text } });
       } catch {
         // A shift that collapses a neighbour or loses a joint is not a candidate.
       }
@@ -229,7 +231,7 @@ function splits(plan: FloorPlan): Step[] {
               newName = `Спальня ${number}`;
               next = setWallRoomLabel(next, unnamed, { name: newName, kind: "bedroom", color: NEW_ROOM_COLOR }, freshId(next, "generated-room"));
             }
-            steps.push({ plan: next, move: { kind: "split-room", text: `Разделить «${room.name}» на ${parts.map((item) => formatArea(item.area)).join(" и ")} перегородкой с дверью${newName ? `: появится «${newName}»` : ""}` } });
+            steps.push({ plan: next, move: { kind: "split-room", subject: room.labelId ?? room.id, text: `Разделить «${room.name}» на ${parts.map((item) => formatArea(item.area)).join(" и ")} перегородкой с дверью${newName ? `: появится «${newName}»` : ""}` } });
             // The door's swing is not a different layout: one working side is enough.
             break;
           } catch {
@@ -258,6 +260,21 @@ function violatedCount(plan: FloorPlan): number {
   return evaluateRequirements(plan, rooms, adjacency).filter((result) => result.status === "violated").length;
 }
 
+/**
+ * Doors from a bathroom straight into a living room, bedroom or kitchen. This is the
+ * generator's own limit, not a norm: it is not offered as a good idea to walk into one that way.
+ */
+function bathroomEntrances(plan: FloorPlan): number {
+  const rooms = roomsOf(plan);
+  const kindOf = new Map(rooms.map((room) => [room.id, room.kind]));
+  const open = new Set<RoomKind>(["living", "bedroom", "kitchen"]);
+  return findRoomAdjacency(rooms, plan.walls, plan.openings).pairs.filter((pair) => {
+    if (!pair.doorIds.length) return false;
+    const [a, b] = pair.rooms.map((id) => kindOf.get(id));
+    return (a === "bathroom" && b && open.has(b)) || (b === "bathroom" && a && open.has(a));
+  }).length;
+}
+
 /** What makes two plans the same candidate: their walls and openings, in any order. */
 function signature(plan: FloorPlan): string {
   const point = (value: { x: number; y: number }) => `${Math.round(value.x * 1000)},${Math.round(value.y * 1000)}`;
@@ -273,7 +290,7 @@ export function generateVariants(
   source: FloorPlan,
   options: { goal: GenerationGoal; at: string },
 ): GenerationResult {
-  const rejected: Record<RejectionReason, number> = { forbidden: 0, "new-problem": 0, geometry: 0, requirement: 0, "not-buildable": 0 };
+  const rejected: Record<RejectionReason, number> = { forbidden: 0, "new-problem": 0, geometry: 0, requirement: 0, "bathroom-entrance": 0, "not-buildable": 0 };
   const untypedWalls = source.walls.filter((wall) => !wall.kind || wall.kind === "unknown").length;
   const empty = (blockers: string[]): GenerationResult => ({ variants: [], tried: 0, rejected, blockers, untypedWalls });
   if (source.roomMode !== "walls") return empty(["Варианты подбираются по стенам. Сейчас помещения заданы вручную: включите режим «По стенам» и нарисуйте стены."]);
@@ -298,6 +315,7 @@ export function generateVariants(
   );
   const startDiagnostics = diagnosticsCount(start);
   const startViolated = violatedCount(start);
+  const startEntrances = bathroomEntrances(start);
   const startArea = totalArea(startRooms);
   const largest = (rooms: readonly ResolvedWallRoom[]) => Math.max(0, ...rooms.filter((room) => room.kind === "living" || room.kind === "bedroom").map((room) => room.area));
 
@@ -328,6 +346,10 @@ export function generateVariants(
     const violated = violatedCount(plan);
     if (violated > startViolated) {
       rejected.requirement += 1;
+      return null;
+    }
+    if (bathroomEntrances(plan) > startEntrances) {
+      rejected["bathroom-entrance"] += 1;
       return null;
     }
     const checked = { ...plan, origin: createPlanOrigin(start, options.at) };
@@ -373,16 +395,31 @@ export function generateVariants(
   const compare = (a: GeneratedVariant, b: GeneratedVariant) =>
     a.violatedRequirements - b.violatedRequirements ||
     rankOf(a) - rankOf(b) ||
-    a.moves.length - b.moves.length ||
-    a.title.localeCompare(b.title, "ru");
+    a.moves.length - b.moves.length;
 
   // A second step only from the most promising first steps, so the search stays bounded.
   for (const seed of [...firstStep].sort(compare).slice(0, SECOND_STEP_SEEDS)) {
-    for (const step of movesFrom(seed.plan)) consider([...seed.moves, step.move], step.plan);
+    for (const step of movesFrom(seed.plan)) {
+      // Shifting a wall and then removing it is only the removal, with a wrinkle in the joint.
+      if (seed.moves.some((move) => move.subject === step.move.subject)) continue;
+      consider([...seed.moves, step.move], step.plan);
+    }
+  }
+
+  // One new partition in three places is one idea: different ideas first, single moves before
+  // double ones, whatever their procedure, then the rest. The chip on each says what it takes.
+  const ranked = accepted.filter(matchesGoal).sort(compare);
+  const ideas = new Set<string>();
+  const first: GeneratedVariant[] = [];
+  const rest: GeneratedVariant[] = [];
+  for (const variant of ranked) {
+    const idea = variant.moves.map((move) => `${move.kind}:${move.subject}`).join("+");
+    (ideas.has(idea) ? rest : first).push(variant);
+    ideas.add(idea);
   }
 
   return {
-    variants: accepted.filter(matchesGoal).sort(compare).slice(0, MAX_RESULTS),
+    variants: [...first.sort((a, b) => a.moves.length - b.moves.length), ...rest].slice(0, MAX_RESULTS),
     tried,
     rejected,
     blockers: [],

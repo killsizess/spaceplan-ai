@@ -473,12 +473,24 @@ test("variants are proposed from the route, each checked, and one becomes a real
   expect(errors).toEqual([]);
 });
 
-test("the generator says why it cannot start, and leads back to comparing", async ({ page }) => {
+test("the generator says why it cannot start, and offers an example to try it on", async ({ page }) => {
   await page.goto("/");
   await saved(page);
   await page.locator('.scenario-rail [data-step="variants"]').getByRole("button").click();
-  await page.getByTestId("variants-dialog").getByRole("button", { name: "Подобрать варианты" }).click();
+  const dialog = page.getByTestId("variants-dialog");
+  await dialog.getByRole("button", { name: "Подобрать варианты" }).click();
   await expect(page.getByTestId("variants-blocker")).toContainText("По стенам");
+
+  await dialog.getByRole("button", { name: "Открыть пример для подбора" }).click();
+  await expect(page.getByRole("heading", { name: "Пример для подбора вариантов", level: 2 })).toBeVisible();
+  await dialog.getByRole("button", { name: "Подобрать варианты" }).click();
+  await expect(page.getByTestId("variants-count")).toContainText("вход в санузел оказался бы");
+  const cards = page.getByTestId("variant-card");
+  await expect(cards).toHaveCount(6);
+  await expect(cards.filter({ hasText: "Разделить «Гостиная»" }).first()).toBeVisible();
+  await expect(cards.filter({ hasText: "Убрать стену 6 между «Гостиная» и «Кухня»" })).toHaveCount(1);
+  await expect(cards.filter({ hasText: "Убрать стену 6" }).getByTestId("variant-procedure")).toHaveText("Нет данных");
+  await expect(cards.filter({ hasText: "«Спальня» и «Прихожая»" })).toHaveCount(0);
 });
 
 test("the generator follows a developer's rules, and works from X-Ray", async ({ page }) => {

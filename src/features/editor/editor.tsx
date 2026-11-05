@@ -42,6 +42,7 @@ import type { WallIntersectionDiagnostic } from "@/domain/floor-plan/wall-inters
 import type { WallOverlapDiagnostic } from "@/domain/floor-plan/wall-overlaps";
 import { createSpatialExamplePlan } from "@/domain/floor-plan/examples";
 import { rulesForPlan } from "@/domain/rules/engine";
+import { createVariantsExamplePlan } from "@/domain/generation/example-flat";
 import { createRulesExamplePlan } from "@/domain/rules/example-apartment";
 import { startedAsExample, WelcomeStrip } from "./components/welcome-strip";
 import { getRectangularRoomWalls, type RectangularWallRoomInput } from "@/domain/floor-plan/rectangular-wall-room";
@@ -368,6 +369,15 @@ export default function Editor() {
       enter2D();
       fit();
       setXrayOpen(true);
+    }
+  };
+  const createVariantsExample = async () => {
+    setVariantsOpen(false);
+    if (await workspace.importProject(serializePlan(createVariantsExamplePlan()))) {
+      setSidebar("structure");
+      enter2D();
+      fit();
+      setVariantsOpen(true);
     }
   };
   const createWallRoomExample = async () => {
@@ -1574,6 +1584,7 @@ export default function Editor() {
             setVariantsOpen(false);
             setCompareOpen(true);
           }}
+          onOpenExample={() => void createVariantsExample()}
           onClose={() => setVariantsOpen(false)}
         />
       )}

@@ -22,6 +22,7 @@ const REJECTIONS: Readonly<Record<RejectionReason, string>> = {
   "new-problem": "появились новые замечания по правилам",
   geometry: "появились ошибки геометрии",
   requirement: "нарушены требования плана",
+  "bathroom-entrance": "вход в санузел оказался бы прямо из комнаты или кухни",
   "not-buildable": "не получилось построить",
 };
 
@@ -58,9 +59,25 @@ function VariantCard({ variant, onSave }: { variant: GeneratedVariant; onSave: (
   );
 }
 
-function Outcome({ result, onSave }: { result: GenerationResult; onSave: (variant: GeneratedVariant, index: number) => void }) {
+function Outcome({
+  result,
+  onSave,
+  onOpenExample,
+}: {
+  result: GenerationResult;
+  onSave: (variant: GeneratedVariant, index: number) => void;
+  onOpenExample: () => void;
+}) {
+  const example = (
+    <button type="button" className="secondary-button" onClick={onOpenExample}>Открыть пример для подбора</button>
+  );
   if (result.blockers.length) {
-    return <p className="variants-blocker" data-testid="variants-blocker">{result.blockers[0]}</p>;
+    return (
+      <>
+        <p className="variants-blocker" data-testid="variants-blocker">{result.blockers[0]}</p>
+        <div className="variants-controls">{example}</div>
+      </>
+    );
   }
   const dropped = (Object.keys(REJECTIONS) as RejectionReason[]).filter((reason) => result.rejected[reason] > 0);
   return (
@@ -71,9 +88,12 @@ function Outcome({ result, onSave }: { result: GenerationResult; onSave: (varian
         {result.untypedWalls > 0 && <> Стены без типа не трогались: {result.untypedWalls}.</>}
       </p>
       {result.variants.length === 0 && (
-        <p className="variants-blocker" data-testid="variants-none">
-          Ничего не нашлось. Попробуйте другую цель, отметьте типы стен или ослабьте правила и требования.
-        </p>
+        <>
+          <p className="variants-blocker" data-testid="variants-none">
+            Ничего не нашлось. Попробуйте другую цель, отметьте типы стен или ослабьте правила и требования.
+          </p>
+          <div className="variants-controls">{example}</div>
+        </>
       )}
       <ul className="variant-list">
         {result.variants.map((variant, index) => (
@@ -88,11 +108,13 @@ export default function PlanVariantsDialog({
   plan,
   onSave,
   onCompare,
+  onOpenExample,
   onClose,
 }: {
   plan: FloorPlan;
   onSave: (variant: GeneratedVariant, index: number) => void;
   onCompare: () => void;
+  onOpenExample: () => void;
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -151,7 +173,7 @@ export default function PlanVariantsDialog({
           </button>
           <button type="button" className="secondary-button" onClick={onCompare}>Сравнить с другим проектом</button>
         </div>
-        {result && <Outcome result={result} onSave={onSave} />}
+        {result && <Outcome result={result} onSave={onSave} onOpenExample={onOpenExample} />}
       </div>
     </dialog>
   );

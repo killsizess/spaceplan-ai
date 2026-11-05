@@ -5,6 +5,7 @@ import type { BuildingFacts, FloorPlan, PlanRequirement } from "@/domain/floor-p
 import { resolveWallRoomLabels } from "@/domain/floor-plan/wall-room-labels";
 import { interpretPrompt } from "@/domain/rules/prompt-rules";
 import { apartment, labelled, wall, window_ } from "@/domain/rules/rules.fixtures";
+import { createVariantsExamplePlan } from "./example-flat";
 import { generateVariants, variantSummary, type GenerationGoal } from "./generate-variants";
 
 const AT = "2026-11-05T10:00:00.000Z";
@@ -194,5 +195,62 @@ describe("in any country", () => {
     const result = run(flat({}));
     expect(result.variants.length).toBeGreaterThan(0);
     expect(result.variants.every((item) => item.rules === null && item.overall === null)).toBe(true);
+  });
+});
+
+describe("the example for trying the generator", () => {
+  const plan = createVariantsExamplePlan();
+  const run = (goal: GenerationGoal) => generateVariants(plan, { goal, at: AT });
+
+  it("is a valid plan with its wall types and building questions filled in", () => {
+    expect(floorPlanSchema.safeParse(plan).success).toBe(true);
+    expect(resolveWallRoomLabels(plan).rooms.map((room) => room.name).sort()).toEqual(["Гостиная", "Кухня", "Прихожая", "Санузел", "Спальня"]);
+    expect(plan.walls.every((item) => item.kind === "bearing" || item.kind === "partition")).toBe(true);
+  });
+
+  it("gives something for every goal, nothing forbidden, and leaves bearing walls alone", () => {
+    for (const goal of ["any", "more-rooms", "larger-rooms"] as const) {
+      const result = run(goal);
+      expect(result.blockers, goal).toEqual([]);
+      expect(result.variants.length, goal).toBeGreaterThan(0);
+      for (const variant of result.variants) {
+        expect(variant.overall, variant.title).not.toBe("forbidden");
+        expect(variant.plan.walls.filter((item) => item.kind === "bearing")).toEqual(plan.walls.filter((item) => item.kind === "bearing"));
+        expect(floorPlanSchema.safeParse(variant.plan).success, variant.title).toBe(true);
+      }
+    }
+  });
+
+  it("offers different ideas first: one new wall in three places is not three proposals", () => {
+    const variants = run("any").variants;
+    const single = variants.filter((variant) => variant.moves.length === 1);
+    expect(new Set(variants.flatMap((variant) => variant.moves.map((move) => move.kind))).size).toBe(3);
+    expect(new Set(single.map((variant) => `${variant.moves[0].kind}:${variant.moves[0].subject}`)).size).toBe(single.length);
+    // Single moves come before double ones, even when their procedure is less clear.
+    expect(variants.findIndex((variant) => variant.moves.length === 2)).toBeGreaterThanOrEqual(single.length);
+    expect(single.some((variant) => variant.title.includes("«Кухня»"))).toBe(true);
+  });
+
+  it("does not offer a door from the bathroom straight into a room or kitchen", () => {
+    const result = run("any");
+    expect(result.rejected["bathroom-entrance"]).toBeGreaterThan(0);
+    for (const goal of ["any", "more-rooms", "larger-rooms"] as const) {
+      for (const variant of run(goal).variants) {
+        const rooms = resolveWallRoomLabels(variant.plan).rooms;
+        const door = variant.plan.openings.find((item) => item.id === "bath-door");
+        expect(door, variant.title).toBeTruthy();
+        const bath = rooms.find((room) => room.kind === "bathroom");
+        const onDoorWall = rooms.filter((room) => room !== bath && room.boundaryWallIds.includes(door!.wallId));
+        expect(onDoorWall.map((room) => room.kind), variant.title).toEqual(["hall"]);
+      }
+    }
+  });
+
+  it("never works on one wall twice", () => {
+    for (const goal of ["any", "more-rooms", "larger-rooms"] as const) {
+      for (const variant of run(goal).variants) {
+        expect(new Set(variant.moves.map((move) => move.subject)).size, variant.title).toBe(variant.moves.length);
+      }
+    }
   });
 });

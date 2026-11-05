@@ -1,6 +1,6 @@
 {
   "name": "spaceplan-ai",
-  "version": "0.34.0",
+  "version": "0.34.1",
   "private": true,
   "scripts": {
     "postinstall": "node scripts/prepare-pdf-assets.mjs",
