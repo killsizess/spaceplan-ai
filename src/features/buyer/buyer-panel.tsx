@@ -1,6 +1,6 @@
 "use client";
 
-import { Undo2 } from "lucide-react";
+import { FileText, Undo2 } from "lucide-react";
 import type { BuildingFacts } from "@/domain/floor-plan/types";
 import type { FactKey } from "@/domain/rules/types";
 import { tr } from "@/lib/i18n";
@@ -21,6 +21,7 @@ export function BuyerPanel({
   onShow,
   onRevert,
   onAnswer,
+  onPassport,
   busy,
 }: {
   review: BuyerReview;
@@ -28,6 +29,7 @@ export function BuyerPanel({
   onShow: (id: string) => void;
   onRevert: (changeId: string) => void;
   onAnswer: (facts: BuildingFacts) => void;
+  onPassport: () => void;
   busy: boolean;
 }) {
   const { proof, changes, questions, conflicts, unconfirmed } = review;
@@ -126,6 +128,9 @@ export function BuyerPanel({
         </>
       )}
 
+      <button type="button" className="primary-button" disabled={busy} onClick={onPassport}>
+        <FileText size={15} aria-hidden="true" /> {tr`Паспорт квартиры (PDF)`}
+      </button>
     </section>
   );
 }

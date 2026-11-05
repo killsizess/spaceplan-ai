@@ -97,6 +97,10 @@ import type { EditorTool } from "./editor-tools";
 import { TemplatePanel } from "../template/template-panel";
 import { BuyerPanel } from "../buyer/buyer-panel";
 import { buildBuyerReview, buyerHighlights } from "../buyer/buyer-review";
+import { buildPassport } from "../buyer/apartment-passport";
+import { layoutPassport } from "../buyer/passport-layout";
+import { createPagedPdf } from "../report/report-file";
+import { makePlanExportFilename } from "./export-files";
 import { WALL_TONE_COLORS, type WallTone } from "./components/canvas-shapes";
 import { buyerBase } from "@/domain/template/buyer-guard";
 import { entranceDoorIds, lockedWallIds, wallLock } from "@/domain/template/locks";
@@ -520,6 +524,28 @@ export default function Editor() {
     }
     return "";
   })();
+  const [passport, setPassport] = useState<{ busy: boolean; message: string }>({ busy: false, message: "" });
+  const downloadPassport = async () => {
+    const model = buildPassport(state.plan, { generatedAt: new Date().toISOString(), appVersion: APP_VERSION });
+    if (!model || !buyer) return;
+    setPassport({ busy: true, message: "" });
+    try {
+      const drawings = [
+        { ...buyer.base, name: tr`${model.templateName}: исходный план`.slice(0, 100) },
+        { ...state.plan, name: tr`${state.plan.name}: после изменений`.slice(0, 100) },
+      ];
+      const blob = await createPagedPdf(state.plan, (measure) => layoutPassport(model, measure), new AbortController().signal, drawings);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = makePlanExportFilename(tr`${state.plan.name} — паспорт`, "pdf");
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      setPassport({ busy: false, message: tr`Паспорт сохранён в PDF.` });
+    } catch (cause) {
+      setPassport({ busy: false, message: cause instanceof Error ? cause.message : tr`Не удалось подготовить PDF.` });
+    }
+  };
   const totalArea = wallMode
     ? wallRooms.filter((room) => countsInTotal(room.kind)).reduce((sum, room) => sum + room.area, 0)
     : getTotalArea(state.plan);
@@ -921,6 +947,7 @@ export default function Editor() {
             <span>{tr`шаблон «${buyer.review.templateName}»`}</span>
             <span>{tr`изменений: ${buyer.review.changes.length}`}</span>
             <span className={`xray-chip procedure-${buyer.review.proof.answer.procedure ?? "unknown"}`}>{buyer.review.proof.answer.label}</span>
+            <button type="button" className="secondary-button" disabled={passport.busy} onClick={() => void downloadPassport()}>{tr`Паспорт квартиры`}</button>
           </div>
         ) : (
           <ScenarioRail steps={scenario} onOpen={openScenarioStep} />
@@ -1077,14 +1104,16 @@ export default function Editor() {
               <BuyerPanel
                 review={buyer.review}
                 facts={state.plan.buildingFacts}
-                busy={!snapshot.ready || snapshot.busy}
+                busy={!snapshot.ready || snapshot.busy || passport.busy}
                 onShow={(id) => {
                   enter2D();
                   dispatch({ type: "select", id });
                 }}
                 onRevert={(changeId) => dispatch({ type: "buyer:revert", changeId })}
                 onAnswer={(facts) => dispatch({ type: "facts:set", facts })}
+                onPassport={() => void downloadPassport()}
               />
+              {passport.message && <p className="buyer-note" role="status" data-testid="passport-message">{passport.message}</p>}
             </div>
           )}
           {sidebar === "source" && (

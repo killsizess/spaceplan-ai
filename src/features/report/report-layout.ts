@@ -1,3 +1,4 @@
+import { FOOTER_NOTE } from "@/domain/legal/disclaimer";
 import { currentLocale, tr } from "@/lib/i18n";
 import { formatArea } from "@/lib/format";
 import { REPORT_LEVEL_ORDER, REPORT_LEVELS, type PlanReport, type ReportFinding, type ReportLevel, type ReportState } from "./plan-report";
@@ -249,7 +250,7 @@ export function addReportFooters(flow: Flow, appVersion: string) {
   flow.pages.forEach((page, index) => {
     const y = REPORT_PAGE.height - REPORT_PAGE.footer + 4;
     page.ops.push({ kind: "rect", x: left, y: y - 4.5, width, height: 0.2, fill: LINE });
-    page.ops.push({ kind: "text", x: left, y, text: tr`SpacePlan AI ${appVersion} · не заменяет проект и согласование`, size: 2.6, weight: 400, color: MUTED });
+    page.ops.push({ kind: "text", x: left, y, text: `SpacePlan AI ${appVersion} · ${FOOTER_NOTE}`, size: 2.6, weight: 400, color: MUTED });
     page.ops.push({ kind: "text", x: left + width, y, text: tr`Стр. ${index + 1} из ${total}`, size: 2.6, weight: 400, color: MUTED, align: "right" });
   });
 }

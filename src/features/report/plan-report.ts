@@ -1,3 +1,4 @@
+import { DISCLAIMER } from "@/domain/legal/disclaimer";
 import { tr } from "@/lib/i18n";
 import { analyzeDoorWallCollisions } from "@/domain/floor-plan/door-collisions";
 import { analyzeDoorPairCollisions } from "@/domain/floor-plan/door-pair-collisions";
@@ -81,8 +82,7 @@ export interface PlanReport {
   limits: string[];
 }
 
-export const REPORT_DISCLAIMER =
-  tr`Отчёт построен по геометрии плана и данным, которые ввёл пользователь. Он не заменяет проект перепланировки и её согласование и не является разрешением на работы. Решения о несущих конструкциях принимает специалист.`;
+export const REPORT_DISCLAIMER = DISCLAIMER;
 export const REPORT_RULES_NOTE =
   tr`Строительные нормы и правила региона в этой версии не проверяются: база правил ещё не подключена.`;
 

@@ -39,7 +39,13 @@ export function createPlanReportPdf(plan: FloorPlan, report: PlanReport, signal:
 }
 
 /** Any document laid out in report pages, with the drawing of the plan after them. */
-export async function createPagedPdf(plan: FloorPlan, layOut: (measure: MeasureText) => ReportPage[], signal: AbortSignal): Promise<Blob> {
+export async function createPagedPdf(
+  plan: FloorPlan,
+  layOut: (measure: MeasureText) => ReportPage[],
+  signal: AbortSignal,
+  /** Drawings after the pages, in order; the plan itself by default. */
+  drawings: readonly FloorPlan[] = [plan],
+): Promise<Blob> {
   await document.fonts.ready;
   signal.throwIfAborted();
   const measuring = document.createElement("canvas").getContext("2d");
@@ -67,14 +73,15 @@ export async function createPagedPdf(plan: FloorPlan, layOut: (measure: MeasureT
       releaseCanvas(canvas);
     }
   }
-  // The drawing is an appendix: a plan it cannot be drawn for still gets its report.
-  let layout: ReturnType<typeof createPlanExportLayout> | null = null;
-  try {
-    layout = createPlanExportLayout(plan, DEFAULT_EXPORT_OPTIONS);
-  } catch {
-    layout = null;
-  }
-  if (layout) {
+  // The drawings are an appendix: a plan one cannot be drawn for still gets its pages.
+  for (const drawing of drawings) {
+    let layout: ReturnType<typeof createPlanExportLayout> | null = null;
+    try {
+      layout = createPlanExportLayout(drawing, DEFAULT_EXPORT_OPTIONS);
+    } catch {
+      layout = null;
+    }
+    if (!layout) continue;
     const canvas = await rasterizePlanExport(layout, signal, REPORT_DPI);
     try {
       const jpeg = await blobBytes(await canvasBlob(canvas, "image/jpeg", signal), signal);

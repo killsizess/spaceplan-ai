@@ -126,6 +126,21 @@ test("a question about the building is asked only where it matters, and the answ
   await expect(page.getByTestId("buyer-unconfirmed")).toContainText("ответ покупателя");
 });
 
+test("the apartment passport downloads with the changes, the questions and the drawings", async ({ page }) => {
+  await openAsBuyer(page, readyTemplate());
+  await page.getByRole("tab", { name: "Стены", exact: true }).click();
+  await page.getByRole("button", { name: "Выбрать стену 5", exact: true }).click();
+  await page.getByRole("button", { name: "Удалить стену", exact: true }).click();
+  const download = page.waitForEvent("download");
+  await page.getByTestId("buyer-bar").getByRole("button", { name: "Паспорт квартиры" }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(/паспорт.*\.pdf$/i);
+  const bytes = await readFile(await file.path());
+  expect(bytes.subarray(0, 5).toString()).toBe("%PDF-");
+  // Text pages, then the template and the result as drawings.
+  expect(bytes.toString("latin1").match(/\/Type\s*\/Page[^s]/g)?.length).toBeGreaterThanOrEqual(3);
+});
+
 test("a project of format 10 opens unchanged and is saved as 11", async ({ page }) => {
   const old = JSON.parse(await readFile("public/rules/test-apartment.json", "utf8"));
   expect(old.schemaVersion).toBe(10);
