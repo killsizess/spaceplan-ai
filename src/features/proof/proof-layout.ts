@@ -23,6 +23,7 @@ function drawReason(flow: Flow, reason: ProofReason) {
     { text: reason.title, size: 3.2, weight: 600, color: INK },
     ...(reason.detail ? [{ text: reason.detail, size: 3, weight: 400, color: MUTED }] : []),
     ...(reason.citation ? [{ text: tr`Правило: ${reason.citation}`, size: 2.8, weight: 500, color: MUTED }] : []),
+    ...(reason.ruleStatus ? [{ text: tr`Статус правила: ${reason.ruleStatus}`, size: 2.8, weight: 500, color: MUTED }] : []),
     ...(reason.dependsOn.length ? [{ text: tr`Держится на: ${reason.dependsOn.join("; ")}`, size: 2.8, weight: 500, color: MUTED }] : []),
     { text: tr`Уверенность: ${REPORT_LEVELS[reason.level].label}${reason.decisive ? tr`. Определяет итог` : ""}`, size: 2.8, weight: 500, color: REPORT_LEVEL_COLORS[reason.level].fg },
   ];

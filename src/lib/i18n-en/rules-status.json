@@ -1,0 +1,10 @@
+{
+ "черновик: прочитано в документе, специалист не сверял": "draft: read in a document, not checked by a specialist",
+ "подтверждено специалистом": "confirmed by a specialist",
+ "отклонено специалистом": "rejected by a specialist",
+ "правило застройщика": "the developer's rule",
+ "без правила: не хватает данных": "no rule: data is missing",
+ "Статус": "Status",
+ "Статус правила: {0}": "Rule status: {0}",
+ "Отклонено специалистом и не учитывается": "Rejected by a specialist and not counted"
+}

@@ -32,6 +32,24 @@ export interface RuleSource {
   point: string;
 }
 
+/**
+ * Where the rule behind a finding stands, rule by rule:
+ * `draft` — read in a document, not checked by a specialist; it cannot verify anything;
+ * `confirmed` — a specialist confirmed it; `rejected` — a specialist rejected it, and it is
+ * taken out of the conclusions; `developer` — the developer's own rule, checked as written;
+ * `no-rule` — a statement that data is missing, which no rule backs.
+ */
+export type RuleStatus = "draft" | "confirmed" | "rejected" | "developer" | "no-rule";
+
+/** A specialist's decision on one rule. */
+export interface RuleSignoff {
+  status: "confirmed" | "rejected";
+  /** Who decided: a name and role, as they gave it. */
+  by: string;
+  date: string;
+  note?: string;
+}
+
 export interface RuleFinding {
   ruleId: string;
   level: ConfidenceLevel;
@@ -44,6 +62,8 @@ export interface RuleFinding {
   openingIds?: readonly string[];
   /** Empty for a statement about missing data, which no document backs. */
   sources: readonly RuleSource[];
+  /** Set by the engine from the rule base and its sign-offs. */
+  status?: RuleStatus;
 }
 
 export type FactKey = Exclude<keyof BuildingFacts, "region">;
@@ -76,6 +96,8 @@ export interface RuleReport {
   overall: Procedure | null;
   /** Questions about the building whose answers would change these findings. */
   missingFacts: readonly FactKey[];
+  /** Findings of rules a specialist rejected: shown, never counted. */
+  withdrawn: readonly RuleFinding[];
 }
 
 export interface RulePack {
@@ -88,5 +110,7 @@ export interface RulePack {
   reviewed: boolean;
   documents: readonly RegulationDocument[];
   notChecked: readonly string[];
+  /** A specialist's decisions, rule by rule. */
+  signoffs?: Readonly<Record<string, RuleSignoff>>;
   check(plan: FloorPlan): { findings: RuleFinding[]; missingFacts: FactKey[]; checkedChanges: boolean };
 }

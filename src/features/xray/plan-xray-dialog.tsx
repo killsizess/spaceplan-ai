@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ScanSearch, TriangleAlert, X } from "lucide-react";
 import type { BuildingFacts, FloorPlan, NeighbourFloor, RuleProfile } from "@/domain/floor-plan/types";
 import { WALL_KIND_LABELS } from "@/domain/floor-plan/wall-kind";
-import { citation, rulesForPlan } from "@/domain/rules/engine";
+import { citation, RULE_STATUS_LABELS, rulesForPlan } from "@/domain/rules/engine";
 import { describeProfileRule } from "@/domain/rules/profile-pack";
 import { interpretPrompt } from "@/domain/rules/prompt-rules";
 import {
@@ -281,6 +281,7 @@ function Findings({ rules, targetOf, onShow }: {
                     {finding.procedure && <ProcedureChip procedure={finding.procedure} />}
                     {finding.detail && <p>{finding.detail}</p>}
                     {source && <small>{source}</small>}
+                    {finding.status && <small className="rule-status" data-testid="rule-status" data-status={finding.status}>{tr`Статус правила: ${RULE_STATUS_LABELS[finding.status]}`}</small>}
                     {target && <ShowButton id={target} onShow={onShow} />}
                   </li>
                 );
@@ -402,6 +403,12 @@ export default function PlanXrayDialog({
                   <small>{sourcesText(rules, rules.procedures[rules.overall].sources)}</small>
                 )}
                 <button type="button" className="xray-show" onClick={onProofPlan}>{tr`Почему такой вывод`}</button>
+              </section>
+            )}
+            {rules.withdrawn.length > 0 && (
+              <section className="xray-not-checked" data-testid="xray-withdrawn">
+                <h3>{tr`Отклонено специалистом и не учитывается`}</h3>
+                <ul>{rules.withdrawn.map((finding, index) => <li key={index}>{finding.title}</li>)}</ul>
               </section>
             )}
             <Findings rules={rules} targetOf={targetOf} onShow={onShow} />

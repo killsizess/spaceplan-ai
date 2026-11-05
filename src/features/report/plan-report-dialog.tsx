@@ -132,6 +132,7 @@ export default function PlanReportDialog({
                       <strong>{finding.title}</strong>
                       {finding.detail && <p>{finding.detail}</p>}
                       {finding.source && <p className="plan-report-source">{finding.source}</p>}
+                      {finding.ruleStatus && <p className="plan-report-source" data-testid="report-rule-status">{tr`Статус правила: ${finding.ruleStatus}`}</p>}
                     </div>
                   </li>
                 ))}

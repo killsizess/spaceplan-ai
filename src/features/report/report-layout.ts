@@ -106,7 +106,8 @@ function drawFinding(flow: Flow, finding: ReportFinding) {
   const textWidth = flow.width - 6;
   const titleHeight = flow.height(textWidth, finding.title, 3.4, 600);
   const detailHeight = finding.detail ? flow.height(textWidth, finding.detail, 3, 400) : 0;
-  const sourceHeight = finding.source ? flow.height(textWidth, finding.source, 2.8, 500) : 0;
+  const status = finding.ruleStatus ? tr`Статус правила: ${finding.ruleStatus}` : "";
+  const sourceHeight = (finding.source ? flow.height(textWidth, finding.source, 2.8, 500) : 0) + (status ? flow.height(textWidth, status, 2.8, 500) : 0);
   const height = titleHeight + detailHeight + sourceHeight + 2.6;
   flow.need(height);
   const colors = REPORT_LEVEL_COLORS[finding.level];
@@ -118,9 +119,9 @@ function drawFinding(flow: Flow, finding: ReportFinding) {
     flow.lines(textLeft, textWidth, finding.detail, 3, 400, MUTED);
     flow.y += detailHeight;
   }
-  if (finding.source) {
-    flow.lines(textLeft, textWidth, finding.source, 2.8, 500, MUTED);
-    flow.y += sourceHeight;
+  if (finding.source || status) {
+    if (finding.source) flow.y += flow.lines(textLeft, textWidth, finding.source, 2.8, 500, MUTED);
+    if (status) flow.y += flow.lines(textLeft, textWidth, status, 2.8, 500, MUTED);
   }
   flow.y += 2.6;
 }

@@ -2,7 +2,7 @@ import { tr } from "@/lib/i18n";
 import type { FloorPlan } from "@/domain/floor-plan/types";
 import { MOSCOW_PACK, PROCEDURE_ORDER } from "./moscow";
 import { profilePack } from "./profile-pack";
-import type { RuleFinding, RulePack, RuleReport } from "./types";
+import type { RuleFinding, RulePack, RuleReport, RuleStatus } from "./types";
 
 /**
  * The rules that apply to a plan: a ready-made base where there is one, otherwise the rules
@@ -16,20 +16,39 @@ export function packForPlan(plan: Pick<FloorPlan, "buildingFacts" | "ruleProfile
   return null;
 }
 
+/** Where the rule behind a finding stands, from the base and the specialist's sign-offs. */
+export function statusOf(finding: Pick<RuleFinding, "ruleId" | "sources">, pack: Pick<RulePack, "kind" | "reviewed" | "signoffs">): RuleStatus {
+  if (pack.kind === "owner") return "developer";
+  if (!finding.sources.length) return "no-rule";
+  const signoff = pack.signoffs?.[finding.ruleId];
+  if (signoff) return signoff.status;
+  return pack.reviewed ? "confirmed" : "draft";
+}
+
 /**
- * Rules a specialist has not confirmed cannot "verify" anything: geometry may be certain,
- * but the reading of the document behind the statement is not. They stay an assumption.
+ * A rule a specialist has not confirmed cannot "verify" anything: geometry may be certain,
+ * but the reading of the document behind the statement is not. It stays an assumption.
  * The developer's own rules are not a reading of anything: checked as written, they hold
  * or they do not.
  */
-function capped(finding: RuleFinding, pack: RulePack): RuleFinding {
-  const unconfirmed = pack.kind === "regulation" && !pack.reviewed;
-  return unconfirmed && finding.level === "verified" ? { ...finding, level: "assumption" } : finding;
+function capped(finding: RuleFinding): RuleFinding {
+  return finding.status === "draft" && finding.level === "verified" ? { ...finding, level: "assumption" } : finding;
 }
+
+export const RULE_STATUS_LABELS: Readonly<Record<RuleStatus, string>> = {
+  draft: tr`черновик: прочитано в документе, специалист не сверял`,
+  confirmed: tr`подтверждено специалистом`,
+  rejected: tr`отклонено специалистом`,
+  developer: tr`правило застройщика`,
+  "no-rule": tr`без правила: не хватает данных`,
+};
 
 export function runRules(pack: RulePack, plan: FloorPlan): RuleReport {
   const { findings, missingFacts, checkedChanges } = pack.check(plan);
-  const final = findings.map((finding) => capped(finding, pack));
+  const marked = findings.map((finding) => capped({ ...finding, status: statusOf(finding, pack) }));
+  // A rejected rule says nothing about the plan; it is kept aside so the screen can say so.
+  const final = marked.filter((finding) => finding.status !== "rejected");
+  const withdrawn = marked.filter((finding) => finding.status === "rejected");
   const procedures = checkedChanges ? final.map((finding) => finding.procedure) : [];
   return {
     packId: pack.id,
@@ -45,6 +64,7 @@ export function runRules(pack: RulePack, plan: FloorPlan): RuleReport {
     findings: final,
     overall: PROCEDURE_ORDER.find((procedure) => procedures.includes(procedure)) ?? null,
     missingFacts,
+    withdrawn,
   };
 }
 

@@ -11,7 +11,7 @@ import { analyzeWallConnections } from "@/domain/floor-plan/wall-diagnostics";
 import { analyzeWallIntersections } from "@/domain/floor-plan/wall-intersections";
 import { bearingWallChanges, wallKindOf, type BearingChange } from "@/domain/floor-plan/wall-kind";
 import { analyzeWallOverlaps } from "@/domain/floor-plan/wall-overlaps";
-import { citation, rulesForPlan } from "@/domain/rules/engine";
+import { citation, rulesForPlan, RULE_STATUS_LABELS } from "@/domain/rules/engine";
 import { factLines, type FactLine } from "@/domain/rules/facts";
 import type { RuleReport } from "@/domain/rules/types";
 import { formatArea, pluralRu } from "@/lib/format";
@@ -45,6 +45,8 @@ export interface ReportFinding {
   detail?: string;
   /** The document and point behind the statement. */
   source?: string;
+  /** Where that rule stands: a draft, confirmed by a specialist, the developer's own. */
+  ruleStatus?: string;
 }
 
 export interface ReportRoom {
@@ -343,6 +345,7 @@ export function buildPlanReport(plan: FloorPlan, meta: { generatedAt: string; ap
         title: finding.title,
         ...(finding.detail ? { detail: finding.detail } : {}),
         ...(source ? { source } : {}),
+        ...(finding.status ? { ruleStatus: RULE_STATUS_LABELS[finding.status] } : {}),
       });
     }
   }

@@ -2,7 +2,7 @@ import { tr } from "@/lib/i18n";
 import { lengthText } from "@/lib/units";
 import { planFromOrigin } from "@/domain/floor-plan/plan-origin";
 import { countsInTotal, type FloorPlan, type Opening, type Wall, type WallKind } from "@/domain/floor-plan/types";
-import { citation, packForPlan, rulesForPlan } from "@/domain/rules/engine";
+import { citation, packForPlan, rulesForPlan, RULE_STATUS_LABELS } from "@/domain/rules/engine";
 import { FLOOR_ANSWERS, FLOOR_LABEL, factLines, NEIGHBOUR_ANSWERS, NEIGHBOUR_LABELS, UNKNOWN_ANSWER, YES_NO_QUESTIONS, type FactLine } from "@/domain/rules/facts";
 import { PROCEDURE_ORDER } from "@/domain/rules/moscow";
 import { openingChanges, wallChanges } from "@/domain/rules/plan-changes";
@@ -28,6 +28,8 @@ export interface ProofReason {
   procedure?: Procedure;
   /** Empty for a statement about missing data, which no document backs. */
   citation: string;
+  /** Where the rule stands, in words; empty without a rule base. */
+  ruleStatus: string;
   /** The inputs that move this reason when they change, as «Тип стены 5: перегородка». */
   dependsOn: string[];
   /** This reason names the procedure the whole answer ended on. */
@@ -342,6 +344,7 @@ export function buildPlanProof(
     level: finding.level,
     ...(finding.procedure ? { procedure: finding.procedure } : {}),
     citation: rules ? citation(rules, finding) : "",
+    ruleStatus: finding.status ? RULE_STATUS_LABELS[finding.status] : "",
     dependsOn: [...(dependsOn.get(findingKey(finding)) ?? [])],
     decisive: Boolean(rules?.overall && finding.procedure === rules.overall),
   });

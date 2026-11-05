@@ -18,6 +18,7 @@ import {
   type RuleRooms,
 } from "./rule-rooms";
 import type { FactKey, Procedure, RegulationDocument, RuleFinding, RulePack, RuleSource } from "./types";
+import { MOSCOW_SIGNOFFS } from "./moscow-signoffs";
 
 /**
  * The Moscow rule base. Every rule here was written from a text that was actually read;
@@ -798,6 +799,7 @@ export const MOSCOW_PACK: RulePack = {
   reviewed: false,
   documents: DOCUMENTS,
   notChecked: NOT_CHECKED,
+  signoffs: MOSCOW_SIGNOFFS,
   check(plan) {
     const after = roomsOfPlan(plan);
     const findings = stateFindings(plan, after);

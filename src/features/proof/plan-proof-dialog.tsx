@@ -23,6 +23,7 @@ function Reason({ reason }: { reason: ProofReason }) {
       {reason.detail && <p>{reason.detail}</p>}
       <dl>
         {reason.citation && <div><dt>{tr`Правило`}</dt><dd>{reason.citation}</dd></div>}
+        {reason.ruleStatus && <div><dt>{tr`Статус`}</dt><dd data-testid="proof-rule-status">{reason.ruleStatus}</dd></div>}
         {reason.dependsOn.length > 0 && <div><dt>{tr`Держится на`}</dt><dd data-testid="proof-depends">{reason.dependsOn.join("; ")}</dd></div>}
         <div>
           <dt>{tr`Уверенность`}</dt>
