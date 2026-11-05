@@ -1,7 +1,10 @@
 import type { Point } from "@/domain/geometry";
 
 export type RoomKind =
-  "living" | "bedroom" | "kitchen" | "bathroom" | "hall" | "other";
+  /** `balcony` and `shaft` are v9. */
+  "living" | "bedroom" | "kitchen" | "bathroom" | "hall" | "other" | "balcony" | "shaft";
+/** Balconies, loggias and shafts are drawn as rooms, but are not part of the total. */
+export const countsInTotal = (kind: RoomKind): boolean => kind !== "balcony" && kind !== "shaft";
 export type RoomMode = "manual" | "walls";
 export interface Room {
   id: string;
@@ -42,6 +45,8 @@ export interface Opening {
   sillHeight: number;
   /** Relative to the supporting wall's start-to-end direction. Omission means start/left. */
   door?: DoorSwing;
+  /** v9. A door-way with no door in it. It connects rooms like a door and has no leaf. */
+  doorless?: true;
 }
 export interface Underlay {
   name: string;
@@ -132,10 +137,12 @@ export interface BuildingFacts {
   emergency?: boolean;
   below?: NeighbourFloor;
   above?: NeighbourFloor;
+  /** v9. Which floor the apartment is on, as far as the rules care. */
+  floorLevel?: "first" | "upper";
 }
 
 export interface FloorPlan {
-  schemaVersion: 8;
+  schemaVersion: 9;
   unit: "m";
   id: string;
   name: string;

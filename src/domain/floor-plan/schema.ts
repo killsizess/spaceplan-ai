@@ -69,7 +69,7 @@ export const roomSchema = z
       .trim()
       .min(1, "Введите название комнаты.")
       .max(60, "Название — не больше 60 символов."),
-    kind: z.enum(["living", "bedroom", "kitchen", "bathroom", "hall", "other"]),
+    kind: z.enum(["living", "bedroom", "kitchen", "bathroom", "hall", "other", "balcony", "shaft"]),
     color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
     x: coordinate,
     y: coordinate,
@@ -127,9 +127,17 @@ export const openingSchema = z
       hinge: z.enum(["start", "end"]),
       side: z.enum(["left", "right"]),
     }).strict().optional(),
+    doorless: z.literal(true).optional(),
   })
   .strict()
   .superRefine((opening, ctx) => {
+    if (opening.kind !== "door" && "doorless" in opening) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["doorless"],
+        message: "Проём без двери бывает только на месте двери.",
+      });
+    }
     if (opening.kind !== "door" && "door" in opening) {
       ctx.addIssue({
         code: "custom",
@@ -142,13 +150,13 @@ export const openingSchema = z
 export const wallRoomLabelSchema = z.object({
   id,
   name: z.string().trim().min(1, "Введите название помещения.").max(60, "Название — не больше 60 символов."),
-  kind: z.enum(["living", "bedroom", "kitchen", "bathroom", "hall", "other"]),
+  kind: z.enum(["living", "bedroom", "kitchen", "bathroom", "hall", "other", "balcony", "shaft"]),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   anchor: pointSchema,
   boundaryWallIds: z.array(id).min(1).max(1000).refine((ids) => new Set(ids).size === ids.length, "Границы помещения не должны повторяться."),
 }).strict();
 
-const roomKind = z.enum(["living", "bedroom", "kitchen", "bathroom", "hall", "other"]);
+const roomKind = z.enum(["living", "bedroom", "kitchen", "bathroom", "hall", "other", "balcony", "shaft"]);
 export const planRequirementSchema = z.discriminatedUnion("type", [
   z.object({
     id,
@@ -211,11 +219,12 @@ export const buildingFactsSchema = z.object({
   emergency: z.boolean().optional(),
   below: neighbourFloorSchema.optional(),
   above: neighbourFloorSchema.optional(),
+  floorLevel: z.enum(["first", "upper"]).optional(),
 }).strict();
 
 const floorPlanFields = z
   .object({
-    schemaVersion: z.literal(8),
+    schemaVersion: z.literal(9),
     unit: z.literal("m"),
     id,
     name: z.string().trim().min(1).max(100),

@@ -1,8 +1,8 @@
-import type { FloorPlan, Opening, RoomKind, Wall } from "./types";
+import { countsInTotal, type FloorPlan, type Opening, type RoomKind, type Wall } from "./types";
 import { resolveWallRoomLabels } from "./wall-room-labels";
 
 const POSITION_TOLERANCE = 1e-9;
-const KINDS: readonly RoomKind[] = ["living", "bedroom", "kitchen", "bathroom", "hall", "other"];
+const KINDS: readonly RoomKind[] = ["living", "bedroom", "kitchen", "bathroom", "hall", "other", "balcony", "shaft"];
 
 export interface CollectionDiff {
   /** IDs only in the second plan, in its order. */
@@ -110,7 +110,7 @@ export function planMetrics(plan: FloorPlan): PlanMetrics {
   }
   return {
     roomMode: plan.roomMode,
-    totalArea: rooms.reduce((total, room) => total + room.area, 0),
+    totalArea: rooms.filter((room) => countsInTotal(room.kind)).reduce((total, room) => total + room.area, 0),
     roomCount: rooms.length,
     areaByKind,
     roomsByKind,

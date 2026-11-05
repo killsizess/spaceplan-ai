@@ -57,11 +57,10 @@ const DOCUMENTS: readonly RegulationDocument[] = [
 ];
 
 const NOT_CHECKED: readonly string[] = [
-  "Вентиляционные каналы, короба и шахты (508-ПП, п. 9.5): на плане их нет.",
+  "Вентиляционные каналы и короба, не отмеченные на плане как помещение «Вентшахта, короб» (508-ПП, п. 9.5).",
   "Инженерные сети, радиаторы и тёплые полы от общедомовых систем (508-ПП, пп. 9.4, 9.7, 9.8).",
   "Пилоны, диафрагмы, колонны и места связей между элементами (508-ПП, п. 9.10): план такого не хранит.",
-  "Балконы, лоджии и террасы (508-ПП, пп. 9.7, 9.13, 9.18): таких помещений в плане нет.",
-  "Проём без двери между жилой комнатой и газифицированной кухней (508-ПП, п. 9.25): в плане есть только двери и окна.",
+  "Балконы и лоджии, не отмеченные на плане как помещение «Балкон, лоджия» (508-ПП, пп. 9.13, 9.18), а также террасы и веранды.",
   "Нагрузка на перекрытия и материал перегородок (508-ПП, пп. 2.2.9, 9.6).",
   "Инсоляция, шум и другие санитарные требования (ПП РФ № 47, пп. 21, 26).",
   "Порядок подачи документов и сроки согласования.",
@@ -99,6 +98,8 @@ const isLiving = (room: RuleRoom) => LIVING_KINDS.includes(room.kind);
 const MIN_STACK_OVERLAP = 0.1;
 /** Rooms that share less than this with the new room were not merged into it. */
 const MIN_MERGE_OVERLAP = 1;
+/** A balcony counts as absorbed once a room covers at least this share of it. */
+const SAME_ROOM_SHARE = 0.5;
 const AREA_TOLERANCE = 0.005;
 
 const hasHeight = (height: number, minimum: number) => height >= minimum - 1e-9;
@@ -126,6 +127,7 @@ function missingFacts(plan: FloorPlan, rooms: readonly RuleRoom[]): FactKey[] {
   if (facts.heritage === undefined) missing.push("heritage");
   if (facts.woodenFloors === undefined) missing.push("woodenFloors");
   if (facts.gasified === undefined && rooms.some((room) => room.kind === "kitchen")) missing.push("gasified");
+  if (facts.floorLevel === undefined && rooms.some((room) => room.kind === "balcony")) missing.push("floorLevel");
   if (rooms.some((room) => room.kind === "kitchen" || room.kind === "bathroom")) {
     if (facts.below === undefined) missing.push("below");
     if (facts.above === undefined) missing.push("above");
@@ -242,7 +244,8 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
     !plan.openings.some((opening) => {
       if (opening.kind !== "window" || !room.boundaryWallIds.includes(opening.wallId)) return false;
       const [first, second] = roomsBeside(walls.get(opening.wallId)!, openingCentre(opening), rooms);
-      return (first?.id === room.id && !second) || (second?.id === room.id && !first);
+      const outside = (other: RuleRoom | null) => !other || other.kind === "balcony";
+      return (first?.id === room.id && outside(second)) || (second?.id === room.id && outside(first));
     }),
   );
   for (const room of dark) {
@@ -251,7 +254,7 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       level: "verified",
       state: "problem",
       title: `${room.name}: нет окна наружу`,
-      detail: "Комнаты и кухни должны иметь непосредственное естественное освещение.",
+      detail: "Комнаты и кухни должны иметь непосредственное естественное освещение. Окно на балкон или лоджию считается окном наружу.",
       roomIds: [room.id],
       sources: [fromPp47("25")],
     });
@@ -264,6 +267,36 @@ function stateFindings(plan: FloorPlan, { rooms, unresolved }: RuleRooms): RuleF
       title: `Окно наружу есть в каждой комнате и кухне: помещений ${needDaylight.length}`,
       sources: [fromPp47("25")],
     });
+  }
+
+  // A door-way with no door between a kitchen and a living room.
+  const openToKitchen = plan.openings.filter((opening) => {
+    if (!opening.doorless) return false;
+    const sides = roomsBeside(walls.get(opening.wallId)!, openingCentre(opening), rooms);
+    return sides.some((room) => room?.kind === "kitchen") && sides.some((room) => room && isLiving(room));
+  });
+  if (openToKitchen.length && facts.gasified !== false) {
+    const ids = openToKitchen.map((opening) => opening.id);
+    findings.push(facts.gasified
+      ? {
+        ruleId: "moscow.508.9.25",
+        level: "specialist",
+        state: "problem",
+        procedure: "forbidden",
+        title: "Проём без двери между жилой комнатой и газифицированной кухней: не допускается",
+        openingIds: ids,
+        sources: from508("9.25"),
+      }
+      : {
+        ruleId: "moscow.508.9.25",
+        level: "undetermined",
+        state: "problem",
+        procedure: "unknown",
+        title: "Проём без двери между кухней и жилой комнатой, но неизвестно, есть ли газ",
+        detail: "С газифицированной кухней такой проём не допускается. Ответьте на вопрос о газе.",
+        openingIds: ids,
+        sources: from508("9.25"),
+      });
   }
 
   // Heights: the lowest wall around a room.
@@ -349,16 +382,19 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
   }
 
   // Partitions.
-  // A partition between a kitchen and a living room waits for the gas answer: it may not be
-  // removable at all (п. 9.16), so naming a simplified procedure for it would mislead.
-  const joinsKitchenToLiving = (wall: Wall) => {
+  // These partitions may not be removable at all (пп. 9.5, 9.16, 9.18), so naming a
+  // simplified procedure for them would mislead. The rules below speak for them instead.
+  const hasStrongerRule = (wall: Wall) => {
     const beside = before.rooms.filter((room) => room.boundaryWallIds.includes(wall.id));
-    return beside.some((room) => room.kind === "kitchen") && beside.some(isLiving);
+    if (beside.some((room) => room.kind === "shaft" || room.kind === "balcony")) return true;
+    return facts.gasified !== false && beside.some((room) => room.kind === "kitchen") && beside.some(isLiving);
   };
   const oldPartitions = [...walls.removed, ...walls.moved.map((item) => item.before)]
     .filter((wall) => kindOf(wall) === "partition")
-    .filter((wall) => facts.gasified === false || !joinsKitchenToLiving(wall));
-  const newPartitions = walls.added.filter((wall) => kindOf(wall) === "partition");
+    .filter((wall) => !hasStrongerRule(wall));
+  const newPartitions = walls.added
+    .filter((wall) => kindOf(wall) === "partition")
+    .filter((wall) => !after.rooms.some((room) => (room.kind === "balcony" || room.kind === "shaft") && room.boundaryWallIds.includes(wall.id)));
   if (oldPartitions.length || newPartitions.length) {
     const wallIds = [...oldPartitions, ...newPartitions].map((wall) => wall.id);
     const named = changedWalls(source, plan, oldPartitions, newPartitions);
@@ -434,7 +470,24 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
       sources: [...from508("3", "3.1"), fromZhk("ст. 26, ч. 2, п. 3")],
     });
   }
-  const inner = changed.filter((item) => !onPerimeter.includes(item));
+  const onBalconyWall = changed.filter(({ opening, host, rooms }) => {
+    if (!host) return false;
+    const [first, second] = roomsBeside(host, openingCentre(opening), rooms);
+    return Boolean(first && second) && (first?.kind === "balcony" || second?.kind === "balcony");
+  });
+  if (onBalconyWall.length) {
+    findings.push({
+      ruleId: "moscow.508.2.2.14",
+      level: "specialist",
+      state: "problem",
+      procedure: "project",
+      title: `Проём к балкону или лоджии: нужен проект (${onWalls(onBalconyWall)})`,
+      detail: "Это чтение верно, если работа не затрагивает архитектурный облик дома; иначе действует п. 3.9.",
+      openingIds: onBalconyWall.map(({ opening }) => opening.id),
+      sources: from508("2.2.14", "3.9"),
+    });
+  }
+  const inner = changed.filter((item) => !onPerimeter.includes(item) && !onBalconyWall.includes(item));
   const newInBearing = inner.filter(({ host, change }) => kindOf(host) === "bearing" && change !== "removed");
   if (newInBearing.length) {
     findings.push({
@@ -590,6 +643,94 @@ function changeFindings(plan: FloorPlan, source: FloorPlan, after: RuleRooms, be
         sources: from508("9.16", "2.2.11"),
       });
     }
+  }
+
+  // Balconies: absorbed into a room, enlarged, new or gone.
+  const balconies = roomKindChanges(before.rooms, after.rooms, "balcony");
+  const absorbed = before.rooms.filter((room) => room.kind === "balcony").flatMap((balcony) =>
+    after.rooms
+      .filter((room) => room.kind !== "balcony" && overlapArea(balcony, room) >= balcony.area * SAME_ROOM_SHARE)
+      .map((room) => ({ balcony, room })));
+  if (absorbed.length) {
+    findings.push({
+      ruleId: "moscow.508.9.18",
+      level: "specialist",
+      state: "problem",
+      procedure: "forbidden",
+      title: `Балкон или лоджия объединены с помещением: не допускается (${absorbed.map(({ room }) => room.name).join(", ")})`,
+      detail: "Запрет касается и включения их площади в общую площадь помещения.",
+      roomIds: absorbed.map(({ room }) => room.id),
+      sources: from508("9.18"),
+    });
+  }
+  const grown = [
+    ...balconies.created,
+    ...balconies.resized.filter((item) => item.after.area > item.before.area + AREA_TOLERANCE).map((item) => item.after),
+  ];
+  if (grown.length) {
+    const names = grown.map((room) => room.name).join(", ");
+    const roomIds = grown.map((room) => room.id);
+    if (facts.floorLevel === "upper") {
+      findings.push({
+        ruleId: "moscow.508.9.13",
+        level: "specialist",
+        state: "problem",
+        procedure: "forbidden",
+        title: `Новый или увеличенный балкон на втором и выше этаже: не допускается (${names})`,
+        roomIds,
+        sources: from508("9.13"),
+      });
+    } else if (facts.floorLevel === "first") {
+      findings.push({
+        ruleId: "moscow.508.3.5",
+        level: "specialist",
+        state: "problem",
+        procedure: "project",
+        title: `Новый балкон или лоджия на первом этаже: нужен проект (${names})`,
+        detail: "Без фундаментов и помещений под ними и без отопления.",
+        roomIds,
+        sources: from508("3.5", "9.26"),
+      });
+    } else {
+      findings.push({
+        ruleId: "moscow.508.9.13",
+        level: "undetermined",
+        state: "problem",
+        procedure: "unknown",
+        title: `Новый или увеличенный балкон, но неизвестен этаж (${names})`,
+        detail: "На втором и выше этаже это запрещено, на первом делается по проекту. Ответьте на вопрос об этаже.",
+        roomIds,
+        sources: from508("9.13", "3.5"),
+      });
+    }
+  }
+  const goneBalconies = balconies.gone.filter((balcony) => !absorbed.some((item) => item.balcony === balcony));
+  if (goneBalconies.length) {
+    findings.push({
+      ruleId: "moscow.balcony.gone",
+      level: "specialist",
+      state: "problem",
+      procedure: "specialist",
+      title: `Балкона или лоджии нет на прежнем месте: ${goneBalconies.map((room) => room.name).join(", ")}`,
+      detail: "Отдельного пункта об этом нет; работа может затрагивать общее имущество и облик дома.",
+      roomIds: goneBalconies.map((room) => room.id),
+      sources: from508("3.8", "3.9"),
+    });
+  }
+
+  // Ventilation shafts and boxes.
+  const shafts = roomKindChanges(before.rooms, after.rooms, "shaft");
+  const touchedShafts = [...shafts.gone, ...shafts.resized.map((item) => item.before)];
+  if (touchedShafts.length) {
+    findings.push({
+      ruleId: "moscow.508.9.5",
+      level: "specialist",
+      state: "problem",
+      procedure: "forbidden",
+      title: `Вентшахта или короб изменены или убраны: не допускается (${touchedShafts.map((room) => room.name).join(", ")})`,
+      roomIds: touchedShafts.map((room) => room.id),
+      sources: from508("9.5"),
+    });
   }
 
   // What stands over what: the neighbours are assumed to live in the source layout.

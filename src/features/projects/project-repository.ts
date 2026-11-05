@@ -15,7 +15,7 @@ export const MAX_PLAN_FILE_BYTES = 4 * 1024 * 1024;
 
 /**
  * Migration is in memory only; a normal successful save upgrades the record.
- * Formats 1–5 are brought to 6 here, then 6 to 7 and 7 to the current version.
+ * Formats 1–5 are brought to 6 here, then 6 to 7, 7 to 8 and 8 to the current version.
  */
 function toVersionSix(value: unknown): unknown {
   if (
@@ -84,7 +84,7 @@ function toVersionSeven(value: unknown): unknown {
 }
 
 /** A v7 file that already carries the v8 field is refused rather than blessed. */
-function toCurrentVersion(value: unknown): unknown {
+function toVersionEight(value: unknown): unknown {
   if (
     typeof value !== "object" || value === null ||
     !("schemaVersion" in value) || value.schemaVersion !== 7 ||
@@ -93,8 +93,36 @@ function toCurrentVersion(value: unknown): unknown {
   return { ...value, schemaVersion: 8 };
 }
 
+/** Anything format 9 added, in the plan or in the snapshot a variant carries. */
+function usesVersionNine(plan: Record<string, unknown>): boolean {
+  const items = (key: string) => (Array.isArray(plan[key]) ? (plan[key] as unknown[]) : []);
+  const hasNewKind = (item: unknown) =>
+    typeof item === "object" && item !== null && "kind" in item && (item.kind === "balcony" || item.kind === "shaft");
+  const facts = plan.buildingFacts;
+  const origin = plan.origin;
+  return (
+    items("rooms").some(hasNewKind) ||
+    items("wallRoomLabels").some(hasNewKind) ||
+    items("openings").some((item) => typeof item === "object" && item !== null && "doorless" in item) ||
+    (typeof facts === "object" && facts !== null && "floorLevel" in facts) ||
+    (typeof origin === "object" && origin !== null && "snapshot" in origin &&
+      typeof origin.snapshot === "object" && origin.snapshot !== null &&
+      usesVersionNine(origin.snapshot as Record<string, unknown>))
+  );
+}
+
+/** A v8 file that already carries v9 content is refused rather than blessed. */
+function toCurrentVersion(value: unknown): unknown {
+  if (
+    typeof value !== "object" || value === null ||
+    !("schemaVersion" in value) || value.schemaVersion !== 8 ||
+    usesVersionNine(value as Record<string, unknown>)
+  ) return value;
+  return { ...value, schemaVersion: 9 };
+}
+
 const persistedPlanSchema = z.preprocess(
-  (value) => toCurrentVersion(toVersionSeven(toVersionSix(value))),
+  (value) => toCurrentVersion(toVersionEight(toVersionSeven(toVersionSix(value)))),
   floorPlanLoadSchema,
 );
 
@@ -170,10 +198,11 @@ function validatePlan(value: unknown): FloorPlan {
     value.schemaVersion !== 5 &&
     value.schemaVersion !== 6 &&
     value.schemaVersion !== 7 &&
-    value.schemaVersion !== 8
+    value.schemaVersion !== 8 &&
+    value.schemaVersion !== 9
   ) {
     throw new Error(
-      "Версия формата не поддерживается. Нужен план SpacePlan версии от 1 до 8.",
+      "Версия формата не поддерживается. Нужен план SpacePlan версии от 1 до 9.",
     );
   }
   const result = persistedPlanSchema.safeParse(value);

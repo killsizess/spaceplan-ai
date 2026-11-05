@@ -1,3 +1,4 @@
+import type { RuleReport } from "@/domain/rules/types";
 import { describe, expect, it } from "vitest";
 import { createEmptyPlan, createExamplePlan } from "@/domain/floor-plan/operations";
 import type { FloorPlan, Wall } from "@/domain/floor-plan/types";
@@ -12,14 +13,14 @@ const value = (plan: FloorPlan, id: ScenarioStepId, extra = {}) =>
   scenarioSteps({ plan, freeEnds: 0, violatedRequirements: 0, variants: 0, ...extra }).find((step) => step.id === id)!.value;
 
 describe("scenario route", () => {
-  it("has the six steps of the main scenario, in order", () => {
+  it("has the seven steps of the main scenario, in order", () => {
     const steps = scenarioSteps({ plan: createEmptyPlan("x"), freeEnds: 0, violatedRequirements: 0, variants: 0 });
-    expect(steps.map((step) => step.label)).toEqual(["Чертёж", "Стены", "Типы стен", "Требования", "Варианты", "Отчёт"]);
+    expect(steps.map((step) => step.label)).toEqual(["Чертёж", "Стены", "Типы стен", "Требования", "Нормы", "Варианты", "Отчёт"]);
   });
 
   it("starts an empty plan at the drawing, with the rest ahead", () => {
     expect(states(createEmptyPlan("x"))).toEqual({
-      drawing: "current", walls: "todo", kinds: "todo", requirements: "todo", variants: "todo", report: "todo",
+      drawing: "current", walls: "todo", kinds: "todo", requirements: "todo", norms: "todo", variants: "todo", report: "todo",
     });
   });
 
@@ -51,5 +52,36 @@ describe("scenario route", () => {
   it("never marks the report done: it is read anew each time", () => {
     const plan = createExamplePlan();
     expect(states(plan, { variants: 1 }).report).not.toBe("done");
+  });
+
+  describe("norms", () => {
+    const report = (problems: number, questions: number) => ({
+      findings: Array.from({ length: problems }, () => ({ state: "problem" })),
+      missingFacts: Array.from({ length: questions }, () => "gasified"),
+    }) as unknown as RuleReport;
+    const withRegion = (region?: "moscow" | "other") => ({ ...createEmptyPlan("x"), ...(region ? { buildingFacts: { region } } : {}) });
+
+    it("asks for the region first", () => {
+      expect(value(withRegion(), "norms")).toBe("регион не указан");
+    });
+
+    it("says when there is no base for the region and does not hold the route there", () => {
+      expect(value(withRegion("other"), "norms")).toBe("базы нет");
+      const steps = scenarioSteps({ plan: withRegion("other"), freeEnds: 0, violatedRequirements: 0, variants: 0 });
+      expect(steps.find((step) => step.id === "norms")!.state).toBe("done");
+    });
+
+    it("counts problems before questions", () => {
+      expect(value(withRegion("moscow"), "norms", { rules: report(2, 3) })).toBe("замечаний 2");
+      expect(value(withRegion("moscow"), "norms", { rules: report(0, 3) })).toBe("вопросов 3");
+      expect(value(withRegion("moscow"), "norms", { rules: report(0, 0) })).toBe("без замечаний");
+    });
+
+    it("draws attention to problems and is done only when nothing is left", () => {
+      const state = (rules: RuleReport) => scenarioSteps({ plan: withRegion("moscow"), freeEnds: 0, violatedRequirements: 0, variants: 0, rules }).find((step) => step.id === "norms")!.state;
+      expect(state(report(1, 0))).toBe("attention");
+      expect(state(report(0, 1))).not.toBe("done");
+      expect(state(report(0, 0))).toBe("done");
+    });
   });
 });

@@ -17,7 +17,7 @@ describe("answers about the building", () => {
   it("accepts every answer, and only those", () => {
     const plan = createEmptyPlan("facts");
     expect(floorPlanSchema.safeParse({ ...plan, buildingFacts: {
-      region: "other", gasified: false, woodenFloors: true, heritage: false, emergency: false, below: "no-dwelling", above: "other-layout",
+      region: "other", gasified: false, woodenFloors: true, heritage: false, emergency: false, below: "no-dwelling", above: "other-layout", floorLevel: "first",
     } }).success).toBe(true);
     expect(floorPlanSchema.safeParse({ ...plan, buildingFacts: { region: "spb" } }).success).toBe(false);
     expect(floorPlanSchema.safeParse({ ...plan, buildingFacts: { below: "same" } }).success).toBe(false);

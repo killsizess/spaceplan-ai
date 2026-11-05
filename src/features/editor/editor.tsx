@@ -31,7 +31,7 @@ import {
   createDefaultRoom,
   getTotalArea,
 } from "@/domain/floor-plan/operations";
-import type { FloorPlan, Opening, Room, Underlay, Wall } from "@/domain/floor-plan/types";
+import { countsInTotal, type FloorPlan, type Opening, type Room, type Underlay, type Wall } from "@/domain/floor-plan/types";
 import { calibrateUnderlay } from "@/domain/floor-plan/construction";
 import { DEFAULT_DOOR_SWING } from "@/domain/floor-plan/door-swing";
 import type { DoorWallCollision } from "@/domain/floor-plan/door-collisions";
@@ -41,6 +41,8 @@ import type { WallConnectionDiagnostic } from "@/domain/floor-plan/wall-diagnost
 import type { WallIntersectionDiagnostic } from "@/domain/floor-plan/wall-intersections";
 import type { WallOverlapDiagnostic } from "@/domain/floor-plan/wall-overlaps";
 import { createSpatialExamplePlan } from "@/domain/floor-plan/examples";
+import { rulesForPlan } from "@/domain/rules/engine";
+import { createRulesExamplePlan } from "@/domain/rules/example-apartment";
 import { getRectangularRoomWalls, type RectangularWallRoomInput } from "@/domain/floor-plan/rectangular-wall-room";
 import { wallLength, type Point } from "@/domain/geometry";
 import { formatLength, pluralRu } from "@/lib/format";
@@ -354,6 +356,14 @@ export default function Editor() {
       enter3D();
     }
   };
+  const createRulesExample = async () => {
+    setXrayOpen(false);
+    if (await workspace.importProject(serializePlan(createRulesExamplePlan()))) {
+      setSidebar("structure");
+      enter2D();
+      fit();
+    }
+  };
   const createWallRoomExample = async () => {
     const example: FloorPlan = {
       ...createSpatialExamplePlan(),
@@ -385,7 +395,13 @@ export default function Editor() {
     () => evaluateRequirements(state.plan, wallRooms, adjacency),
     [state.plan, wallRooms, adjacency],
   );
-  const flaggedRoomIds = useMemo(() => violatingRoomIds(requirementResults), [requirementResults]);
+  const ruleReport = useMemo(() => rulesForPlan(state.plan), [state.plan]);
+  const flaggedRoomIds = useMemo(() => {
+    const byRules = (ruleReport?.findings ?? [])
+      .filter((finding) => finding.state === "problem")
+      .flatMap((finding) => finding.roomIds ?? []);
+    return [...new Set([...violatingRoomIds(requirementResults), ...byRules])];
+  }, [requirementResults, ruleReport]);
   const requirementConflicts = useMemo(
     () => findRequirementConflicts(state.plan.requirements),
     [state.plan.requirements],
@@ -416,7 +432,7 @@ export default function Editor() {
     (opening) => opening.id === state.selectedId,
   );
   const totalArea = wallMode
-    ? wallRooms.reduce((sum, room) => sum + room.area, 0)
+    ? wallRooms.filter((room) => countsInTotal(room.kind)).reduce((sum, room) => sum + room.area, 0)
     : getTotalArea(state.plan);
   // A wall end resting on another wall is joined, not a finding worth moving the list for.
   const planProblems = planDiagnostics.items.filter(
@@ -428,8 +444,9 @@ export default function Editor() {
       freeEnds: connectionDiagnostics.filter((item) => item.kind !== "junction").length,
       violatedRequirements: requirementResults.filter((result) => result.status === "violated").length,
       variants: snapshot.projects.filter((project) => project.plan.origin?.planId === state.plan.id).length,
+      rules: ruleReport,
     }),
-    [state.plan, connectionDiagnostics, requirementResults, snapshot.projects],
+    [state.plan, connectionDiagnostics, requirementResults, snapshot.projects, ruleReport],
   );
   const openScenarioStep = (id: ScenarioStepId) => {
     if (id === "drawing") setSidebar("source");
@@ -438,7 +455,8 @@ export default function Editor() {
       setSidebar("rooms");
       // After the tab is shown: the panel lives further down the list.
       requestAnimationFrame(() => document.querySelector(".requirements-panel")?.scrollIntoView({ block: "start" }));
-    } else if (id === "variants") setCompareOpen(true);
+    } else if (id === "norms") setXrayOpen(true);
+    else if (id === "variants") setCompareOpen(true);
     else setReportOpen(true);
   };
   const changeRoomMode = (mode: "manual" | "walls") => {
@@ -1534,12 +1552,14 @@ export default function Editor() {
         <PlanXrayDialog
           plan={state.plan}
           onFacts={(facts) => dispatch({ type: "facts:set", facts })}
-          onShowWall={(wallId) => {
+          onShow={(id) => {
+            const structural = [...state.plan.walls, ...state.plan.openings].some((item) => item.id === id);
             setXrayOpen(false);
-            setSidebar("structure");
+            setSidebar(structural ? "structure" : "rooms");
             enter2D();
-            dispatch({ type: "select", id: wallId });
+            dispatch({ type: "select", id });
           }}
+          onOpenExample={() => void createRulesExample()}
           onClose={() => setXrayOpen(false)}
         />
       )}

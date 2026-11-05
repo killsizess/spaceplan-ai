@@ -5,6 +5,8 @@ import { GitCompare, X } from "lucide-react";
 import { diffPlans, type CollectionDiff, type PlanMetrics } from "@/domain/floor-plan/plan-diff";
 import { originNote, originStatus, planFromOrigin } from "@/domain/floor-plan/plan-origin";
 import type { FloorPlan, RoomKind } from "@/domain/floor-plan/types";
+import { rulesForPlan } from "@/domain/rules/engine";
+import { PROCEDURES } from "@/domain/rules/moscow";
 import { formatLength } from "@/lib/format";
 import { ROOM_KINDS } from "../room-kinds";
 import "../plan-check.css";
@@ -72,6 +74,10 @@ export default function PlanCompareDialog({
     ? originPlan!
     : (candidates.find((candidate) => candidate.plan.id === selectedId)?.plan ?? candidates[0]?.plan);
   const diff = useMemo(() => (selected ? diffPlans(selected, current) : null), [selected, current]);
+  const procedures = useMemo(() => ({
+    current: rulesForPlan(current)?.overall ?? null,
+    selected: selected ? rulesForPlan(selected)?.overall ?? null : null,
+  }), [selected, current]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -119,6 +125,13 @@ export default function PlanCompareDialog({
           {origin && status && (
             <p className="plan-compare-origin" data-testid="plan-compare-origin-note" data-origin-status={status}>
               {originNote(origin, status)}
+            </p>
+          )}
+          {(procedures.current || procedures.selected) && (
+            <p className="plan-compare-rules" data-testid="plan-compare-rules">
+              По нормам: {procedures.current ? `этот план: ${PROCEDURES[procedures.current].label.toLowerCase()}` : "этот план не сравнивался с исходным"}
+              {"; "}
+              {procedures.selected ? `выбранный: ${PROCEDURES[procedures.selected].label.toLowerCase()}` : "выбранный не сравнивался с исходным"}.
             </p>
           )}
           {diff.identical && <p className="plan-compare-same" data-testid="plan-compare-identical">Планы совпадают по стенам, проёмам, помещениям и требованиям.</p>}

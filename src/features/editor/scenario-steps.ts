@@ -1,13 +1,14 @@
 import type { FloorPlan } from "@/domain/floor-plan/types";
 import { wallKindOf } from "@/domain/floor-plan/wall-kind";
+import type { RuleReport } from "@/domain/rules/types";
 import { pluralRu } from "@/lib/format";
 
 /**
  * The product's main scenario as a route through the plan: drawing, walls, wall types,
- * requirements, variants, report. Everything is read from the plan, so the route is
+ * requirements, norms, variants, report. Everything is read from the plan, so the route is
  * always true and nothing about it is stored.
  */
-export type ScenarioStepId = "drawing" | "walls" | "kinds" | "requirements" | "variants" | "report";
+export type ScenarioStepId = "drawing" | "walls" | "kinds" | "requirements" | "norms" | "variants" | "report";
 /** `attention`: this step has something to look at. `current`: the first one not done yet. */
 export type ScenarioStepState = "done" | "attention" | "current" | "todo";
 
@@ -26,8 +27,22 @@ export function scenarioSteps(input: {
   violatedRequirements: number;
   /** Projects in the library made from this plan. */
   variants: number;
+  /** The rule report for the plan, or null when no rule base applies. */
+  rules?: RuleReport | null;
 }): ScenarioStep[] {
-  const { plan, freeEnds, violatedRequirements, variants } = input;
+  const { plan, freeEnds, violatedRequirements, variants, rules = null } = input;
+  const region = plan.buildingFacts?.region;
+  const ruleProblems = rules ? rules.findings.filter((finding) => finding.state === "problem").length : 0;
+  const ruleQuestions = rules ? rules.missingFacts.length : 0;
+  const normsValue = !region
+    ? "регион не указан"
+    : !rules
+      ? "базы нет"
+      : ruleProblems
+        ? `замечаний ${ruleProblems}`
+        : ruleQuestions
+          ? `вопросов ${ruleQuestions}`
+          : "без замечаний";
   const walls = plan.walls.length;
   const unknown = plan.walls.filter((wall) => wallKindOf(wall) === "unknown").length;
   const hasDrawing = Boolean(plan.underlay) || walls > 0 || plan.rooms.length > 0;
@@ -37,6 +52,7 @@ export function scenarioSteps(input: {
     { id: "walls", label: "Стены", value: walls ? pluralRu(walls, "стена", "стены", "стен") : "нет" },
     { id: "kinds", label: "Типы стен", value: !walls ? "нет стен" : unknown ? `без типа ${unknown}` : "указаны" },
     { id: "requirements", label: "Требования", value: !plan.requirements.length ? "не заданы" : violatedRequirements ? `нарушено ${violatedRequirements}` : `${plan.requirements.length}, выполнены` },
+    { id: "norms", label: "Нормы", value: normsValue },
     { id: "variants", label: "Варианты", value: isVariant ? "это вариант" : variants ? `${variants}` : "нет" },
     { id: "report", label: "Отчёт", value: "итог и PDF" },
   ];
@@ -45,6 +61,7 @@ export function scenarioSteps(input: {
     walls: walls > 0 && freeEnds === 0,
     kinds: walls > 0 && unknown === 0,
     requirements: plan.requirements.length > 0 && violatedRequirements === 0,
+    norms: region === "other" || (Boolean(rules) && !ruleProblems && !ruleQuestions),
     variants: isVariant || variants > 0,
     report: false,
   };
@@ -53,6 +70,7 @@ export function scenarioSteps(input: {
     walls: walls > 0 && freeEnds > 0,
     kinds: walls > 0 && unknown > 0,
     requirements: violatedRequirements > 0,
+    norms: ruleProblems > 0,
     variants: false,
     report: false,
   };

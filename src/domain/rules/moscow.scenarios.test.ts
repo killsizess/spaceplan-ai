@@ -40,6 +40,40 @@ const untypedPartition = () => {
   return plan;
 };
 
+/** The apartment with a loggia along part of the bottom wall, behind a partition of its own. */
+const withLoggia = (facts: BuildingFacts = known) => {
+  let plan: FloorPlan = {
+    ...apartment(facts),
+    walls: [
+      ...apartment(facts).walls.filter((item) => item.id !== "bottom"),
+      wall("bottom-a", 10, 6, 4, 6, "bearing"),
+      wall("bottom-b", 4, 6, 0, 6, "partition"),
+      wall("l1", 0, 6, 0, 7.5, "partition"),
+      wall("l2", 0, 7.5, 4, 7.5, "partition"),
+      wall("l3", 4, 7.5, 4, 6, "partition"),
+    ],
+  };
+  plan = labelled(plan, { x: 2, y: 6.8 }, "Лоджия", "balcony");
+  return plan;
+};
+/** The apartment with a ventilation shaft in the corner of the kitchen. */
+const withShaft = (facts: BuildingFacts = known) => {
+  let plan: FloorPlan = {
+    ...apartment(facts),
+    walls: [...apartment(facts).walls, wall("s1", 9, 0, 9, 1, "partition"), wall("s2", 9, 1, 10, 1, "partition")],
+  };
+  plan = labelled(plan, { x: 9.5, y: 0.5 }, "Вентшахта", "shaft");
+  return labelled(plan, { x: 7, y: 2 }, "Кухня", "kitchen");
+};
+const doorlessPassage = (facts: BuildingFacts) => ({
+  ...apartment(facts),
+  openings: [...apartment(facts).openings, { ...door("d", "living-kitchen", 1), doorless: true as const }],
+});
+const newLoggia = (plan: FloorPlan) => labelled(
+  { ...plan, walls: [...plan.walls, wall("n1", 10, 6, 10, 7, "partition"), wall("n2", 10, 7, 7, 7, "partition"), wall("n3", 7, 7, 7, 6, "partition")] },
+  { x: 8.5, y: 6.5 }, "Новая лоджия", "balcony",
+);
+
 const CASES: readonly [number, string, FloorPlan, Procedure | null, readonly string[]][] = [
   [1, "вариант без изменений", variantOf(apartment(known), (plan) => plan), null, []],
   [2, "снос наружной несущей стены", variantOf(apartment(known), (plan) => without(plan, "top")), "specialist",
@@ -76,6 +110,17 @@ const CASES: readonly [number, string, FloorPlan, Procedure | null, readonly str
   [18, "низкий потолок", { ...apartment(known), walls: apartment(known).walls.map((item) => (item.id === "top" ? { ...item, height: 2.4 } : item)) }, null, ["moscow.pp47.22", "moscow.pp47.22"]],
   [19, "дом признан аварийным", apartment({ ...known, emergency: true }), null, ["moscow.building.emergency"]],
   [20, "объект культурного наследия", apartment({ ...known, heritage: true }), null, ["moscow.building.heritage"]],
+  [21, "снос стены между гостиной и лоджией", variantOf(withLoggia(), (plan) => without(plan, "bottom-b")), "forbidden", ["moscow.508.9.18"]],
+  [22, "лоджия названа жилой комнатой", variantOf(withLoggia(), (plan) => labelled(plan, { x: 2, y: 6.8 }, "Кабинет", "bedroom")), "forbidden", ["moscow.sp54.5.11", "moscow.pp47.25", "moscow.508.9.18"]],
+  [23, "новая лоджия, второй и выше этаж", variantOf({ ...withLoggia({ ...known, floorLevel: "upper" }) }, newLoggia), "forbidden", ["moscow.508.2.2.5", "moscow.508.9.13"]],
+  [24, "новая лоджия, первый этаж", variantOf({ ...withLoggia({ ...known, floorLevel: "first" }) }, newLoggia), "project", ["moscow.508.2.2.5", "moscow.508.3.5"]],
+  [25, "новая лоджия, этаж неизвестен", variantOf(withLoggia(), newLoggia), "project", ["moscow.508.2.2.5", "moscow.508.9.13"]],
+  [26, "дверь из гостиной на лоджию", variantOf(withLoggia(), (plan) => ({ ...plan, openings: [...plan.openings, door("d", "bottom-b", 1)] })), "project", ["moscow.508.2.2.14"]],
+  [27, "вентшахта убрана", variantOf(withShaft(), (plan) => without(without(plan, "s1"), "s2")), "forbidden", ["moscow.kitchen.changed", "moscow.508.9.5"]],
+  [28, "вентшахта сохранена, новая дверь в кухню", variantOf(withShaft(), (plan) => ({ ...plan, openings: [...plan.openings, door("d", "living-kitchen", 1)] })), "simplified", ["moscow.508.19.6.2"]],
+  [29, "проём без двери к газовой кухне", doorlessPassage({ ...known, gasified: true }), null, ["moscow.508.9.25"]],
+  [30, "проём без двери к кухне, о газе нет ответа", doorlessPassage(known), null, ["moscow.508.9.25"]],
+  [31, "проём без двери к кухне, газа нет", doorlessPassage({ ...known, gasified: false }), null, []],
 ];
 
 describe("test plans for the specialist", () => {
@@ -99,6 +144,26 @@ describe("citations", () => {
     expect(cite("moscow.508.2.2.5")).toBe("508-ПП, прил. 1, п. 2.2.5; ЖК РФ, ст. 25, ч. 2; ст. 26, ч. 2, п. 3");
     const stack = rulesForPlan(CASES[12][2])!;
     expect(citation(stack, stack.findings.find((item) => item.ruleId === "moscow.stack.unknown")!)).toBe("ПП РФ № 47, п. 24; СП 54, пп. 7.20, 7.21");
+  });
+});
+
+describe("balconies, shafts and door-ways in the plan as it stands", () => {
+  it("counts a window onto a loggia as daylight", () => {
+    const plan = withLoggia();
+    plan.openings = [window_("onto-loggia", "bottom-b", 1), window_("kitchen-window", "top", 7)];
+    const daylight = rulesForPlan(plan)!.findings.filter((item) => item.ruleId === "moscow.pp47.25");
+    expect(daylight.map((item) => item.state)).toEqual(["ok"]);
+  });
+
+  it("does not hold a balcony or a shaft to room norms, or ask for a window in them", () => {
+    const titles = rulesForPlan(withLoggia())!.findings.map((item) => item.title).join(" ");
+    expect(titles).not.toContain("Лоджия:");
+    expect(rulesForPlan(withShaft())!.findings.map((item) => item.title).join(" ")).not.toContain("Вентшахта:");
+  });
+
+  it("asks for the floor only when there is a balcony", () => {
+    expect(rulesForPlan(apartment({ region: "moscow" }))!.missingFacts).not.toContain("floorLevel");
+    expect(rulesForPlan(withLoggia({ region: "moscow" }))!.missingFacts).toContain("floorLevel");
   });
 });
 

@@ -5,7 +5,7 @@ import { diffPlans } from "@/domain/floor-plan/plan-diff";
 import { planFromOrigin } from "@/domain/floor-plan/plan-origin";
 import { evaluateRequirements, findRequirementConflicts } from "@/domain/floor-plan/plan-requirements";
 import { findRoomAdjacency } from "@/domain/floor-plan/room-adjacency";
-import type { FloorPlan, Opening, RoomKind, Wall } from "@/domain/floor-plan/types";
+import { countsInTotal, type FloorPlan, type Opening, type RoomKind, type Wall } from "@/domain/floor-plan/types";
 import { analyzeWallConnections } from "@/domain/floor-plan/wall-diagnostics";
 import { analyzeWallIntersections } from "@/domain/floor-plan/wall-intersections";
 import { bearingWallChanges, wallKindOf, type BearingChange } from "@/domain/floor-plan/wall-kind";
@@ -227,7 +227,10 @@ export function buildPlanReport(plan: FloorPlan, meta: { generatedAt: string; ap
   const rooms: ReportRoom[] = wallMode
     ? detection.rooms.map((room) => ({ name: room.name, kind: ROOM_KINDS[room.kind].label, area: room.area }))
     : plan.rooms.map((room) => ({ name: room.name, kind: ROOM_KINDS[room.kind].label, area: room.width * room.height }));
-  const area = detection.unresolved ? null : rooms.reduce((sum, room) => sum + room.area, 0);
+  const counted = wallMode
+    ? detection.rooms.filter((room) => countsInTotal(room.kind)).map((room) => room.area)
+    : plan.rooms.filter((room) => countsInTotal(room.kind)).map((room) => room.width * room.height);
+  const area = detection.unresolved ? null : counted.reduce((sum, value) => sum + value, 0);
   if (detection.unresolved) {
     findings.push({ level: "undetermined", state: "problem", title: "Помещения по стенам не определены", detail: detection.unresolved });
   } else if (!rooms.length) {

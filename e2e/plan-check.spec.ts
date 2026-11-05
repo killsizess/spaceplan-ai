@@ -362,7 +362,7 @@ test("empty and closed plans are distinct and JSON or reload never stores the de
   const download = await downloading;
   const exported = JSON.parse(await readFile((await download.path())!, "utf8")) as FloorPlan;
   expect(exported).toEqual(original);
-  expect(exported.schemaVersion).toBe(8);
+  expect(exported.schemaVersion).toBe(9);
   for (const key of ["diagnostics", "planChecks", "report"]) expect(exported).not.toHaveProperty(key);
   await page.reload();
   await saved(page);

@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Check, FolderOpen, GitBranch, Pencil, Plus, RotateCcw, Trash2, TriangleAlert, Upload, X } from "lucide-react";
 import { getTotalArea } from "@/domain/floor-plan/operations";
-import type { FloorPlan } from "@/domain/floor-plan/types";
+import { countsInTotal, type FloorPlan } from "@/domain/floor-plan/types";
 import type { WallRoom } from "@/domain/floor-plan/wall-rooms";
 import { resolveWallRoomLabels } from "@/domain/floor-plan/wall-room-labels";
 import { wallKindOf } from "@/domain/floor-plan/wall-kind";
+import { rulesForPlan } from "@/domain/rules/engine";
+import { PROCEDURES } from "@/domain/rules/moscow";
 import { formatArea, pluralRu } from "@/lib/format";
 import type { SavedProject, TrashedProject } from "./project-repository";
 import "./projects-dialog.css";
@@ -149,7 +151,7 @@ function planPreview(plan: FloorPlan) {
     const { rooms } = resolveWallRoomLabels(plan);
     return {
       wallRooms: rooms,
-      area: rooms.reduce((sum, room) => sum + room.area, 0),
+      area: rooms.filter((room) => countsInTotal(room.kind)).reduce((sum, room) => sum + room.area, 0),
       count: rooms.length,
       problem: null as string | null,
     };
@@ -164,6 +166,7 @@ function planPreview(plan: FloorPlan) {
 }
 function ProjectPreview({ saved }: { saved: SavedProject | TrashedProject }) {
   const preview = useMemo(() => planPreview(saved.plan), [saved.plan]);
+  const procedure = useMemo(() => (saved.plan.origin ? rulesForPlan(saved.plan)?.overall ?? null : null), [saved.plan]);
   const unknownWalls = saved.plan.walls.filter((wall) => wallKindOf(wall) === "unknown").length;
   const deleted = saved.storageVersion === 2;
   const date = deleted ? saved.trashedAt : saved.updatedAt;
@@ -181,6 +184,11 @@ function ProjectPreview({ saved }: { saved: SavedProject | TrashedProject }) {
       {saved.plan.origin && (
         <p className="saved-project-origin" data-testid="project-origin">
           <GitBranch size={12} aria-hidden="true" /> Вариант плана «{saved.plan.origin.planName}»
+        </p>
+      )}
+      {procedure && (
+        <p className="saved-project-note" data-testid="project-procedure" data-procedure={procedure}>
+          По нормам: {PROCEDURES[procedure].label.toLowerCase()}
         </p>
       )}
       {unknownWalls > 0 && (

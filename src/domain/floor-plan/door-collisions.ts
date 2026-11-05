@@ -179,7 +179,7 @@ export function analyzeDoorWallCollisions(
   const sortedWalls = [...walls].sort((a, b) => compareIds(a.id, b.id));
   // Validate every wall's openings before an early bounded return can occur.
   const footprints = new Map(sortedWalls.map((wall) => [wall.id, wallFootprints(wall, openings)]));
-  const doors = openings.filter((opening) => opening.kind === "door")
+  const doors = openings.filter((opening) => opening.kind === "door" && !opening.doorless)
     .sort((a, b) => compareIds(a.id, b.id))
     .map((door) => ({ door, swing: doorSwingWorld(wallsById.get(door.wallId)!, door)! }));
   const collisions: DoorWallCollision[] = [];

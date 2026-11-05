@@ -61,7 +61,7 @@ test("no rules run until the owner chooses the region, and the answers are saved
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Экспорт JSON" }).click();
   const exported = JSON.parse(await readFile(await (await download).path(), "utf8")) as FloorPlan;
-  expect(exported.schemaVersion).toBe(8);
+  expect(exported.schemaVersion).toBe(9);
   expect(exported.buildingFacts?.gasified).toBe(true);
 
   // An answer is an edit like any other: undo takes it back.
@@ -189,4 +189,124 @@ test("the test apartment published for the specialist opens and answers", async 
   await expect(page.getByTestId("xray-draft")).toBeVisible();
   await expect(page.getByTestId("xray-wall")).toHaveCount(7);
   await expect(page.locator('[data-wall="living-kitchen"]')).toHaveAttribute("data-procedure", "unknown");
+});
+
+test("rule problems show on the plan and in the route, and a finding leads to its object", async ({ page }) => {
+  // No window in the kitchen: a room problem that can be pointed at.
+  const plan = { ...apartment(), openings: apartment().openings.filter((item) => item.id !== "kitchen-window") };
+  await importPlan(page, plan);
+  const norms = page.locator('.scenario-rail [data-step="norms"]');
+  await expect(norms).toHaveAttribute("data-state", "attention");
+  await expect(norms).toContainText("замечаний 1");
+  const canvas = page.getByTestId("plan-canvas");
+  await expect.poll(async () => JSON.parse((await canvas.getAttribute("data-flagged-rooms"))!).length).toBe(1);
+
+  await norms.getByRole("button").click();
+  await expect(page.getByTestId("xray-dialog")).toBeVisible();
+  await finding(page, "moscow.pp47.25").getByRole("button", { name: "Показать на плане" }).click();
+  await expect(page.getByTestId("xray-dialog")).toHaveCount(0);
+  await expect(page.getByLabel("Название помещения", { exact: true })).toHaveValue("Кухня");
+});
+
+test("the route asks for the region until it is given", async ({ page }) => {
+  await importPlan(page, apartment({}));
+  const norms = page.locator('.scenario-rail [data-step="norms"]');
+  await expect(norms).toContainText("регион не указан");
+  await expect.poll(async () => JSON.parse((await page.getByTestId("plan-canvas").getAttribute("data-flagged-rooms"))!)).toEqual([]);
+  await norms.getByRole("button").click();
+  await page.getByLabel("Где находится квартира").selectOption("moscow");
+  await expect(norms).toContainText("вопросов 6");
+});
+
+test("X-Ray on a plan without walls offers an example, and it is a project of its own", async ({ page }) => {
+  await page.goto("/");
+  await saved(page);
+  await page.getByRole("button", { name: "X-Ray", exact: true }).click();
+  await page.getByLabel("Где находится квартира").selectOption("moscow");
+  await expect(page.getByTestId("xray-no-walls")).toBeVisible();
+  await page.getByRole("button", { name: "Открыть пример со стенами" }).click();
+  await expect(page.getByRole("heading", { name: "Тестовая квартира для сверки", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "X-Ray", exact: true }).click();
+  await expect(page.getByTestId("xray-wall")).toHaveCount(7);
+});
+
+test("the library and the comparison name what a variant takes", async ({ page }) => {
+  await importPlan(page, apartment({ region: "moscow", gasified: true, below: "no-dwelling", above: "no-dwelling" }));
+  await page.getByRole("button", { name: "Вариант", exact: true }).click();
+  await expect(page.getByRole("heading", { name: /вариант/i })).toBeVisible();
+  await page.getByRole("tab", { name: "Стены", exact: true }).click();
+  await page.getByRole("button", { name: "Выбрать стену 5", exact: true }).click();
+  await page.getByRole("button", { name: "Удалить стену", exact: true }).click();
+  await expect(page.getByTestId("save-status")).toHaveText("Сохранено в браузере");
+
+  await page.getByRole("button", { name: "Сравнить", exact: true }).click();
+  await expect(page.getByTestId("plan-compare-rules")).toContainText("этот план: не допускается");
+  await page.getByRole("button", { name: "Закрыть сравнение" }).click();
+
+  await page.getByRole("button", { name: "Мои проекты", exact: true }).click();
+  await expect(page.getByTestId("project-procedure")).toHaveAttribute("data-procedure", "forbidden");
+  await expect(page.getByTestId("project-procedure")).toHaveText("По нормам: не допускается");
+});
+
+test("a loggia and a shaft are marked in the app and the rules see them", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  const base = apartment({ region: "moscow", floorLevel: "upper" });
+  const withRooms: FloorPlan = {
+    ...base,
+    name: "Квартира с лоджией",
+    walls: [
+      ...base.walls.filter((item) => item.id !== "bottom"),
+      { ...base.walls[0], id: "bottom-a", start: { x: 10, y: 6 }, end: { x: 4, y: 6 } },
+      { ...base.walls[0], id: "bottom-b", start: { x: 4, y: 6 }, end: { x: 0, y: 6 }, kind: "partition" },
+      { ...base.walls[0], id: "l1", start: { x: 0, y: 6 }, end: { x: 0, y: 7.5 }, kind: "partition" },
+      { ...base.walls[0], id: "l2", start: { x: 0, y: 7.5 }, end: { x: 4, y: 7.5 }, kind: "partition" },
+      { ...base.walls[0], id: "l3", start: { x: 4, y: 7.5 }, end: { x: 4, y: 6 }, kind: "partition" },
+    ],
+  };
+  await importPlan(page, withRooms);
+  // Mark the new room through the same form a person uses.
+  await page.getByRole("tab", { name: "Комнаты", exact: true }).click();
+  await page.getByRole("button", { name: /Помещение/ }).first().click();
+  await page.getByLabel("Назначение помещения").selectOption("balcony");
+  await page.getByLabel("Название помещения").fill("Лоджия");
+  await page.getByRole("button", { name: /Сохранить параметры|Сохранить|Применить/ }).first().click();
+  await expect(page.getByLabel("Название помещения")).toHaveValue("Лоджия");
+  await expect.poll(async () => (await saved(page)).wallRoomLabels.some((label) => label.kind === "balcony")).toBe(true);
+  // A balcony is not part of the total.
+  const totalLabel = await page.getByTestId("total-area").textContent();
+  expect(totalLabel).not.toContain("60");
+
+  await page.getByRole("button", { name: "X-Ray", exact: true }).click();
+  await expect(page.locator('[data-wall="bottom-b"]')).toHaveAttribute("data-procedure", "forbidden");
+  await expect(page.locator('[data-wall="bottom-b"]')).toContainText("508-ПП, прил. 1, п. 9.18");
+  expect(errors).toEqual([]);
+});
+
+test("a door can become a door-way with no door, and the gas rule sees it", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  const base = apartment({ region: "moscow", gasified: true });
+  await importPlan(page, { ...base, openings: [...base.openings, { id: "d", wallId: "living-kitchen", kind: "door", offset: 1, width: 0.9, height: 2.1, sillHeight: 0, door: { hinge: "start", side: "left" } }] });
+  await page.getByRole("tab", { name: "Стены", exact: true }).click();
+  await page.getByRole("button", { name: /Выбрать дверь/ }).click();
+  await page.getByLabel("Проём без двери").check();
+  await expect(page.getByLabel("Петли двери")).toHaveCount(0);
+  await page.getByRole("button", { name: "Применить свойства" }).click();
+  await expect.poll(async () => (await saved(page)).openings.find((item) => item.id === "d")?.doorless).toBe(true);
+  await expect(page.getByRole("heading", { name: "Проём без двери" })).toBeVisible();
+
+  await page.getByRole("button", { name: "X-Ray", exact: true }).click();
+  await expect(finding(page, "moscow.508.9.25")).toContainText("Проём без двери между жилой комнатой и газифицированной кухней");
+  await finding(page, "moscow.508.9.25").getByRole("button", { name: "Показать на плане" }).click();
+  await expect(page.getByRole("heading", { name: "Проём без двери" })).toBeVisible();
+
+  // No door leaf in 3D and undo brings the door back.
+  await page.getByRole("button", { name: "Режим 3D", exact: true }).click();
+  await expect(page.getByTestId("plan-three")).toHaveAttribute("data-renderer-status", "ready");
+  await expect(page.getByTestId("plan-three")).toHaveAttribute("data-door-leaf-count", "0");
+  await page.getByRole("button", { name: "Режим 2D", exact: true }).click();
+  await page.getByRole("button", { name: "Отменить", exact: true }).click();
+  await expect.poll(async () => (await saved(page)).openings.find((item) => item.id === "d")?.doorless).toBeUndefined();
+  expect(errors).toEqual([]);
 });

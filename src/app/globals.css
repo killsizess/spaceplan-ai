@@ -1600,3 +1600,27 @@ h3 {
 .structure-tabs {
   margin-top: 12px;
 }
+.doorless-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 12.5px;
+}
+/* Seven steps share the row with the action buttons: the route must not lose its end. */
+@media (max-width: 1400px) {
+  .scenario-text small {
+    display: none;
+  }
+  .scenario-rail li + li::before {
+    width: 8px;
+  }
+  .scenario-rail button {
+    padding: 5px 6px;
+  }
+}
+@media (min-width: 851px) and (max-width: 1240px) {
+  .scenario-rail li:not([data-state="current"], [data-state="attention"]) .scenario-text {
+    display: none;
+  }
+}

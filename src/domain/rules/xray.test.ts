@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FloorPlan } from "@/domain/floor-plan/types";
-import { apartment, wall } from "./rules.fixtures";
+import { apartment, labelled, wall } from "./rules.fixtures";
 import { buildXray, type WallPotential } from "./xray";
 
 const wallOf = (plan: FloorPlan, id: string): WallPotential => {
@@ -93,6 +93,37 @@ describe("X-Ray of the plan as it stands", () => {
     expect(rooms.map((room) => [room.name, room.move.procedure])).toEqual([["Кухня", "project"], ["Санузел", "project"]]);
     expect(sourcePoints(rooms[1].move)).toContain("прил. 1, п. 2.2.1");
     expect(sourcePoints(rooms[1].move)).toContain("п. 7.20");
+  });
+
+  it("answers for walls and rooms of balconies and shafts", () => {
+    const plan = facts({ floorLevel: "upper" });
+    plan.walls = [
+      ...plan.walls.filter((item) => item.id !== "bottom"),
+      wall("bottom-a", 10, 6, 4, 6, "bearing"),
+      wall("bottom-b", 4, 6, 0, 6, "partition"),
+      wall("l1", 0, 6, 0, 7.5, "partition"),
+      wall("l2", 0, 7.5, 4, 7.5, "partition"),
+      wall("l3", 4, 7.5, 4, 6, "partition"),
+      wall("s1", 9, 0, 9, 1, "partition"),
+      wall("s2", 9, 1, 10, 1, "partition"),
+    ];
+    const labelledPlan = labelled(labelled(labelled(plan, { x: 2, y: 6.8 }, "Лоджия", "balcony"), { x: 9.5, y: 0.5 }, "Шахта", "shaft"), { x: 7, y: 2 }, "Кухня", "kitchen");
+    const loggiaWall = wallOf(labelledPlan, "bottom-b");
+    expect(loggiaWall.removal.procedure).toBe("forbidden");
+    expect(sourcePoints(loggiaWall.removal)).toEqual(["прил. 1, п. 9.18"]);
+    expect(loggiaWall.opening.procedure).toBe("project");
+    expect(sourcePoints(loggiaWall.opening)).toContain("прил. 1, п. 2.2.14");
+    const shaftWall = wallOf(labelledPlan, "s1");
+    expect(shaftWall.removal.procedure).toBe("forbidden");
+    expect(sourcePoints(shaftWall.removal)).toEqual(["прил. 1, п. 9.5"]);
+    expect(shaftWall.opening.procedure).toBe("forbidden");
+    const { rooms } = buildXray(labelledPlan);
+    expect(rooms.find((room) => room.name === "Лоджия")).toMatchObject({ action: "Новый или больший", move: { procedure: "forbidden" } });
+    expect(rooms.find((room) => room.name === "Шахта")).toMatchObject({ action: "Изменение", move: { procedure: "forbidden" } });
+    const first = labelled({ ...labelledPlan, buildingFacts: { region: "moscow", floorLevel: "first" } }, { x: 2, y: 6.8 }, "Лоджия", "balcony");
+    expect(buildXray(first).rooms.find((room) => room.name === "Лоджия")!.move.procedure).toBe("project");
+    const unknownFloor = { ...labelledPlan, buildingFacts: { region: "moscow" as const } };
+    expect(buildXray(unknownFloor).rooms.find((room) => room.name === "Лоджия")!.move.procedure).toBe("unknown");
   });
 
   it("counts every wall once", () => {

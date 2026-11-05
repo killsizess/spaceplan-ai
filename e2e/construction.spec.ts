@@ -307,7 +307,7 @@ test("old version one projects restore and upgrade on first edit", async ({
     .getByRole("button", { name: "Добавить первую комнату", exact: true })
     .click();
   await saved(page);
-  expect((await plan(page)).schemaVersion).toBe(8);
+  expect((await plan(page)).schemaVersion).toBe(9);
   expect((await plan(page)).rooms).toHaveLength(1);
 });
 

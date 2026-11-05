@@ -103,9 +103,11 @@ function PropertiesHeader({ opening }: { opening?: Opening }) {
           <span className="eyebrow">ВЫБРАНО НА ПЛАНЕ</span>
           <h2>
             {opening
-              ? opening.kind === "door"
-                ? "Дверной проём"
-                : "Оконный проём"
+              ? opening.doorless
+                ? "Проём без двери"
+                : opening.kind === "door"
+                  ? "Дверной проём"
+                  : "Оконный проём"
               : "Стена"}
           </h2>
         </div>
@@ -480,6 +482,7 @@ function OpeningProperties({
   const [kind, setKind] = useState(opening.kind);
   const [wallId, setWallId] = useState(opening.wallId);
   const [door, setDoor] = useState<DoorSwing>(opening.door ?? DEFAULT_DOOR_SWING);
+  const [doorless, setDoorless] = useState(Boolean(opening.doorless));
   const [draft, setDraft] = useState({
     offset: String(opening.offset),
     width: String(opening.width),
@@ -499,6 +502,7 @@ function OpeningProperties({
     parse(draft.height) !== opening.height ||
     parse(draft.sillHeight) !== opening.sillHeight ||
     (kind === "door" && (
+      doorless !== Boolean(opening.doorless) ||
       door.hinge !== (opening.door ?? DEFAULT_DOOR_SWING).hinge ||
       door.side !== (opening.door ?? DEFAULT_DOOR_SWING).side
     ));
@@ -528,6 +532,8 @@ function OpeningProperties({
           };
           if (kind === "door") next.door = { ...door };
           else delete next.door;
+          if (kind === "door" && doorless) next.doorless = true;
+          else delete next.doorless;
           onUpdateOpening(next);
         }}
       >
@@ -590,7 +596,20 @@ function OpeningProperties({
           value={draft.sillHeight}
           onChange={change("sillHeight")}
         />
-        {kind === "door" && <fieldset className="door-swing-controls">
+        {kind === "door" && (
+          <label className="doorless-toggle">
+            <input
+              type="checkbox"
+              checked={doorless}
+              onChange={(event) => {
+                setDoorless(event.target.checked);
+                setLocalError(null);
+              }}
+            />
+            Проём без двери
+          </label>
+        )}
+        {kind === "door" && !doorless && <fieldset className="door-swing-controls">
           <legend>ОТКРЫВАНИЕ ДВЕРИ</legend>
           <label htmlFor="door-hinge">Петли двери</label>
           <select id="door-hinge" value={door.hinge} onChange={(event) => {

@@ -306,6 +306,11 @@ export function WallShape({
                   hitStrokeWidth={10 / scale}
                 />
               </>
+            ) : opening.doorless ? (
+              <>
+                <Line points={[0, -wall.thickness / 2, 0, wall.thickness / 2]} stroke={stroke} strokeWidth={2 / scale} />
+                <Line points={[opening.width, -wall.thickness / 2, opening.width, wall.thickness / 2]} stroke={stroke} strokeWidth={2 / scale} />
+              </>
             ) : (
               <>
                 <Rect

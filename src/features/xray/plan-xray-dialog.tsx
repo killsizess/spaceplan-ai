@@ -6,7 +6,8 @@ import type { BuildingFacts, FloorPlan, NeighbourFloor } from "@/domain/floor-pl
 import { WALL_KIND_LABELS } from "@/domain/floor-plan/wall-kind";
 import { citation, rulesForPlan } from "@/domain/rules/engine";
 import { PROCEDURE_ORDER, PROCEDURES } from "@/domain/rules/moscow";
-import type { ConfidenceLevel, Procedure, RuleReport, RuleSource } from "@/domain/rules/types";
+import type { ConfidenceLevel, Procedure, RuleFinding, RuleReport, RuleSource } from "@/domain/rules/types";
+import { roomsOfPlan } from "@/domain/rules/rule-rooms";
 import { buildXray, type PlanXray, type WallPotential, type WorkAnswer } from "@/domain/rules/xray";
 import { REPORT_LEVEL_ORDER, REPORT_LEVELS } from "../report/plan-report";
 import "../report/plan-report.css";
@@ -64,6 +65,19 @@ function Facts({ facts, onFacts }: { facts: BuildingFacts; onFacts: (facts: Buil
           </select>
         </label>
       ))}
+      {moscow && (
+        <label>
+          <span>Этаж квартиры</span>
+          <select
+            value={facts.floorLevel ?? ""}
+            onChange={(event) => onFacts({ ...facts, floorLevel: (event.target.value || undefined) as BuildingFacts["floorLevel"] })}
+          >
+            <option value="">Не знаю</option>
+            <option value="first">Первый</option>
+            <option value="upper">Второй и выше</option>
+          </select>
+        </label>
+      )}
       {moscow && (["below", "above"] as const).map((side) => (
         <label key={side}>
           <span>{side === "below" ? "Этажом ниже" : "Этажом выше"}</span>
@@ -90,6 +104,10 @@ function WallAnswer({ label, answer, rules }: { label: string; answer: WorkAnswe
   );
 }
 
+function ShowButton({ id, onShow }: { id: string; onShow: (id: string) => void }) {
+  return <button type="button" className="xray-show" onClick={() => onShow(id)}>Показать на плане</button>;
+}
+
 function WallCard({ wall, rules, onShow }: { wall: WallPotential; rules: RuleReport; onShow: (wallId: string) => void }) {
   return (
     <li className="xray-wall" data-testid="xray-wall" data-wall={wall.wallId} data-procedure={wall.removal.procedure}>
@@ -98,18 +116,24 @@ function WallCard({ wall, rules, onShow }: { wall: WallPotential; rules: RuleRep
       </strong>
       <WallAnswer label="Снос или перенос" answer={wall.removal} rules={rules} />
       <WallAnswer label="Новый проём" answer={wall.opening} rules={rules} />
-      <button type="button" className="xray-show" onClick={() => onShow(wall.wallId)}>Показать на плане</button>
+      <ShowButton id={wall.wallId} onShow={onShow} />
     </li>
   );
 }
 
-function Potential({ xray, rules, onShow }: { xray: PlanXray; rules: RuleReport; onShow: (wallId: string) => void }) {
+function Potential({ xray, rules, onShow, onOpenExample }: {
+  xray: PlanXray;
+  rules: RuleReport;
+  onShow: (id: string) => void;
+  onOpenExample: () => void;
+}) {
   return (
     <section className="xray-potential" aria-labelledby="xray-potential-title">
       <h3 id="xray-potential-title">Что в этой квартире можно изменить</h3>
       {xray.walls.length === 0 && (
         <p className="xray-empty" data-testid="xray-no-walls">
-          На плане нет стен. Нарисуйте их или загрузите чертёж, и здесь появится ответ по каждой стене.
+          На плане нет стен. Нарисуйте их или загрузите чертёж, и здесь появится ответ по каждой стене.{" "}
+          <button type="button" className="xray-show" onClick={onOpenExample}>Открыть пример со стенами</button>
         </p>
       )}
       {xray.walls.length > 0 && (
@@ -134,12 +158,12 @@ function Potential({ xray, rules, onShow }: { xray: PlanXray; rules: RuleReport;
       })}
       {xray.rooms.length > 0 && (
         <>
-          <h4>Санузлы и кухни</h4>
+          <h4>Санузлы, кухни, балконы и шахты</h4>
           <ul className="xray-rooms">
             {xray.rooms.map((room) => (
               <li key={room.roomId} data-testid="xray-room">
                 <strong>{room.name}</strong>
-                <WallAnswer label="Перенос" answer={room.move} rules={rules} />
+                <WallAnswer label={room.action} answer={room.move} rules={rules} />
               </li>
             ))}
           </ul>
@@ -149,7 +173,11 @@ function Potential({ xray, rules, onShow }: { xray: PlanXray; rules: RuleReport;
   );
 }
 
-function Findings({ rules }: { rules: RuleReport }) {
+function Findings({ rules, targetOf, onShow }: {
+  rules: RuleReport;
+  targetOf: (finding: RuleFinding) => string | undefined;
+  onShow: (id: string) => void;
+}) {
   return (
     <section className="xray-findings" aria-labelledby="xray-findings-title">
       <h3 id="xray-findings-title">Выводы по правилам</h3>
@@ -162,12 +190,14 @@ function Findings({ rules }: { rules: RuleReport }) {
             <ul>
               {items.map((finding, index) => {
                 const source = citation(rules, finding);
+                const target = targetOf(finding);
                 return (
                   <li key={index} data-testid="xray-finding" data-rule={finding.ruleId} data-state={finding.state}>
                     <strong>{finding.title}</strong>
                     {finding.procedure && <ProcedureChip procedure={finding.procedure} />}
                     {finding.detail && <p>{finding.detail}</p>}
                     {source && <small>{source}</small>}
+                    {target && <ShowButton id={target} onShow={onShow} />}
                   </li>
                 );
               })}
@@ -182,19 +212,31 @@ function Findings({ rules }: { rules: RuleReport }) {
 export default function PlanXrayDialog({
   plan,
   onFacts,
-  onShowWall,
+  onShow,
+  onOpenExample,
   onClose,
 }: {
   plan: FloorPlan;
   onFacts: (facts: BuildingFacts) => void;
-  /** Closes the dialog with the wall selected on the plan. */
-  onShowWall: (wallId: string) => void;
+  /** Closes the dialog with this wall, opening or room selected on the plan. */
+  onShow: (id: string) => void;
+  onOpenExample: () => void;
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const rules = useMemo(() => rulesForPlan(plan), [plan]);
   const xray = useMemo(() => (rules ? buildXray(plan) : null), [plan, rules]);
   const facts = plan.buildingFacts ?? {};
+  /** The first object the finding names that is on the plan now; a removed wall is not. */
+  const targetOf = useMemo(() => {
+    const walls = new Set(plan.walls.map((item) => item.id));
+    const openings = new Set(plan.openings.map((item) => item.id));
+    const rooms = new Set(roomsOfPlan(plan).rooms.map((item) => item.id));
+    return (finding: RuleFinding) =>
+      finding.wallIds?.find((id) => walls.has(id)) ??
+      finding.openingIds?.find((id) => openings.has(id)) ??
+      finding.roomIds?.find((id) => rooms.has(id));
+  }, [plan]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -264,8 +306,8 @@ export default function PlanXrayDialog({
                 )}
               </section>
             )}
-            <Findings rules={rules} />
-            <Potential xray={xray} rules={rules} onShow={onShowWall} />
+            <Findings rules={rules} targetOf={targetOf} onShow={onShow} />
+            <Potential xray={xray} rules={rules} onShow={onShow} onOpenExample={onOpenExample} />
             <section className="xray-documents" data-testid="xray-documents" aria-labelledby="xray-documents-title">
               <h3 id="xray-documents-title">Документы и редакции</h3>
               <ul>

@@ -85,7 +85,7 @@ function geometry(
  * follows the wall axis; positive local Y follows plan Y. Left is negative Y.
  */
 export function doorSwingLocal(opening: Opening): DoorSwingGeometry | null {
-  if (opening.kind === "window") return null;
+  if (opening.kind === "window" || opening.doorless) return null;
   const swing = checkedSwing(opening);
   const hingeAtEnd = swing.hinge === "end";
   return geometry(
@@ -103,7 +103,7 @@ export function doorSwingWorld(
   wall: Wall,
   opening: Opening,
 ): DoorSwingGeometry | null {
-  if (opening.kind === "window") return null;
+  if (opening.kind === "window" || opening.doorless) return null;
   const length = wallLength(wall.start, wall.end);
   if (
     ![wall.thickness, wall.height].every(Number.isFinite) ||

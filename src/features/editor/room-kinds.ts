@@ -7,6 +7,8 @@ export const ROOM_KINDS: Record<RoomKind, { label: string; color: string }> = {
   bathroom: { label: "Ванная", color: "#cfe7f3" },
   hall: { label: "Прихожая", color: "#ece7da" },
   other: { label: "Комната", color: "#e0d9f2" },
+  balcony: { label: "Балкон, лоджия", color: "#f6d6d0" },
+  shaft: { label: "Вентшахта, короб", color: "#ece7da" },
 };
 
 export const ROOM_COLORS = [

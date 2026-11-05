@@ -295,11 +295,15 @@ function openingSvg(wall: Wall, opening: Opening, map: MapPoint, mmPerMeter: num
   const w = width * mmPerMeter, t = wall.thickness * mmPerMeter;
   const swing = doorSwingLocal(opening);
   const door = opening.door ?? DEFAULT_DOOR_SWING;
-  const symbol = !swing
+  const symbol = opening.doorless
+    ? ""
+    : !swing
     ? `<path d="M0 ${n(-t / 4)} H${n(w)} M0 ${n(t / 4)} H${n(w)}" fill="none" stroke="#377a93" stroke-width="0.3"/>`
     : `<path data-door-leaf="true" d="M${n(swing.hinge.x * mmPerMeter)} 0 L${n(swing.openEnd.x * mmPerMeter)} ${n(swing.openEnd.y * mmPerMeter)}" fill="none" stroke="#8f6748" stroke-width="0.45"/>` +
       `<polyline data-door-arc="true" points="${swing.arc.map((point) => `${n(point.x * mmPerMeter)},${n(point.y * mmPerMeter)}`).join(" ")}" fill="none" stroke="#8f6748" stroke-width="0.25" stroke-dasharray="1.1 0.7"/>`;
-  const orientation = kind === "door" ? ` data-hinge="${door.hinge}" data-side="${door.side}"` : "";
+  const orientation = opening.doorless
+    ? ` data-doorless="true"`
+    : kind === "door" ? ` data-hinge="${door.hinge}" data-side="${door.side}"` : "";
   return `<g data-opening="${kind}"${orientation} transform="translate(${n(start.x)} ${n(start.y)}) rotate(${n(angle)})"><rect x="0" y="${n(-t / 2)}" width="${n(w)}" height="${n(t)}" fill="#ffffff"/>${symbol}<path d="M0 ${n(-t / 2)} V${n(t / 2)} M${n(w)} ${n(-t / 2)} V${n(t / 2)}" stroke="${INK}" stroke-width="0.2"/></g>`;
 }
 

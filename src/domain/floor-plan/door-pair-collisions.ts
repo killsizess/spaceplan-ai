@@ -166,7 +166,7 @@ export function analyzeDoorPairCollisions(
   }
   // Validate every relational opening constraint before any capped return.
   for (const wall of walls) buildWallSolids(wall, openings);
-  const sectors = openings.filter((opening) => opening.kind === "door")
+  const sectors = openings.filter((opening) => opening.kind === "door" && !opening.doorless)
     .sort((first, second) => compareIds(first.id, second.id))
     .map((opening) => createSector(byId.get(opening.wallId)!, opening));
   const collisions: DoorPairCollision[] = [];

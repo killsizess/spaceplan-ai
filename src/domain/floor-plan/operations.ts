@@ -5,11 +5,11 @@ import {
 } from "@/domain/geometry";
 import { roomSchema } from "./schema";
 import { detectWallRooms, type WallRoom } from "./wall-rooms";
-import type { FloorPlan, Room } from "./types";
+import { countsInTotal, type FloorPlan, type Room } from "./types";
 
 export function createEmptyPlan(id: string): FloorPlan {
   return {
-    schemaVersion: 8,
+    schemaVersion: 9,
     unit: "m",
     id,
     name: "Новый проект",
@@ -101,7 +101,7 @@ export function getTotalArea(
       0,
     );
   }
-  return plan.rooms.reduce(
+  return plan.rooms.filter((room) => countsInTotal(room.kind)).reduce(
     (sum, room) => sum + rectangleArea(room.width, room.height),
     0,
   );

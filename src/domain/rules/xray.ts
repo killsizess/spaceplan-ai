@@ -29,6 +29,8 @@ export interface RoomPotential {
   roomId: string;
   name: string;
   kind: RoomKind;
+  /** What the answer is about: «Перенос», «Новый или больший». */
+  action: string;
   move: WorkAnswer;
 }
 
@@ -46,6 +48,12 @@ const LIVING: readonly RoomKind[] = ["living", "bedroom"];
 function removalOf(plan: FloorPlan, kind: WallKind, perimeter: boolean, beside: readonly RuleRoom[]): WorkAnswer {
   const facts = plan.buildingFacts ?? {};
   if (facts.emergency) return { procedure: "forbidden", reason: "Дом признан аварийным.", sources: [clause("9.15")] };
+  if (beside.some((room) => room.kind === "shaft")) {
+    return { procedure: "forbidden", reason: "Стена вентшахты или короба: их нельзя убирать и менять их сечение.", sources: [clause("9.5")] };
+  }
+  if (beside.length >= 2 && beside.some((room) => room.kind === "balcony")) {
+    return { procedure: "forbidden", reason: "Снос объединит балкон или лоджию с помещением.", sources: [clause("9.18")] };
+  }
   if (kind === "unknown") return { procedure: "unknown", reason: "Тип стены не указан: это может быть несущая стена.", sources: [] };
   if (kind === "bearing") {
     return {
@@ -86,9 +94,15 @@ function removalOf(plan: FloorPlan, kind: WallKind, perimeter: boolean, beside: 
   };
 }
 
-function openingOf(plan: FloorPlan, kind: WallKind, perimeter: boolean): WorkAnswer {
+function openingOf(plan: FloorPlan, kind: WallKind, perimeter: boolean, beside: readonly RuleRoom[]): WorkAnswer {
   const facts = plan.buildingFacts ?? {};
   if (facts.emergency) return { procedure: "forbidden", reason: "Дом признан аварийным.", sources: [clause("9.15")] };
+  if (beside.some((room) => room.kind === "shaft")) {
+    return { procedure: "forbidden", reason: "Стена вентшахты или короба.", sources: [clause("9.5")] };
+  }
+  if (beside.length >= 2 && beside.some((room) => room.kind === "balcony")) {
+    return { procedure: "project", reason: "Проём к балкону или лоджии, если работа не затрагивает облик дома.", sources: [clause("2.2.14"), clause("3.9")] };
+  }
   if (kind === "unknown") return { procedure: "unknown", reason: "Тип стены не указан.", sources: [] };
   if (perimeter) {
     return {
@@ -108,7 +122,16 @@ function openingOf(plan: FloorPlan, kind: WallKind, perimeter: boolean): WorkAns
   return { procedure: "simplified", reason: "Проём в перегородке.", sources: [clause("19.6.2"), clause("19.1")] };
 }
 
-function moveOf(room: RuleRoom): WorkAnswer | null {
+function moveOf(plan: FloorPlan, room: RuleRoom): WorkAnswer | null {
+  if (room.kind === "shaft") {
+    return { procedure: "forbidden", reason: "Вентшахту и короб нельзя убирать, нельзя менять их сечение.", sources: [clause("9.5")] };
+  }
+  if (room.kind === "balcony") {
+    const level = plan.buildingFacts?.floorLevel;
+    if (level === "upper") return { procedure: "forbidden", reason: "Второй и выше этаж.", sources: [clause("9.13")] };
+    if (level === "first") return { procedure: "project", reason: "Первый этаж: без фундаментов, помещений под ним и отопления.", sources: [clause("3.5"), clause("9.26")] };
+    return { procedure: "unknown", reason: "Зависит от этажа: на втором и выше запрещено, на первом по проекту.", sources: [clause("9.13"), clause("3.5")] };
+  }
   const stacking = "Над жилыми комнатами размещать нельзя.";
   const stackSources: RuleSource[] = [{ document: "rf-pp-47", point: "п. 24" }];
   if (room.kind === "bathroom") {
@@ -140,15 +163,16 @@ export function buildXray(plan: FloorPlan): PlanXray {
       kind,
       rooms: beside.map((room) => room.name),
       removal: removalOf(plan, kind, perimeter, beside),
-      opening: openingOf(plan, kind, perimeter),
+      opening: openingOf(plan, kind, perimeter, beside),
     };
   });
   const counts = Object.fromEntries(
     PROCEDURE_ORDER.map((procedure) => [procedure, walls.filter((wall) => wall.removal.procedure === procedure).length]),
   ) as Record<Procedure, number>;
   const movable = rooms.flatMap((room): RoomPotential[] => {
-    const move = moveOf(room);
-    return move ? [{ roomId: room.id, name: room.name, kind: room.kind, move }] : [];
+    const move = moveOf(plan, room);
+    const action = room.kind === "balcony" ? "Новый или больший" : room.kind === "shaft" ? "Изменение" : "Перенос";
+    return move ? [{ roomId: room.id, name: room.name, kind: room.kind, action, move }] : [];
   });
   return { walls, rooms: movable, counts, unresolved };
 }

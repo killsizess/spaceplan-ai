@@ -462,7 +462,7 @@ export function createThreeScene(
     host.dataset.wallRoomCount = String(detectedRooms.length);
     host.dataset.openingCount = String(plan.openings.length);
     host.dataset.doorLeafCount = String(
-      plan.openings.filter((opening) => opening.kind === "door").length,
+      plan.openings.filter((opening) => opening.kind === "door" && !opening.doorless).length,
     );
     const bounds = spatialBounds(plan);
     host.dataset.modelHeight = String(bounds.maxY);

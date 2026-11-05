@@ -132,7 +132,7 @@ export function WallList({
               <RectangleHorizontal size={15} />
             )}
             <span>
-              {opening.kind === "door" ? "Дверь" : "Окно"}
+              {opening.doorless ? "Проём без двери" : opening.kind === "door" ? "Дверь" : "Окно"}
               <small>
                 {formatLength(opening.width)} ×{" "}
                 {formatLength(opening.height)} м

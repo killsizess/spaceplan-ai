@@ -138,3 +138,13 @@ test("a project that cannot be read is announced, left in place and can be saved
   const records = JSON.parse((await readFile((await download.path())!)).toString()) as { key: string; raw: string }[];
   expect(records).toEqual([{ key: "spaceplan-ai:project:broken", raw: '{"storageVersion":1,"plan":"повреждено"}' }]);
 });
+
+test("the route shows all its steps at every width", async ({ page }) => {
+  await importPlan(page, room());
+  for (const width of [1440, 1280, 1100, 1024, 900]) {
+    await page.setViewportSize({ width, height: 800 });
+    const overflow = await page.locator(".scenario-rail").evaluate((node) => node.scrollWidth - node.clientWidth);
+    expect(overflow, `at ${width}`).toBeLessThanOrEqual(0);
+    await expect(step(page, "report").getByRole("button")).toBeVisible();
+  }
+});

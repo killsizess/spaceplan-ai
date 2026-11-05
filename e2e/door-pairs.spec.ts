@@ -295,7 +295,7 @@ test("reload and JSON keep schema 6 geometry byte-identical and recompute the pa
   const bytes = await readFile((await download.path())!);
   const exported = JSON.parse(bytes.toString("utf8")) as FloorPlan;
   expect(exported).toEqual(original);
-  expect(exported.schemaVersion).toBe(8);
+  expect(exported.schemaVersion).toBe(9);
   expect(Object.keys(exported).filter((key) => /collision|diagnostic|pair/i.test(key))).toEqual([]);
   expect(await rawRecord(page)).toBe(raw);
   await page.getByLabel("Файл проекта JSON").setInputFiles({ name: "door-pair-copy.json", mimeType: "application/json", buffer: bytes });
