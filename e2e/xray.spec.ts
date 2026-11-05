@@ -61,7 +61,7 @@ test("no rules run until the owner chooses the region, and the answers are saved
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Экспорт JSON" }).click();
   const exported = JSON.parse(await readFile(await (await download).path(), "utf8")) as FloorPlan;
-  expect(exported.schemaVersion).toBe(10);
+  expect(exported.schemaVersion).toBe(11);
   expect(exported.buildingFacts?.gasified).toBe(true);
 
   // An answer is an edit like any other: undo takes it back.

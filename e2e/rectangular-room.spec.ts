@@ -31,7 +31,7 @@ async function newPlan(page: Page) {
 }
 
 function expectClosedRectangle(plan: FloorPlan) {
-  expect(plan.schemaVersion).toBe(10);
+  expect(plan.schemaVersion).toBe(11);
   expect(plan.roomMode).toBe("walls");
   expect(plan.walls).toHaveLength(4);
   expect(plan.rooms).toEqual([]);

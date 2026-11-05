@@ -289,7 +289,7 @@ test("reload and schema 6 JSON recompute diagnostics without serializing them or
   const bytes = await readFile((await download.path())!);
   const exported = JSON.parse(bytes.toString("utf8")) as FloorPlan;
   expect(exported).toEqual(original);
-  expect(exported.schemaVersion).toBe(10);
+  expect(exported.schemaVersion).toBe(11);
   expect(Object.keys(exported).filter((key) => /collision|diagnostic/i.test(key))).toEqual([]);
   expect(await rawRecord(page)).toBe(raw);
   await page.getByLabel("Файл проекта JSON").setInputFiles({ name: "door-collision-copy.json", mimeType: "application/json", buffer: bytes });

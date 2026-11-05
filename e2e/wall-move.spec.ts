@@ -170,7 +170,7 @@ test("the move handle carries a partition with its T-branch and door in one undo
   await page.getByRole("button", { name: "Экспорт JSON", exact: true }).click();
   const exported = JSON.parse((await readFile((await (await downloadPromise).path())!)).toString()) as FloorPlan;
   // The format is unchanged: v5 walls and openings, no derived move data.
-  expect(exported.schemaVersion).toBe(10);
+  expect(exported.schemaVersion).toBe(11);
   expect(rounded(exported).walls).toEqual(rounded(first).walls);
   expect(Object.keys(exported.walls[4]).sort()).toEqual(["end", "height", "id", "start", "thickness"]);
   expect(errors).toEqual([]);

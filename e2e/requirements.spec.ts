@@ -99,7 +99,7 @@ test("requirements are saved with the plan and re-checked when the walls change"
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Экспорт JSON", exact: true }).click();
   const exported = JSON.parse((await readFile((await (await downloadPromise).path())!)).toString()) as FloorPlan;
-  expect(exported.schemaVersion).toBe(10);
+  expect(exported.schemaVersion).toBe(11);
   expect(exported.requirements.map((item) => item.type)).toEqual(["room-min-area", "rooms-connected"]);
   expect(errors).toEqual([]);
 });

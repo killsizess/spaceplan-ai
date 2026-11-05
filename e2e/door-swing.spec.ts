@@ -285,7 +285,7 @@ test("schema 4 remains byte-identical through viewing and JSON export before a s
   await expect(page.getByLabel("Сторона открывания", { exact: true })).toHaveValue("left");
   expect(await rawRecord(page)).toBe(raw);
   const exported = JSON.parse((await download(page, "JSON")).toString("utf8")) as FloorPlan;
-  expect(exported.schemaVersion).toBe(10);
+  expect(exported.schemaVersion).toBe(11);
   expect(exported.openings[0].door).toBeUndefined();
   expect(await rawRecord(page)).toBe(raw);
   await page.getByRole("button", { name: "Режим 3D", exact: true }).click();
@@ -297,7 +297,7 @@ test("schema 4 remains byte-identical through viewing and JSON export before a s
   await draftSwing(page, { hinge: "end", side: "right" });
   await apply(page).click();
   const upgraded = await saved(page);
-  expect(upgraded.schemaVersion).toBe(10);
+  expect(upgraded.schemaVersion).toBe(11);
   expect(upgraded.openings[0].door).toEqual({ hinge: "end", side: "right" });
   expect(upgraded.walls).toEqual(current.walls);
   expect(await rawRecord(page)).not.toBe(raw);
@@ -308,7 +308,7 @@ test("schema 6 JSON retains the chosen swing and imports a separate project with
   const sourceRaw = await rawRecord(page);
   const bytes = await download(page, "JSON");
   const exported = JSON.parse(bytes.toString("utf8")) as FloorPlan;
-  expect(exported.schemaVersion).toBe(10);
+  expect(exported.schemaVersion).toBe(11);
   expect(exported.openings[0].door).toEqual({ hinge: "end", side: "left" });
   await page.getByLabel("Файл проекта JSON").setInputFiles({ name: "door-copy.json", mimeType: "application/json", buffer: bytes });
   await expect.poll(async () => (await saved(page)).id).not.toBe(original.id);

@@ -209,7 +209,7 @@ test("schema 4 labels survive reload and JSON import and color the library thumb
   await importPlan(page);
   await selectFloor(page);
   const named = await labelRoom(page, "Кухня", BLUE, "kitchen");
-  expect(named.schemaVersion).toBe(10);
+  expect(named.schemaVersion).toBe(11);
   await page.reload();
   await expect.poll(async () => saved(page)).toEqual(named);
   await page.getByRole("button", { name: /Кухня/ }).click();
@@ -230,7 +230,7 @@ test("schema 4 labels survive reload and JSON import and color the library thumb
   });
   await expect.poll(async () => (await saved(page)).id).not.toBe(named.id);
   const copy = await saved(page);
-  expect(copy.schemaVersion).toBe(10);
+  expect(copy.schemaVersion).toBe(11);
   expect(copy.wallRoomLabels).toEqual(named.wallRoomLabels);
   expect(copy.walls).toEqual(named.walls);
   await expect(page.getByRole("button", { name: /Кухня/ })).toBeVisible();
@@ -262,7 +262,7 @@ test("a schema 3 saved wall plan stays byte-identical until a successful metadat
   await page.getByRole("tab", { name: "Комнаты", exact: true }).click();
   await page.getByRole("button", { name: /Помещение 1/ }).click();
   const upgraded = await labelRoom(page, "Кабинет", BLUE, "other");
-  expect(upgraded.schemaVersion).toBe(10);
+  expect(upgraded.schemaVersion).toBe(11);
   expect(upgraded.wallRoomLabels).toHaveLength(1);
   expect(upgraded.walls).toEqual(fixture.walls);
   expect(upgraded.rooms).toEqual(fixture.rooms);

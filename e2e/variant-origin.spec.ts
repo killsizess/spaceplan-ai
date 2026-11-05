@@ -44,7 +44,7 @@ test("a variant keeps its source and a snapshot, and compares with it after the 
   await page.getByRole("button", { name: "Вариант", exact: true }).click();
   await expect(page.getByRole("heading", { name: VARIANT, exact: true })).toBeVisible();
   const variant = await stored(page);
-  expect(variant.schemaVersion).toBe(10);
+  expect(variant.schemaVersion).toBe(11);
   expect(variant.origin).toMatchObject({ planId: source.id, planName: SOURCE });
   expect(variant.origin!.createdAt).toMatch(/^\d{4}-\d\d-\d\dT/);
   expect(variant.origin!.snapshot.walls).toEqual(source.walls);
